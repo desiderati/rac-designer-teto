@@ -723,7 +723,7 @@ describe('fabric-canvas-document-port.ts', () => {
         editorObjectId: 'legacy-upload-1',
       }],
     });
-    expect(fetchMock).toHaveBeenCalledWith('/manus-storage/rac-designer-teto/unassigned/photos/foto.jpg', expect.objectContaining({credentials: 'include', cache: 'no-store'}));
+    expect(fetchMock).toHaveBeenCalledWith('/manus-storage/rac-designer-teto/unassigned/photos/foto.jpg', expect.objectContaining({credentials: 'include', cache: 'no-cache'}));
   });
 
   it('serializa imagem baseada em canvas sem chamar toJSON ou toDataURL na fonte viva', () => {

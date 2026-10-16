@@ -125,7 +125,8 @@ export function useCanvasViewport({
     previousHouseIdRef.current = houseId;
     skipViewportPersistenceRef.current = true;
     const storedViewport = readCanvasViewportStorage(houseId);
-    dispatch({type: 'setZoom', value: storedViewport.zoom});
+    // A troca preserva o zoom atual; apenas o deslocamento pertence à casa.
+    dispatch({type: 'setZoom', value: zoomRef.current});
     dispatch({type: 'setViewport', value: {
       x: storedViewport.viewportX,
       y: storedViewport.viewportY,

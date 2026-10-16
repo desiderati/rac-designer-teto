@@ -1,3 +1,4 @@
+import {isHouseDefinitionReady} from '@/components/construction-site/lib/house-definition.ts';
 import type {
   ConstructionSiteState,
   PersistedHouseRecord,
@@ -36,7 +37,9 @@ export function buildRacPdfExportChecklist(
     : [];
   const pilotis = activeHouse?.drawingDocument?.house?.pilotis ?? {};
 
+  const prepared = Boolean(activeHouse && isHouseDefinitionReady(activeHouse));
   const items: RacPdfExportChecklistItem[] = [
+    createChecklistItem({id: 'house-defined', label: 'Pilotis e níveis definidos', description: 'Defina os pilotis e níveis da casa antes de exportar a RAC.', severity: 'required', ok: Boolean(activeHouse && isHouseDefinitionReady(activeHouse))}),
     createChecklistItem({
       id: 'construction',
       label: 'Construção ativa',
@@ -61,9 +64,9 @@ export function buildRacPdfExportChecklist(
     createChecklistItem({
       id: 'any-view',
       label: 'Vista no canvas',
-      description: 'Ao menos uma vista da casa foi inserida no canvas.',
+      description: 'A planta existe no Canvas ou pode ser gerada a partir da definição salva.',
       severity: 'required',
-      ok: hasAnyHouseView(activeHouse),
+      ok: Boolean(prepared) || hasAnyHouseView(activeHouse),
     }),
     createChecklistItem({
       id: 'family-name',
@@ -103,9 +106,9 @@ export function buildRacPdfExportChecklist(
     createChecklistItem({
       id: 'top-view',
       label: 'Vista planta',
-      description: 'Insira a planta (vista superior) da casa no Canvas antes de gerar o PDF.',
+      description: 'Defina os pilotis e níveis para gerar a planta da RAC.',
       severity: 'required',
-      ok: getHouseViewCount(activeHouse, 'top') > 0,
+      ok: Boolean(prepared) || getHouseViewCount(activeHouse, 'top') > 0,
     }),
     createChecklistItem({
       id: 'elevation-view',

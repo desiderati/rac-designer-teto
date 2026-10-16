@@ -1,11 +1,9 @@
+import {hasDefinedPilotis} from '@/components/construction-site/lib/house-definition.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 
-type HouseExportAvailabilityReadPort = Pick<HouseReadPort, 'getViewCount'>;
+type HouseExportAvailabilityReadPort = Partial<Pick<HouseReadPort, 'getCurrentHouseType' | 'getPilotis'>>;
 
-/**
- * A RAC exige a planta materializada no Canvas. Elevações isoladas ou uma casa
- * apenas cadastrada não liberam a exportação.
- */
-export function hasHouseTopViewInsertedInCanvas(houseReadPort: HouseExportAvailabilityReadPort): boolean {
-  return houseReadPort.getViewCount('top').current > 0;
+/** A mesma definição de pilotis e níveis libera todos os pontos de exportação. */
+export function canExportDefinedHouse(houseReadPort: HouseExportAvailabilityReadPort): boolean {
+  return hasDefinedPilotis(houseReadPort.getCurrentHouseType?.() ?? null, houseReadPort.getPilotis?.() ?? {});
 }

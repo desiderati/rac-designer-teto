@@ -108,11 +108,11 @@ export function PilotiMesh({
   const topColor = data.isMaster ? PILOTI_MASTER_FILL_COLOR : COLORS.piloti;
 
   return (
-    <group position={[x, centerY, z]}>
+    <group name={pilotiId} userData={{pilotiId, isMaster: data.isMaster}} position={[x, centerY, z]}>
       {bottomVisibleHeight > 0 && (
         <mesh position={[0, -topVisibleHeight / 2, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[PILOTI_RADIUS, PILOTI_RADIUS, bottomVisibleHeight, 16]}/>
-          <meshStandardMaterial color={COLORS.pilotiLower} roughness={0.65}/>
+          <meshStandardMaterial color={data.isMaster ? PILOTI_MASTER_FILL_COLOR : COLORS.pilotiLower} roughness={0.65}/>
         </mesh>
       )}
 

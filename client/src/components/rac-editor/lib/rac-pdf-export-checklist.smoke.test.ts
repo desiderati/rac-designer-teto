@@ -34,6 +34,7 @@ describe('rac-pdf-export-checklist.ts', () => {
 
     expect(checklist.hasBlockingItems).toBe(true);
     expect(checklist.missingRequiredItems.map((item) => item.id)).toEqual([
+      'house-defined',
       'construction',
       'house',
       'house-drawing',
@@ -79,20 +80,23 @@ describe('rac-pdf-export-checklist.ts', () => {
 
     expect(checklist.hasBlockingItems).toBe(true);
     expect(checklist.missingRequiredItems.map((item) => item.id)).toEqual([
+      'house-defined',
       'house-drawing',
       'any-view',
       'top-view',
     ]);
   });
 
-  it('bloqueia elevações sem planta, mas permite planta sem elevações', () => {
+  it('gera planta a partir de pilotis e níveis definidos mesmo sem vista no Canvas', () => {
     const site = createCompleteConstructionSite();
     const drawing = site.houses[0].drawingDocument;
     drawing.views.top = [];
     drawing.house!.views.top = [];
     const blocked = buildRacPdfExportChecklist(site);
-    expect(blocked.missingRequiredItems.map((item) => item.id)).toEqual(['top-view']);
-    expect(blocked.missingRequiredItems[0].description).toContain('Insira a planta (vista superior)');
+    expect(blocked.hasBlockingItems).toBe(false);
+    site.houses[0].drawingDocument.house!.pilotis.piloti_0_0.nivel = NaN;
+    expect(buildRacPdfExportChecklist(site).hasBlockingItems).toBe(true);
+    site.houses[0].drawingDocument.house!.pilotis.piloti_0_0.nivel = .2;
     drawing.views.top = [{instanceId: 'top_1', viewType: 'top', payload: {}}];
     drawing.house!.views.top = [{instanceId: 'top_1'}];
     drawing.views.front = [];

@@ -244,7 +244,7 @@ export const TOAST_MESSAGES = {
   invalidJsonFile: 'Arquivo JSON inválido.',
   contraventamentoRemovedSuccessfully: 'Contraventamento removido!',
   removeOtherViewsBeforeDeletingTopView: 'Remova todas as outras vistas antes de apagar a planta.',
-  addHouseBeforePdfExport: 'Insira a planta (vista superior) da casa no Canvas antes de gerar o PDF.',
+  addHouseBeforePdfExport: 'Defina os pilotis e níveis da casa antes de gerar o PDF.',
   pdfSavedSuccessfully: 'PDF salvo com sucesso!',
   canvasRestartedSuccessfully: 'Canvas reiniciado!',
   noHouse3DToInsert: 'Nenhuma casa 3D para inserir.',

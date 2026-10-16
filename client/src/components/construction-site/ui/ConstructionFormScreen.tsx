@@ -1,3 +1,4 @@
+import {focusFirstInvalidField} from './lib/focus-invalid-field.ts';
 import {useEffect, useState} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
@@ -92,7 +93,7 @@ export function ConstructionFormScreen({
   });
 
   return (
-    <form data-testid='construction-form' className='construction-management-form w-full min-w-0 space-y-6' onSubmit={submitForm} noValidate>
+    <form data-testid='construction-form' className='construction-management-form w-full min-w-0 space-y-6' onSubmit={(event) => { const target = event.currentTarget; void submitForm(event).then(() => focusFirstInvalidField(target)); }} noValidate>
       <div data-testid='construction-form-grid' className='space-y-5'>
         <Controller
           control={form.control}

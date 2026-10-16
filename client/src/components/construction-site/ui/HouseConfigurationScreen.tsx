@@ -1,3 +1,5 @@
+import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
+import {focusFirstInvalidField} from './lib/focus-invalid-field.ts';
 import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {type KeyboardEvent, type ReactNode, useEffect, useRef, useState} from 'react';
 import {Controller, type Control, useForm} from 'react-hook-form';
@@ -108,8 +110,8 @@ export function HouseConfigurationScreen({
           : sectionHasError('terrainPhotos')
             ? 'section-05'
             : sectionHasError('locationQuery')
-              ? 'section-06'
-              : sectionHasError(...HOUSE_EXTRA_MATERIAL_FIELDS) ? 'section-07' : undefined;
+              ? 'section-07'
+              : sectionHasError(...HOUSE_EXTRA_MATERIAL_FIELDS) ? 'section-06' : undefined;
 
   useEffect(() => {
     if (lastFormSourceKey.current === formSourceKey) return;
@@ -193,7 +195,7 @@ export function HouseConfigurationScreen({
     <form
       data-testid='house-configuration-form'
       className='construction-management-form grid min-w-0 gap-6 sm:grid-cols-[220px_minmax(0,1fr)]'
-      onSubmit={submitForm}
+      onSubmit={(event) => { const target = event.currentTarget; void submitForm(event).then(() => focusFirstInvalidField(target)); }}
       noValidate
     >
       <HouseConfigurationSidebar constructionSite={constructionSite}/>
@@ -601,28 +603,29 @@ export function HouseConfigurationScreen({
 }
 
 export function HouseConfigurationSidebar({constructionSite}: { constructionSite: ConstructionSiteState }) {
+  const isMobile = useIsMobile();
   const code = constructionSite.constructionSite.externalCode?.trim() || 'Sem código';
   const communityLabel = getConstructionSiteCommunityName(constructionSite) ?? 'Sem comunidade';
   const constructionDateLabel = formatDateOnly(constructionSite.constructionSite.constructionDate);
 
   return (
-    <aside className='h-fit rounded-2xl border border-slate-200 bg-slate-50 p-4 lg:sticky lg:top-4'>
+    <aside className='relative h-fit rounded-2xl border border-slate-200 bg-slate-50 p-4 lg:sticky lg:top-4'>
       {constructionSite.constructionSite.photoDataUrl ? (
         <ProtectedImage
           src={constructionSite.constructionSite.photoDataUrl}
           alt={`Foto da construção ${code}`}
-          className='h-28 w-full rounded-xl object-cover'
+          className='h-[140px] w-full rounded-xl object-cover min-[768px]:h-28'
         />
       ) : (
         <span
           role='img'
           aria-label={`Foto da construção ${code}`}
-          className='grid h-28 w-full place-items-center rounded-xl bg-slate-900 text-lg font-bold text-white'
+          className='grid h-[140px] w-full min-[768px]:h-28 place-items-center rounded-xl bg-slate-900 text-lg font-bold text-white'
         >
           {getConstructionInitials(code)}
         </span>
       )}
-      <dl className='mt-4 space-y-3'>
+      {isMobile ? <div className='pointer-events-none absolute inset-x-4 top-4 flex h-[140px] flex-col justify-between rounded-xl bg-gradient-to-b from-black/50 via-transparent to-black/60 p-2 text-xs font-semibold text-white' aria-label='Informações da construção'><div className='flex items-start justify-between gap-2'><span>{code}</span><time>{constructionDateLabel}</time></div><span className='break-words text-center'>{communityLabel}</span></div> : <dl className='mt-4 space-y-3'>
         <div>
           <dt className='text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400'>Código da CC</dt>
           <dd className='mt-1 text-sm font-semibold text-slate-950'>{code}</dd>
@@ -641,7 +644,7 @@ export function HouseConfigurationSidebar({constructionSite}: { constructionSite
           <dt className='text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400'>Data da Construção</dt>
           <dd className='mt-1 text-sm font-medium leading-5 text-slate-600'>{constructionDateLabel}</dd>
         </div>
-      </dl>
+      </dl>}
     </aside>
   );
 }

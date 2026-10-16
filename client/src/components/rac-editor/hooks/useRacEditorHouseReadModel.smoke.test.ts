@@ -1,3 +1,4 @@
+import {definedPilotis} from '@/test/defined-pilotis.ts';
 import {createElement, type ReactNode} from 'react';
 import {renderHook} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
@@ -21,7 +22,7 @@ function createPortsWithViewCounts(insertedViews: Partial<Record<HouseViewType, 
       getCurrentHouseType: vi.fn((): HouseType => 'tipo6'),
       getFamilyName: vi.fn(() => 'Família Teste'),
       getSelectedPilotiHeights: vi.fn(() => [1, 1.5, 2]),
-      getPilotis: vi.fn(() => ({})),
+      getPilotis: vi.fn(definedPilotis),
       getViewCount: vi.fn((viewType: HouseViewType) => ({
         current: insertedViews[viewType] ?? 0,
         max: 1,
@@ -44,7 +45,7 @@ describe('useRacEditorHouseReadModel.ts', () => {
     expect(result.current.canExportPDF).toBe(true);
   });
 
-  it('mantém exportação bloqueada quando nenhuma vista de casa foi registrada', () => {
+  it('libera exportação da definição salva mesmo sem vistas no Canvas', () => {
     const ports = createPortsWithViewCounts({});
 
     const {result} = renderHook(
@@ -52,6 +53,6 @@ describe('useRacEditorHouseReadModel.ts', () => {
       {wrapper: createWrapper(ports)},
     );
 
-    expect(result.current.canExportPDF).toBe(false);
+    expect(result.current.canExportPDF).toBe(true);
   });
 });

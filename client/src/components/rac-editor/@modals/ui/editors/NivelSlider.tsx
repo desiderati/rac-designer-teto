@@ -142,7 +142,7 @@ export function NivelSlider({
   const modeLabel = autoMode ? 'automático' : 'manual';
 
   return (
-    <div className='space-y-4'>
+    <div className={cn('space-y-4', disabled && 'opacity-60')}>
       <div className='text-center'>
         <div className='flex items-center justify-center gap-2'>
           {showModeButton &&

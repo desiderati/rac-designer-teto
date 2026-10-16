@@ -44,7 +44,7 @@ function clickLatestToastAction() {
 describe('PwaUpdateProvider', () => {
   beforeEach(() => {
     vi.stubEnv('PROD', true);
-    Object.defineProperty(navigator, 'serviceWorker', {configurable: true, value: {}});
+    Object.defineProperty(navigator, 'serviceWorker', {configurable: true, value: new EventTarget()});
     pwaMocks.onNeedRefresh = null;
     pwaMocks.onNeedReload = null;
     pwaMocks.updateSW.mockClear();
@@ -76,7 +76,32 @@ describe('PwaUpdateProvider', () => {
       expect(notice.description).toContain('Atualize quando');
     });
     act(clickLatestToastAction);
-    expect(pwaMocks.updateSW).toHaveBeenCalledWith(true);
+    expect(pwaMocks.updateSW).toHaveBeenCalledWith(false);
+  });
+
+  it('A-019 informa falha de ativação e volta a oferecer a atualização', async () => {
+    render(<PwaUpdateProvider><SafetyReporter syncStatus='synced'/></PwaUpdateProvider>);
+    await waitFor(() => expect(pwaMocks.registerSW).toHaveBeenCalledOnce());
+    act(() => pwaMocks.onNeedRefresh?.());
+    await waitFor(() => expect(toast).toHaveBeenCalled());
+    pwaMocks.updateSW.mockRejectedValueOnce(new Error('worker indisponível'));
+    act(clickLatestToastAction);
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Não foi possível atualizar agora. Tente novamente.'));
+    expect(vi.mocked(toast).mock.calls.length).toBeGreaterThan(1);
+  });
+
+  it('A-019 recarrega uma única vez quando o worker assume o controle após Atualizar agora', async () => {
+    const reloadPage = vi.fn();
+    render(<PwaUpdateProvider reloadPage={reloadPage}><SafetyReporter syncStatus='synced'/></PwaUpdateProvider>);
+    await waitFor(() => expect(pwaMocks.registerSW).toHaveBeenCalledOnce());
+    act(() => pwaMocks.onNeedRefresh?.());
+    await waitFor(() => expect(toast).toHaveBeenCalled());
+    act(clickLatestToastAction);
+    expect(reloadPage).not.toHaveBeenCalled();
+    act(() => navigator.serviceWorker.dispatchEvent(new Event('controllerchange')));
+    expect(reloadPage).toHaveBeenCalledOnce();
+    act(() => pwaMocks.onNeedReload?.());
+    expect(reloadPage).toHaveBeenCalledOnce();
   });
 
   it('mostra o aviso quando outra aba ativa a nova versão', async () => {

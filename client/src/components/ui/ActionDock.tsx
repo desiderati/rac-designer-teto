@@ -24,7 +24,7 @@ export type ActionDockProps = {
 
 const SURFACE_CLASSES: Record<ActionDockSurface, { mobile: string; desktop: string }> = {
   form: {
-    mobile: 'fixed inset-x-0 bottom-0 z-20 mt-12 grid min-w-[420px] gap-4 bg-white/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm',
+    mobile: 'fixed inset-x-0 bottom-0 z-20 mt-12 grid min-w-[360px] gap-4 bg-white/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm',
     desktop: 'sm:static sm:mx-0 sm:w-full sm:min-w-0 sm:bg-transparent sm:px-0 sm:py-0 md:grid-cols-2',
   },
   dialog: {

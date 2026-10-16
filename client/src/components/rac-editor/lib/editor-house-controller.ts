@@ -463,6 +463,12 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
     return this.constructionSites.getHouseFieldAnalysis(siteId, houseId);
   }
 
+  resetHouseDefinition(houseId: string): void {
+    this.constructionSiteSession.resetHouseDefinition(houseId);
+    this.loadHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+    this.notify();
+  }
+
   saveHouseFieldAnalysis(siteId: string, houseId: string, draft: import('@/shared/types/house-field-analysis.ts').HouseFieldAnalysisDraft): void {
     this.constructionSites.saveHouseFieldAnalysis(siteId, houseId, draft);
   }

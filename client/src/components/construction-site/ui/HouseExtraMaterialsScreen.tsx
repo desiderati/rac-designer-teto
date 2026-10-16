@@ -1,3 +1,4 @@
+import {focusFirstInvalidField} from './lib/focus-invalid-field.ts';
 import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {useEffect, useRef} from 'react';
 import {useForm} from 'react-hook-form';
@@ -58,7 +59,7 @@ export function HouseExtraMaterialsScreen({
     <form
       data-testid='house-extra-materials-form'
       className='construction-management-form grid min-w-0 gap-6 sm:grid-cols-[220px_minmax(0,1fr)]'
-      onSubmit={submitForm}
+      onSubmit={(event) => { const target = event.currentTarget; void submitForm(event).then(() => focusFirstInvalidField(target)); }}
       noValidate
     >
       <HouseExtraMaterialsSidebar constructionSite={constructionSite} house={house}/>

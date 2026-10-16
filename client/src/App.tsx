@@ -1,3 +1,4 @@
+import {RouteMetadata} from './components/RouteMetadata.tsx';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -14,6 +15,7 @@ const App = () => (
       <Toaster/>
       <Sonner/>
       <BrowserRouter>
+        <RouteMetadata/>
         <Routes>
           <Route path='/' element={<Index/>}/>
           <Route path='*' element={<NotFound/>}/>

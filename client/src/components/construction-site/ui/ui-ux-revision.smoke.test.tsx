@@ -59,7 +59,7 @@ describe('Revisão UI/UX dos formulários e listagens', () => {
 
   it('mostra resumo da casa correspondente ao foco e ao toque', async () => {
     render(<HouseMaterialsSummary familyName='Família teste' materials={{gutterCount: 4, asphaltBlanket: true, stairType: 'access_ramp'}}/>);
-    const trigger = screen.getByRole('button', {name: 'Resumo dos materiais extras da casa Família teste'});
+    const trigger = screen.getByRole('button', {name: 'Resumo da Casa de Família teste'});
     fireEvent.click(trigger);
     const tooltip = await screen.findByRole('tooltip');
     expect(within(tooltip).getByText('Calhas')).toBeInTheDocument();
@@ -100,7 +100,7 @@ describe('Revisão UI/UX dos formulários e listagens', () => {
 
   it.each([['straight', 'Reta'], ['landing', 'Com Patamar']] as const)('abrevia %s no resumo sem alterar o valor salvo', async (stairType, label) => {
     render(<HouseMaterialsSummary familyName='Família teste' materials={{stairType}}/>);
-    const trigger = screen.getByRole('button', {name: /Resumo dos materiais extras/});
+    const trigger = screen.getByRole('button', {name: /Resumo da Casa/});
     await userEvent.click(trigger);
     const tooltip = await screen.findByRole('tooltip');
     expect(within(tooltip).getByText(label)).toBeVisible();
@@ -133,7 +133,7 @@ describe('Revisão UI/UX dos formulários e listagens', () => {
     expect(within(table).getByRole('columnheader', {name: 'Última RAC Exportada'})).toBeInTheDocument();
     expect(within(table).getByTestId('house-table-type')).toHaveTextContent('Tipo 6 •');
     expect(within(table).getByTestId('house-table-type')).toContainElement(within(table).getByTestId('house-table-updated-at'));
-    const summary = within(table).getByRole('button', {name: 'Resumo dos materiais extras da casa Família teste'});
+    const summary = within(table).getByRole('button', {name: 'Resumo da Casa de Família teste'});
     fireEvent.keyDown(summary, {key: 'Enter'});
     expect(openHouse).not.toHaveBeenCalled();
   });

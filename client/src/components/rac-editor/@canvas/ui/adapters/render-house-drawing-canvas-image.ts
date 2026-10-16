@@ -1,3 +1,6 @@
+import {createConfiguredHouseViewGroup} from '../../lib/house-view-groups.ts';
+import {refreshTopDoorMarkersInViews} from '../../lib/house-top-view-door-marker.ts';
+import {applyFieldAnalysisContraventamentos} from '../../lib/field-analysis-contraventamentos.ts';
 import {Canvas as FabricCanvas} from 'fabric';
 import type {PersistedHouseRecord} from '@/shared/types/construction-site.ts';
 import {CANVAS_STYLE} from '@/shared/config.ts';
@@ -90,6 +93,16 @@ async function renderHouseDrawingCanvasImageDataUrlUncached(house: PersistedHous
     const loaded = await port.loadCanvasDocument(sanitized.document);
     if (!loaded) {
       throw new Error('Documento visual da casa inválido.');
+    }
+    if (house.drawingDocument.house) port.applyHouseDefinition?.(house.drawingDocument.house, house.fieldAnalysis?.status === 'prepared' ? house.fieldAnalysis.contraventamentos : undefined);
+
+    if (house.houseType && Object.values(house.drawingDocument.house?.pilotis ?? {}).some((point) => point.isMaster) && !canvas.getObjects().some((object) => (object as {myType?: string}).myType === 'house')) {
+      const group = createConfiguredHouseViewGroup({canvas, viewType: 'top', instanceId: 'prepared-rac-top', pilotis: house.drawingDocument.house.pilotis, terrainType: house.terrainType});
+      refreshTopDoorMarkersInViews({houseType: house.houseType, sideMappings: house.drawingDocument.house.sideMappings, preAssignedSides: house.drawingDocument.house.preAssignedSides, topViews: [{instanceId: 'prepared-rac-top', group}]});
+      applyFieldAnalysisContraventamentos(group, house.fieldAnalysis?.contraventamentos ?? []);
+      group.set({left: CANVAS_WIDTH / 2, top: CANVAS_HEIGHT / 2});
+      canvas.add(group);
+      canvas.requestRenderAll();
     }
 
     const capture = port.exportSafeImageDataUrlWithStatus

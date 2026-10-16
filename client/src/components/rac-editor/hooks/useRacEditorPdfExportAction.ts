@@ -22,6 +22,8 @@ import {
 } from '@/components/rac-editor/lib/rac-pdf-export-checklist.ts';
 import {requestChunkRecovery, recordPdfExportTelemetry} from '@/shared/lib/runtime-resilience.ts';
 import {cacheRacPdf, getCachedRacPdf, getRacPdfFingerprint} from '@/components/rac-editor/lib/rac-pdf-cache.ts';
+import {withPreparedHouseRacView} from '../lib/prepared-house-rac.ts';
+import {renderHouseDrawingCanvasImageDataUrl} from '../@canvas/ui/adapters/render-house-drawing-canvas-image.ts';
 import {
   getHouse3DViewerPreferencesStorageKey,
   readHouse3DViewerPreferences,
@@ -101,7 +103,7 @@ export function useRacEditorPdfExportAction({
     if (canExportPdf && !canExportPdf() && !checklist.missingRequiredItems.some((item) => item.id === 'top-view')) {
       const runtimeItem = {
         id: 'canvas-view-runtime',
-        label: 'Vista planta no Canvas',
+        label: 'Pilotis e níveis definidos',
         description: TOAST_MESSAGES.addHouseBeforePdfExport,
         severity: 'required' as const,
         status: 'missing' as const,
@@ -190,7 +192,11 @@ export function useRacEditorPdfExportAction({
       const canvasPort = canvasRef.current?.createDocumentPort();
       let canvasImageDataUrl: string | null = null;
       let hasOmittedRasterSources = false;
-      if (canvasPort?.exportSafeImageDataUrlWithStatus) {
+      if (house && !house.drawingDocument.house?.views.top.length) {
+        const capture = await renderHouseDrawingCanvasImageDataUrl(house);
+        canvasImageDataUrl = capture.imageDataUrl;
+        hasOmittedRasterSources = capture.hasOmittedRasterSources;
+      } else if (canvasPort?.exportSafeImageDataUrlWithStatus) {
         const capture = await canvasPort.exportSafeImageDataUrlWithStatus();
         canvasImageDataUrl = capture.imageDataUrl;
         hasOmittedRasterSources = capture.hasOmittedRasterSources;
@@ -229,7 +235,7 @@ export function useRacEditorPdfExportAction({
                 selectedPilotiHeights: [...house.designSettings.selectedPilotiHeights],
               },
               house: {
-                ...house.drawingDocument.house,
+                ...withPreparedHouseRacView(house).drawingDocument.house,
                 id: house.id,
                 houseType: house.houseType,
                 terrainType: house.terrainType,

@@ -92,7 +92,7 @@ describe('ImageUploadReview', () => {
 
     await waitFor(() => expect(screen.getByText('Confira a imagem e escolha como deseja enviá-la.')).toBeVisible());
     expect(screen.getByRole('dialog')).toBeVisible();
-    expect(screen.getByRole('dialog')).toHaveClass('min-w-[420px]');
+    expect(screen.getByRole('dialog')).toHaveClass('min-w-[360px]');
     expect(screen.getByTestId('image-upload-review-actions')).toHaveClass('sticky', 'bottom-0', 'w-full');
   });
 

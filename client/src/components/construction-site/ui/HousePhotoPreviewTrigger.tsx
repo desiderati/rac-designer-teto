@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
-import {ArrowUpRight, LoaderCircle, Menu, RotateCw, X} from 'lucide-react';
+import {PanelsTopLeft, LoaderCircle, Menu, RotateCw, X} from 'lucide-react';
 import {HoverCard, HoverCardContent, HoverCardTrigger} from '@/components/ui/hover-card.tsx';
 import {
   Dialog,
@@ -214,7 +214,7 @@ export function HousePhotoPreviewTrigger({
                   id='house-canvas-preview-actions'
                   role='menu'
                   data-testid='house-canvas-preview-actions'
-                  className='order-2 flex min-w-44 flex-col gap-1 rounded-2xl border border-white/80 bg-white/95 p-1.5 text-slate-700 shadow-xl backdrop-blur-md'
+                  className='order-2 flex w-52 flex-col rounded-xl border border-slate-200 bg-white/95 p-1 text-slate-700 shadow-xl backdrop-blur-md'
                   onClick={(event) => event.stopPropagation()}
                 >
                   {onOpenCanvas ? (
@@ -223,13 +223,13 @@ export function HousePhotoPreviewTrigger({
                       role='menuitem'
                       aria-label='Ir pro Canvas'
                       title='Ir pro Canvas'
-                      className='inline-flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50 hover:text-blue-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400'
+                      className='inline-flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50 hover:text-blue-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400'
                       onClick={(event) => {
                         event.stopPropagation();
                         void handleOpenCanvas();
                       }}
                     >
-                      <ArrowUpRight className='h-4 w-4 shrink-0' aria-hidden='true'/>
+                      <PanelsTopLeft className='h-4 w-4 shrink-0' aria-hidden='true'/>
                       <span>Ir pro Canvas</span>
                     </button>
                   ) : null}
@@ -238,7 +238,7 @@ export function HousePhotoPreviewTrigger({
                     role='menuitem'
                     aria-label='Fechar Modal'
                     title='Fechar Modal'
-                    className='inline-flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400'
+                    className='inline-flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400'
                     onClick={(event) => {
                       event.stopPropagation();
                       handleClosePreview();
@@ -260,7 +260,7 @@ export function HousePhotoPreviewTrigger({
                   setActionMenuOpen((open) => !open);
                 }}
               >
-                {actionMenuOpen ? <X className='h-5 w-5' aria-hidden='true'/> : <Menu className='h-5 w-5' aria-hidden='true'/>}
+                <Menu className='h-5 w-5' aria-hidden='true'/>
               </button>
             </div>
           </div>

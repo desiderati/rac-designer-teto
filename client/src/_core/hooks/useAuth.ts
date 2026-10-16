@@ -1,3 +1,4 @@
+import {clearProtectedImageCache, setProtectedImageIdentity} from '@/shared/lib/protected-image.ts';
 import { clearLoginLock, startLogin } from '@/const';
 import { trpc } from '@/lib/trpc';
 import { TRPCClientError } from '@trpc/client';
@@ -23,6 +24,8 @@ export function useAuth(options?: UseAuthOptions) {
     refetchOnWindowFocus: false,
   });
 
+  useEffect(() => { setProtectedImageIdentity(meQuery.data?.id); }, [meQuery.data?.id]);
+
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => {
       utils.auth.me.setData(undefined, null);
@@ -42,6 +45,8 @@ export function useAuth(options?: UseAuthOptions) {
       throw error;
     } finally {
       clearLoginLock();
+      clearProtectedImageCache();
+      setProtectedImageIdentity(null);
       // Clear the Preview auto-login token mirrored into sessionStorage, so
       // header-based sessions (Safari ITP / WebView) are logged out too. The
       // backend cookie is cleared by the logout mutation.

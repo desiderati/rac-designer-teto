@@ -42,7 +42,7 @@ export function RacEditor() {
   }, []);
 
   useEffect(() => {
-    const updateViewportWarning = () => setIsViewportTooNarrow(window.innerWidth < 420);
+    const updateViewportWarning = () => setIsViewportTooNarrow(window.innerWidth < 360);
     updateViewportWarning();
     window.addEventListener('resize', updateViewportWarning);
     return () => window.removeEventListener('resize', updateViewportWarning);
@@ -143,7 +143,7 @@ function MinimumViewportWarning({
       className='pointer-events-none fixed inset-x-3 top-3 z-[1200] mx-auto flex max-w-md items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/95 px-4 py-3 pl-11 text-center text-sm font-medium text-amber-950 shadow-lg backdrop-blur-sm relative'
     >
       <p className='flex-1'>
-        Para uma experiência confortável, aumente a janela para pelo menos 420 px de largura ou gire o dispositivo.
+        Para uma experiência confortável, aumente a janela para pelo menos 360 px de largura ou gire o dispositivo.
       </p>
       <button
         type='button'
@@ -417,7 +417,7 @@ function RacEditorEntryPoint({onLogout}: {onLogout: () => Promise<void>}) {
           onDocumentSaveStatusChange={setDocumentSaveStatus}
         />
       ) : (
-        <div className='rac-min-width-shell relative h-full min-h-[480px] min-w-[420px] w-full overflow-hidden' style={CANVAS_WORKSPACE_STYLE}>
+        <div className='rac-min-width-shell relative h-full min-h-[480px] min-w-[360px] w-full overflow-hidden' style={CANVAS_WORKSPACE_STYLE}>
           <ConstructionSiteManagementPanel
             {...constructionSiteManagement}
             hasRemoteSyncConflict={Boolean(syncConflict)}

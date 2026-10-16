@@ -417,7 +417,7 @@ export function ConstructionSiteManagementPanel({
   return (
     <main
       data-testid='construction-management-shell'
-      className='rac-min-width-shell h-full min-h-[480px] min-w-[420px] w-full overflow-x-hidden overflow-y-auto px-0 py-0 sm:px-6 sm:py-10 lg:px-10'
+      className='rac-min-width-shell h-full min-h-[480px] min-w-[360px] w-full overflow-x-hidden overflow-y-auto px-0 py-0 sm:px-6 sm:py-10 lg:px-10'
       style={GRIDDED_WORKSPACE_STYLE}
     >
       <div
@@ -596,6 +596,7 @@ export function ConstructionSiteManagementPanel({
               activeHouse={navigation.activeHouse}
               onEditHouse={navigation.openHouseDetail}
               onOpenHouseCanvas={openHouseCanvasFromPreview}
+              onResetHouse={actions.resetHouseDefinition}
               onOpenHouseFieldAnalysis={async (houseId) => {
                 try { await navigation.openHouseFieldAnalysis(houseId); }
                 catch (error) { toast.error(error instanceof Error ? error.message : 'Não foi possível abrir a Análise de Campo.'); }
@@ -619,6 +620,11 @@ export function ConstructionSiteManagementPanel({
             onSave={(draft) => actions.saveHouseFieldAnalysis(
               constructionSite.constructionSite.id, navigation.selectedHouse!.id, draft,
             )}
+            onOpenCanvas={onBackToCanvas ? async () => {
+              await navigation.closeHouseFieldAnalysis();
+              await actions.activateHouse(constructionSite.constructionSite.id, navigation.selectedHouse!.id);
+              onBackToCanvas(true);
+            } : undefined}
             onBack={navigation.closeHouseFieldAnalysis}
           />
         ) : null}

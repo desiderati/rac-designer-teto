@@ -1,3 +1,4 @@
+import {withPreparedHouseRacView} from '@/components/rac-editor/lib/prepared-house-rac.ts';
 import {type RefObject, useCallback, useEffect, useState} from 'react';
 import {toast} from '@/components/ui/sonner.tsx';
 import {jsPDF} from 'jspdf';
@@ -39,7 +40,8 @@ interface UseConstructionSiteManagementControllerArgs {
   canvasRef?: RefObject<(CanvasDocumentHandle & CanvasHistoryHandle) | null>;
 }
 
-function renderPersistedHouse3D(house: PersistedHouseRecord) {
+function renderPersistedHouse3D(persisted: PersistedHouseRecord) {
+  const house = withPreparedHouseRacView(persisted);
   if (!house.drawingDocument.house) return Promise.resolve(null);
   return renderHouse3DPdfSnapshotImageDataUrl({
     documentType: HOUSE_DRAWING_DOCUMENT_TYPE,
@@ -320,23 +322,6 @@ export function useConstructionSiteManagementController({
     constructionSiteManagementPort.prepareRacEditorOpening()
   ), [constructionSiteManagementPort]);
 
-  const reloadActiveHouseDrawing = useCallback(async () => {
-    const document = constructionSiteManagementPort.getActiveHouseDrawingDocument();
-    if (!document) {
-      toast.error('Não foi possível recarregar o desenho porque nenhuma casa está ativa.');
-      return false;
-    }
-
-    const loaded = await loadHouseDocument(document);
-    if (loaded) {
-      toast.success('Desenho da casa recarregado.');
-      return true;
-    }
-
-    toast.error('O desenho ainda não pôde ser carregado. Tente novamente em instantes.');
-    return false;
-  }, [constructionSiteManagementPort, loadHouseDocument]);
-
   void version;
   const constructionSite = constructionSiteManagementPort.getConstructionSiteSnapshot();
   const constructionSiteSnapshots = constructionSiteManagementPort.getConstructionSiteSnapshots();
@@ -355,9 +340,9 @@ export function useConstructionSiteManagementController({
     acknowledgeActiveHouseDocumentSaved,
     loadHouseDocument,
     hydrateActiveHouseDocument,
-    reloadActiveHouseDrawing,
     prepareRacEditorOpening,
     actions: {
+      resetHouseDefinition: (houseId: string) => runDocumentMutation(() => constructionSiteManagementPort.resetHouseDefinition(houseId)),
       openHouseFieldAnalysis,
       saveHouseFieldAnalysis,
       closeHouseFieldAnalysis: resumeAfterFieldAnalysis,

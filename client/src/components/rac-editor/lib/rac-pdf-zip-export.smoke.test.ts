@@ -1,3 +1,4 @@
+import {definedPilotis} from '@/test/defined-pilotis.ts';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import JSZip from 'jszip';
 import type {ConstructionSiteState, PersistedHouseRecord} from '@/shared/types/construction-site.ts';
@@ -67,7 +68,7 @@ describe('rac-pdf-zip-export.ts', () => {
     await expect(buildRacPdfHouseExport({
       constructionSite, houseId: 'house_1', jsPDF: vi.fn() as never,
       renderCanvasImageDataUrl, renderHouse3DImageDataUrl,
-    })).rejects.toThrow('Insira a planta (vista superior)');
+    })).rejects.toThrow('Defina os pilotis e níveis');
     expect(renderCanvasImageDataUrl).not.toHaveBeenCalled();
     expect(renderHouse3DImageDataUrl).not.toHaveBeenCalled();
     expect(zipExportMocks.createRacPdfReportDocument).not.toHaveBeenCalled();
@@ -86,12 +87,12 @@ describe('rac-pdf-zip-export.ts', () => {
     });
     expect(result.exportedHouseIds).toEqual(['house_3']);
     expect(result.failures).toEqual([expect.objectContaining({
-      houseId: 'house_1', message: expect.stringContaining('Insira a planta (vista superior)'),
+      houseId: 'house_1', message: expect.stringContaining('Defina os pilotis e níveis'),
     })]);
     expect(renderCanvasImageDataUrl).toHaveBeenCalledTimes(1);
     expect(renderCanvasImageDataUrl).toHaveBeenCalledWith(constructionSite.houses[2]);
     const zip = await JSZip.loadAsync(result.blob);
-    expect(await zip.file('ERROS_EXPORTACAO_RACS.txt')!.async('string')).toContain('Insira a planta');
+    expect(await zip.file('ERROS_EXPORTACAO_RACS.txt')!.async('string')).toContain('Defina os pilotis e níveis');
   });
 
   it('gera ZIP apenas com casas não arquivadas, incluindo construídas', async () => {
@@ -337,7 +338,7 @@ function createHouse(
     drawingDocument: {
       schemaVersion: 1,
       house: {
-        id: `drawing_${id}`, houseType: 'tipo6', terrainType: 1, pilotis: {},
+        id: `drawing_${id}`, houseType: 'tipo6', terrainType: 1, pilotis: definedPilotis(),
         views: {top: [{instanceId: `top_${id}`}], front: [], back: [], side1: [], side2: []},
         sideMappings: {top: null, bottom: null, left: null, right: null},
         preAssignedSides: {},

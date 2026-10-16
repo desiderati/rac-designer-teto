@@ -1,4 +1,6 @@
 import type {HouseDrawingCanvasDocument} from '@/shared/types/house-drawing-document.ts';
+import type {HouseState} from '@/shared/types/house.ts';
+import type {FieldContraventamentoDefinition} from '@/shared/types/house-field-analysis.ts';
 
 /**
  * Porta documental do canvas.
@@ -14,6 +16,8 @@ export interface CanvasDocumentPort {
    * Retorna `false` quando o documento não é aceito pela implementação visual.
    */
   loadCanvasDocument(document: HouseDrawingCanvasDocument): Promise<boolean>;
+  /** Projeta a definição atual sem alterar posições das vistas nem objetos independentes. */
+  applyHouseDefinition?(house: HouseState, pendingBraces?: FieldContraventamentoDefinition[]): void;
 
   /**
    * Exporta o documento visual canônico do canvas.

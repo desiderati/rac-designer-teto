@@ -84,6 +84,8 @@ export function useHouseDocumentLifecycle({
         // atual.
         return false;
       }
+      const record = constructionSiteManagementPort.getConstructionSiteSnapshot()?.houses.find((house) => house.id === document.house.id);
+      documentPort.applyHouseDefinition?.(document.house, record?.fieldAnalysis?.status === 'prepared' ? record.fieldAnalysis.contraventamentos : undefined);
 
       // O estado canônico precisa ser importado somente depois que a porta
       // visual concluir a limpeza/restauração. Assim, uma troca ou retry não

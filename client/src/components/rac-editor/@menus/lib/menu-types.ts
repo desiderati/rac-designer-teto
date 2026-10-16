@@ -42,7 +42,7 @@ export interface MenuActionMap {
   toggleZoomControls: () => void;
   open3DViewer: () => void;
   /** Reidrata o desenho persistido sem apagar o documento atual. */
-  reloadDrawing?: () => void | Promise<boolean>;
+  redefineHouse?: () => void | Promise<void>;
   toggleMenu: () => void;
   restartDrawing: () => void;
   openSettings?: () => void;

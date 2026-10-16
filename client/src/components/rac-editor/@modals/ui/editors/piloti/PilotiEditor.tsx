@@ -156,14 +156,14 @@ export function PilotiEditor({
       presentation={presentation}
       header={
         <div className='flex items-center gap-3'>
-          <PilotiGridIcon
+          {presentation !== 'inline' ? <PilotiGridIcon
             selectedPiloti={pilotiName}
             masterPiloti={masterPilotiName}
-            className='w-16 h-12 flex-shrink-0'/>
+            className='w-16 h-12 flex-shrink-0'/> : null}
 
           <span className='font-bold text-2xl flex-1 text-center'>Piloti {pilotiName}</span>
 
-          <div className='flex items-center gap-1 select-none'>
+          {presentation !== 'inline' ? <div className='flex items-center gap-1 select-none'>
             <Button
               variant='outline'
               size='icon'
@@ -183,7 +183,7 @@ export function PilotiEditor({
               className='h-8 w-8 rounded-full bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'>
               <FontAwesomeIcon icon={faChevronRight} className='h-3 w-3'/>
             </Button>
-          </div>
+          </div> : null}
         </div>
       }
       cardContent={

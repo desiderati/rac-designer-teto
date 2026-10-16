@@ -1,3 +1,5 @@
+import {MobileRadialMenu} from '@/components/rac-editor/ui/MobileRadialMenu.tsx';
+import {useCanvasMobileViewport} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
 import {PointerEvent, ReactElement, useEffect, useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
@@ -43,13 +45,14 @@ export function CanvasToolsMenu({
   isMobile,
   disabled = false,
 }: CanvasToolsMenuProps) {
+  const {landscape} = useCanvasMobileViewport();
   const houseMenuItems = houseType ? HOUSE_MENU_CONFIG[houseType] : [];
   const isHouseMenuOpen = activeSubmenu === 'house' && !!houseType;
   const isToolbarCollapseViewport = useToolbarCollapseViewport();
   const shouldDefaultCollapse = usePhoneToolbarCollapseViewport();
   const [collapsedOverride, setCollapsedOverride] = useState<boolean | null>(null);
   const shouldShowMobileHandle = isMobile && isToolbarCollapseViewport;
-  const isCollapsed = shouldShowMobileHandle && (collapsedOverride ?? shouldDefaultCollapse);
+  const isCollapsed = !landscape && shouldShowMobileHandle && (collapsedOverride ?? shouldDefaultCollapse);
   const dragStartXRef = useRef<number | null>(null);
   const didDragRef = useRef(false);
 
@@ -79,7 +82,7 @@ export function CanvasToolsMenu({
     setCollapsedOverride((current) => !(current ?? shouldDefaultCollapse));
   };
 
-  const mobileHandle = shouldShowMobileHandle ? (
+  const mobileHandle = !landscape && shouldShowMobileHandle ? (
     <button
       type='button'
       aria-label={isCollapsed ? 'Abrir menu lateral' : 'Recolher menu lateral'}
@@ -95,7 +98,7 @@ export function CanvasToolsMenu({
       )}
     >
       <span
-        className='block h-16 w-1.5 rounded-full bg-slate-400/70 border border-white/70 shadow-sm'
+        className='block h-16 w-3 rounded-full bg-slate-400/70 border border-white/70 shadow-sm'
         aria-hidden
       />
     </button>
@@ -108,7 +111,7 @@ export function CanvasToolsMenu({
   return (
     <>
       {mobileHandle}
-      <aside
+      <MobileRadialMenu side='left' label='Ferramentas do Canvas'
         role='toolbar'
         className={cn(
           'fixed left-4 top-1/2 -translate-y-1/2 z-40',
@@ -230,7 +233,7 @@ export function CanvasToolsMenu({
           isDisabled={disabled}
         />
 
-        <RailDivider/>
+        {!landscape ? <RailDivider/> : null}
 
         <RailButton
           icon={MAIN_MENU_ICONS.delete}
@@ -239,7 +242,7 @@ export function CanvasToolsMenu({
           isDestructive
           isDisabled={disabled}
         />
-      </aside>
+      </MobileRadialMenu>
     </>
   );
 }

@@ -4,6 +4,7 @@ import {
   getCachedProtectedImageSource,
   isProtectedImageSource,
   resolveProtectedImageSource,
+  subscribeProtectedImage,
 } from '@/shared/lib/protected-image.ts';
 
 const TRANSPARENT_IMAGE_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
@@ -11,6 +12,7 @@ const TRANSPARENT_IMAGE_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAA
 /** Mantém imagens privadas compatíveis com sessão por cookie ou Bearer no iframe. */
 export function ProtectedImage({src, ...props}: ImgHTMLAttributes<HTMLImageElement>) {
   const [loaded, setLoaded] = useState<{source: string; data: string} | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
   const [nativeLoadFailed, setNativeLoadFailed] = useState(false);
   const [nativeLoaded, setNativeLoaded] = useState(false);
   const [loadState, setLoadState] = useState<'loading' | 'retrying' | 'loaded' | 'failed'>('loaded');
@@ -25,18 +27,22 @@ export function ProtectedImage({src, ...props}: ImgHTMLAttributes<HTMLImageEleme
     const cachedSource = getCachedProtectedImageSource(src);
     if (cachedSource) {
       setLoaded({source: src, data: cachedSource});
-      return;
+      setLoadState('loaded');
     }
 
     const controller = new AbortController();
+    const unsubscribe = subscribeProtectedImage(src, (data) => {
+      if (!controller.signal.aborted) setLoaded({source: src, data});
+    });
     let attempt = 0;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
     const retryDelays = [500, 1500, 3000];
     const load = () => {
-      setLoadState(attempt === 0 ? 'loading' : 'retrying');
+      if (!cachedSource) setLoadState(attempt === 0 ? 'loading' : 'retrying');
       void resolveProtectedImageSource(src, controller.signal).then((data) => {
         if (!controller.signal.aborted) {
           setLoaded({source: src, data});
+          setLoadState('loaded');
         }
       }).catch(() => {
         if (controller.signal.aborted) return;
@@ -51,11 +57,16 @@ export function ProtectedImage({src, ...props}: ImgHTMLAttributes<HTMLImageEleme
       });
     };
     load();
+    const revalidateTimer = window.setInterval(() => {
+      void resolveProtectedImageSource(src, controller.signal).catch(() => undefined);
+    }, 5 * 60 * 1000);
     return () => {
       controller.abort();
+      unsubscribe();
+      window.clearInterval(revalidateTimer);
       if (retryTimer) clearTimeout(retryTimer);
     };
-  }, [src, protectedSource]);
+  }, [src, protectedSource, retryKey]);
   const resolved = protectedSource
     ? loaded?.source === src
       ? loaded.data
@@ -66,14 +77,14 @@ export function ProtectedImage({src, ...props}: ImgHTMLAttributes<HTMLImageEleme
   const handleError = (event: SyntheticEvent<HTMLImageElement>) => {
     if (protectedSource && event.currentTarget.src !== TRANSPARENT_IMAGE_DATA_URL) {
       setNativeLoadFailed(true);
-      setLoadState('retrying');
+      setLoadState('failed');
     }
     props.onError?.(event);
   };
   const imageClassName = props.className;
   const isRoundThumbnail = Boolean(imageClassName && /\brounded-full\b/.test(imageClassName));
   const isReconnecting = loadState === 'retrying';
-  const showLoadingIndicator = protectedSource && (loadState === 'loading' || isReconnecting);
+  const showLoadingIndicator = protectedSource && !nativeLoaded && loaded?.source !== src && (loadState === 'loading' || isReconnecting);
   const hideUnresolvedProtectedImage = protectedSource && !nativeLoaded && loaded?.source !== src;
   return (
     <span
@@ -89,6 +100,7 @@ export function ProtectedImage({src, ...props}: ImgHTMLAttributes<HTMLImageEleme
         if (protectedSource) setLoadState('loaded');
         props.onLoad?.(event);
       }}/>
+      {loadState === 'failed' && !nativeLoaded ? <button type='button' onClick={() => setRetryKey((key) => key + 1)} className='absolute inset-0 grid place-items-center bg-slate-100 text-xs text-slate-700' aria-label='Tentar carregar imagem novamente'>Tentar novamente</button> : null}
       {showLoadingIndicator ? (
         <span
           data-testid='protected-image-loading-indicator'

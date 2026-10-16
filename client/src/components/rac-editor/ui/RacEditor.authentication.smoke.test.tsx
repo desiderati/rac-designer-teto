@@ -83,13 +83,13 @@ describe('RacEditor authentication landing', () => {
 
   it('shows a friendly warning below the minimum viewport width and allows collapsing it', async () => {
     const originalWidth = window.innerWidth;
-    Object.defineProperty(window, 'innerWidth', {configurable: true, value: 390});
+    Object.defineProperty(window, 'innerWidth', {configurable: true, value: 350});
 
     try {
       const user = userEvent.setup();
       render(<RacEditor/>);
       const warning = screen.getByTestId('minimum-viewport-warning');
-      expect(warning).toHaveTextContent('pelo menos 420 px');
+      expect(warning).toHaveTextContent('pelo menos 360 px');
       expect(warning).toHaveClass('top-3', 'max-w-md');
       expect(warning).toHaveClass('pointer-events-none');
       expect(warning).not.toHaveClass('bottom-3');

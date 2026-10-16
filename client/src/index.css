@@ -73,7 +73,10 @@
 }
 
 .toaster [data-sonner-toast] [data-icon] svg {
-    margin: 0;
+    display: block;
+    flex-shrink: 0;
+    transform: none;
+    margin: 0 !important;
 }
 
 .toaster [data-sonner-toast] [data-content] { grid-column: 2; min-width: 0; }
@@ -384,7 +387,7 @@ All colors MUST be HSL.
    surfaces. Narrow devices receive the warning and must be widened to use the
    complete application surface. */
 .rac-min-width-shell {
-    min-width: 420px;
+    min-width: 360px;
 }
 
 /* Leave scroll room for the fixed form action on full-screen mobile layouts. */
@@ -402,7 +405,7 @@ All colors MUST be HSL.
    served from Manus Storage so the repository does not carry large binaries. */
 .rac-login {
     font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-    min-width: 420px;
+    min-width: 360px;
     min-height: 100dvh;
     overflow-x: hidden;
     overflow-y: auto;
@@ -909,3 +912,5 @@ All colors MUST be HSL.
     .rac-login__eyebrow { font-size: 0.56rem; }
     .rac-login__headline h1 { font-size: 2.2rem; }
 }
+
+@keyframes rac-rotate-phone { 0%, 20% {transform: rotate(0deg);} 60%, 100% {transform: rotate(90deg);} }

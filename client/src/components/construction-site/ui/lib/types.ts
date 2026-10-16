@@ -62,6 +62,7 @@ export interface ConstructionSiteManagementActions {
   inactivateMonitor(monitorId: string): void;
   reactivateMonitor(monitorId: string): void;
   deleteInactiveMonitor(monitorId: string): void;
+  resetHouseDefinition?(houseId: string): Promise<void>;
   createHouse(input: CreateHouseInput): Promise<void>;
   duplicateActiveHouse(): Promise<void>;
   archiveActiveHouse(): Promise<void>;

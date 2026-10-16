@@ -19,7 +19,7 @@ function createActions(): MenuActionMap {
     addText: vi.fn(), openImageUpload: vi.fn(), openConstructionSites: vi.fn(), activateHouse: vi.fn().mockResolvedValue(undefined),
     deleteSelection: vi.fn(), savePDF: vi.fn(), toggleHouseMenu: vi.fn(), toggleElementsMenu: vi.fn(), toggleGeometryMenu: vi.fn(), toggleLinesMenu: vi.fn(),
     toggleOverflowMenu: vi.fn(), toggleTips: vi.fn(), toggleZoomControls: vi.fn(), open3DViewer: vi.fn(), toggleMenu: vi.fn(),
-    restartDrawing: vi.fn(), reloadDrawing: vi.fn(), exit: vi.fn(), renameFamily: vi.fn(), setCanvasToolMode: vi.fn(), fitToView: vi.fn(), fitContent: vi.fn(), openSettings: vi.fn(),
+    restartDrawing: vi.fn(), redefineHouse: vi.fn(), exit: vi.fn(), renameFamily: vi.fn(), setCanvasToolMode: vi.fn(), fitToView: vi.fn(), fitContent: vi.fn(), openSettings: vi.fn(),
   };
 }
 
@@ -65,7 +65,7 @@ describe('TopBar.tsx', () => {
     configureRemoteSync('synced');
     renderTopBar();
 
-    expect(screen.getByTestId('top-bar-layout')).toHaveClass('min-w-[420px]');
+    expect(screen.getByTestId('top-bar-layout')).toHaveClass('min-w-[360px]');
     expect(screen.getByTestId('top-bar-layout').querySelectorAll(':scope > div')).toHaveLength(3);
     expect(screen.getByRole('button', {name: 'Abrir menu principal'}).parentElement).toHaveClass('absolute');
   });
@@ -172,19 +172,20 @@ describe('TopBar.tsx', () => {
     expect(screen.queryByText('Falha de rede')).not.toBeInTheDocument();
   });
 
-  it('mantém a recarga do desenho depois do indicador de sincronização e do 3D', () => {
+  it('substitui recarga por redefinição confirmada no menu abaixo de reiniciar', async () => {
     configureRemoteSync('synced');
     const actions = createActions();
     renderTopBar({actions});
 
-    const reloadButton = screen.getByRole('button', {name: 'Recarregar desenho do Canvas'});
-    const syncButton = screen.getByRole('button', {name: 'Sincronizado'});
-    const view3dButton = screen.getByRole('button', {name: 'Visualização 3D'});
-
-    expect(syncButton.compareDocumentPosition(reloadButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(view3dButton.compareDocumentPosition(reloadButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole('button', {name: /Recarregar desenho/i})).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', {name: 'Abrir menu da conta'}));
+    const reloadButton = screen.getByRole('button', {name: 'Redefinir Casa'});
+    const restart = screen.getByRole('button', {name: 'Reiniciar Desenho'});
+    expect(restart.compareDocumentPosition(reloadButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     fireEvent.click(reloadButton);
-    expect(actions.reloadDrawing).toHaveBeenCalledOnce();
+    expect(actions.redefineHouse).not.toHaveBeenCalled();
+    fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', {name: 'Redefinir Casa'}));
+    await vi.waitFor(() => expect(actions.redefineHouse).toHaveBeenCalledOnce());
   });
 
   it('permite tentar novamente diretamente pelo ícone quando ocorre uma falha', async () => {
@@ -197,7 +198,7 @@ describe('TopBar.tsx', () => {
     expect(retry).toHaveBeenCalledTimes(1);
   });
 
-  it('desabilita exportação e orienta inserir a planta no Canvas', async () => {
+  it('desabilita exportação e orienta definir pilotis e níveis', async () => {
     const user = userEvent.setup();
     configureRemoteSync('synced');
     const actions = createActions();
@@ -206,7 +207,7 @@ describe('TopBar.tsx', () => {
 
     const exportButton = screen.getByRole('button', {name: 'Exportar RAC em PDF'});
     expect(exportButton).toBeDisabled();
-    expect(exportButton).toHaveAttribute('title', 'Insira a planta (vista superior) da casa no Canvas antes de gerar o PDF.');
+    expect(exportButton).toHaveAttribute('title', 'Defina os pilotis e níveis da casa antes de gerar o PDF.');
 
     await user.click(exportButton);
     expect(actions.savePDF).not.toHaveBeenCalled();
@@ -226,7 +227,7 @@ describe('TopBar.tsx', () => {
       await user.click(screen.getByRole('button', {name: 'Abrir menu da conta'}));
 
       const accountMenu = screen.getByRole('menu', {name: 'Menu da conta'});
-      expect(within(accountMenu).getByRole('button', {name: 'Recarregar desenho'})).toBeVisible();
+      expect(within(accountMenu).getByRole('button', {name: 'Redefinir Casa'})).toBeVisible();
       expect(within(accountMenu).getByRole('button', {name: 'Visualização 3D'})).toBeVisible();
       expect(within(accountMenu).getByRole('button', {name: 'Exportar RAC em PDF'})).toBeVisible();
     } finally {

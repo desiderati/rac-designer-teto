@@ -218,13 +218,14 @@ describe('useRacEditorPdfExportAction.ts', () => {
     expect(pdfMocks.toastError).not.toHaveBeenCalled();
   });
 
-  it.each(['sem-desenho', 'somente-elevação', 'runtime-ausente'])(
+  it.each(['sem-desenho', 'niveis-indefinidos', 'runtime-ausente'])(
     'bloqueia %s no checklist antes da captura e da prévia', async (scenario) => {
       const site = createConstructionSiteSnapshot();
       if (scenario !== 'runtime-ausente') {
         site.houses[0].drawingDocument.views.top = [];
         site.houses[0].drawingDocument.house.views.top = [];
         if (scenario === 'sem-desenho') site.houses[0].drawingDocument.house = null as never;
+        else site.houses[0].drawingDocument.house.pilotis.piloti_0_0.nivel = NaN;
       }
       const captureCanvas = vi.fn(() => 'data:image/png;base64,canvas');
       const capture3D = vi.fn();
@@ -241,7 +242,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
       expect(result.current.isPdfExportChecklistOpen).toBe(true);
       expect(result.current.pdfExportChecklist?.hasBlockingItems).toBe(true);
       expect(result.current.pdfExportChecklist?.missingRequiredItems).toEqual(expect.arrayContaining([
-        expect.objectContaining({description: expect.stringContaining('Insira a planta (vista superior)')}),
+        expect.objectContaining({description: expect.stringContaining('Defina os pilotis e níveis')}),
       ]));
       await act(async () => { await result.current.handleConfirmPdfExport(); });
       expect(result.current.isPdfPreviewOpen).toBe(false);
@@ -253,7 +254,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
     },
   );
 
-  it.each(['documento', 'runtime'])('revalida a planta no %s ao confirmar um checklist já aberto', async (source) => {
+  it.each(['documento', 'runtime'])('revalida pilotis e níveis no %s ao confirmar um checklist já aberto', async (source) => {
     const site = createConstructionSiteSnapshot();
     let runtimeHasTop = true;
     const capture = vi.fn();
@@ -268,8 +269,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
     expect(result.current.pdfExportChecklist?.hasBlockingItems).toBe(false);
     if (source === 'runtime') runtimeHasTop = false;
     else {
-      site.houses[0].drawingDocument.views.top = [];
-      site.houses[0].drawingDocument.house.views.top = [];
+      site.houses[0].drawingDocument.house.pilotis.piloti_0_0.nivel = NaN;
     }
     await act(async () => { await result.current.handleConfirmPdfExport(); });
     expect(result.current.isPdfExportChecklistOpen).toBe(true);

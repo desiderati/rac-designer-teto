@@ -25,7 +25,7 @@ import {
 } from '@/components/construction-site/hooks/useConstructionSiteManagementController.ts';
 import {restartActiveHouseDrawing} from '@/components/rac-editor/hooks/restart-active-house-drawing.ts';
 import type {House3DPdfSnapshotHandle} from '@/components/rac-editor/@viewer-3d/ports/House3DPdfSnapshotHandle.ts';
-import {hasHouseTopViewInsertedInCanvas} from '@/components/rac-editor/lib/house-export-availability.ts';
+import {canExportDefinedHouse} from '@/components/rac-editor/lib/house-export-availability.ts';
 import type {SiteAssessment} from '@/shared/types/construction-site.ts';
 import {
   useRacEditorConstructionSitePanelController,
@@ -401,7 +401,7 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
   } = useRacEditorDocumentHotkeysController({
     canvasRef,
     house3DPdfSnapshotRef,
-    canExportPdf: () => hasHouseTopViewInsertedInCanvas(houseReadPort),
+    canExportPdf: () => canExportDefinedHouse(houseReadPort),
     onBeforeExportPdf: () => constructionSiteManagement.flushActiveHouseDocumentSave({force: true}),
     onAfterExportPdf: constructionSiteManagement.acknowledgeActiveHouseDocumentSaved,
     onToggleDrawMode: isEditorReadOnly ? noopEditorAction : handleToggleDrawMode,
@@ -487,7 +487,11 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
       handleToggleZoomControls,
       handleToggleMenu,
       handleRestartDrawing,
-      handleReloadDrawing: constructionSiteManagement.reloadActiveHouseDrawing,
+      handleRedefineHouse: async () => {
+        if (isEditorReadOnly || !activeHouse) return;
+        await constructionSiteManagement.actions.resetHouseDefinition(activeHouse.id);
+        handleOpenHouseTypeSelector();
+      },
       handleExit,
       handleRenameFamily,
       handleSetCanvasToolMode,

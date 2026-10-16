@@ -63,7 +63,7 @@ export function useCanvasActions({
   const handleDelete = useCallback(() => {
     const result = canvasRef.current?.deleteActiveObjects({
       canDeleteTopView: () => houseReadPort.canDeleteTopView(),
-      onTopViewDeleted: () => houseWritePort.setHouseType(null),
+      onTopViewDeleted: () => undefined,
       onHouseViewRemoved: (instanceId) => {
         if (instanceId) houseWritePort.removeView(instanceId);
       },

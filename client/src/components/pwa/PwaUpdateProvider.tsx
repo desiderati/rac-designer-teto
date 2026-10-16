@@ -4,6 +4,7 @@ import {PwaUpdateSafetyContext, type PwaUpdateSafety} from './PwaUpdateSafetyCon
 
 const UPDATE_TOAST_ID = 'rac-new-version';
 const UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000;
+const reloadDocument = () => window.location.reload();
 
 function canReloadSafely(safety: PwaUpdateSafety | null): boolean {
   return safety === null || (
@@ -13,11 +14,12 @@ function canReloadSafely(safety: PwaUpdateSafety | null): boolean {
   );
 }
 
-export function PwaUpdateProvider({children}: {children: ReactNode}) {
+export function PwaUpdateProvider({children, reloadPage = reloadDocument}: {children: ReactNode; reloadPage?: () => void}) {
   const [safety, setSafety] = useState<PwaUpdateSafety | null>(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [noticeRevision, setNoticeRevision] = useState(0);
   const updateSWRef = useRef<((reloadPage?: boolean) => Promise<void>) | null>(null);
+  const didReloadRef = useRef(false);
   const workerActivatedRef = useRef(false);
   const updateRequestedRef = useRef(false);
   const updateRequestTimeoutRef = useRef<number | null>(null);
@@ -45,6 +47,14 @@ export function PwaUpdateProvider({children}: {children: ReactNode}) {
         checking = false;
       }
     };
+    const onControllerChange = () => {
+      workerActivatedRef.current = true;
+      if (updateRequestedRef.current && canReloadSafely(safetyRef.current) && !didReloadRef.current) {
+        didReloadRef.current = true;
+        reloadPage();
+      }
+    };
+    navigator.serviceWorker.addEventListener?.('controllerchange', onControllerChange);
     const checkWhenVisible = () => {
       if (document.visibilityState === 'visible') void checkForUpdates();
     };
@@ -57,8 +67,9 @@ export function PwaUpdateProvider({children}: {children: ReactNode}) {
           workerActivatedRef.current = true;
           if (updateRequestTimeoutRef.current !== null) window.clearTimeout(updateRequestTimeoutRef.current);
           updateRequestTimeoutRef.current = null;
-          if (updateRequestedRef.current && canReloadSafely(safetyRef.current)) {
-            window.location.reload();
+          if (updateRequestedRef.current && canReloadSafely(safetyRef.current) && !didReloadRef.current) {
+            didReloadRef.current = true;
+            reloadPage();
           } else {
             updateRequestedRef.current = false;
             setUpdateAvailable(true);
@@ -79,6 +90,7 @@ export function PwaUpdateProvider({children}: {children: ReactNode}) {
 
     return () => {
       active = false;
+      navigator.serviceWorker?.removeEventListener?.('controllerchange', onControllerChange);
       if (intervalId !== undefined) window.clearInterval(intervalId);
       window.removeEventListener('focus', checkForUpdates);
       window.removeEventListener('online', checkForUpdates);
@@ -86,7 +98,7 @@ export function PwaUpdateProvider({children}: {children: ReactNode}) {
       if (updateRequestTimeoutRef.current !== null) window.clearTimeout(updateRequestTimeoutRef.current);
       updateSWRef.current = null;
     };
-  }, []);
+  }, [reloadPage]);
 
   useEffect(() => {
     if (!updateAvailable) return;
@@ -105,16 +117,19 @@ export function PwaUpdateProvider({children}: {children: ReactNode}) {
             return;
           }
           if (workerActivatedRef.current) {
-            window.location.reload();
+            if (!didReloadRef.current) {didReloadRef.current = true; reloadPage();}
             return;
           }
+          if (!updateSWRef.current) { toast.error('Não foi possível iniciar a atualização. Tente novamente.'); setNoticeRevision((revision) => revision + 1); return; }
           updateRequestedRef.current = true;
           if (updateRequestTimeoutRef.current !== null) window.clearTimeout(updateRequestTimeoutRef.current);
           updateRequestTimeoutRef.current = window.setTimeout(() => {
             updateRequestedRef.current = false;
             updateRequestTimeoutRef.current = null;
+            toast.error('A atualização não foi concluída. Verifique sua conexão e tente novamente.');
+            setNoticeRevision((revision) => revision + 1);
           }, 30_000);
-          void updateSWRef.current?.(true).catch(() => {
+          void updateSWRef.current?.(false).catch(() => {
             updateRequestedRef.current = false;
             if (updateRequestTimeoutRef.current !== null) window.clearTimeout(updateRequestTimeoutRef.current);
             updateRequestTimeoutRef.current = null;
@@ -124,7 +139,7 @@ export function PwaUpdateProvider({children}: {children: ReactNode}) {
         },
       },
     });
-  }, [canReload, noticeRevision, updateAvailable]);
+  }, [canReload, noticeRevision, updateAvailable, reloadPage]);
 
   return <PwaUpdateSafetyContext.Provider value={reportSafety}>{children}</PwaUpdateSafetyContext.Provider>;
 }

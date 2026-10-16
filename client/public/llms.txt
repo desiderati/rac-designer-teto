@@ -1,0 +1,12 @@
+# RAC Designer TETO
+
+> Aplicação para preparar Relatórios de Análise de Construção (RAC) de casas da ONG TETO.
+
+O editor permite configurar casas e pilotis, registrar níveis e condições do terreno,
+trabalhar em plantas e vistas no Canvas, visualizar a casa em 3D e exportar a RAC em PDF.
+
+## Página pública
+- [RAC Designer TETO](https://tetopr.manus.space/): entrada da aplicação.
+
+Os registros de construções, famílias, localização, fotos e desenhos são privados.
+Este resumo não publica dados de usuários nem URLs de registros internos.

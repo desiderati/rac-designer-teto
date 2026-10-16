@@ -65,8 +65,10 @@ describe('HouseFieldAnalysisScreen', () => {
     expect(screen.queryByText('Casa de Família Souza')).not.toBeInTheDocument();
     expect(screen.getByTestId('field-analysis-preview')).toBeVisible();
     expect(screen.getByRole('region', {name: 'Editor do item selecionado'})).toBeVisible();
-    expect(screen.getByRole('button', {name: 'Piloti anterior'})).toBeDisabled();
-    expect(screen.getByRole('button', {name: 'Próximo piloti'})).toBeEnabled();
+    expect(screen.queryByRole('button', {name: 'Piloti anterior'})).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: 'Confirmar'})).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: 'Cancelar'})).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: 'Próximo piloti'})).not.toBeInTheDocument();
     for (const copy of ['Vista superior', 'Alterações salvas', 'Prévia ilustrativa. Ajuste os pilotis nos controles abaixo.',
       'Configuração de pilotis', 'Navegue entre os pilotis e confirme os ajustes para a futura inserção no Canvas.']) {
       expect(screen.queryByText(copy)).not.toBeInTheDocument();

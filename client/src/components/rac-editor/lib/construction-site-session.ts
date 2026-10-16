@@ -77,6 +77,7 @@ export interface ConstructionSiteSessionStoragePort {
 }
 
 export interface ConstructionSiteSessionPort {
+  resetHouseDefinition(houseId: string): void;
   getHouseFieldAnalysis(constructionSiteId: string, houseId: string): HouseFieldAnalysisDraft;
   saveHouseFieldAnalysis(constructionSiteId: string, houseId: string, draft: HouseFieldAnalysisDraft): void;
   getConstructionSiteSummaries(): ConstructionSiteSummary[];
@@ -979,6 +980,38 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     }
   }
 
+  resetHouseDefinition(houseId: string): void {
+    const house = this.state.houses.find((entry) => entry.id === houseId);
+    if (!house || this.state.constructionSite.status !== 'in_progress' || ['archived', 'built'].includes(house.status)) {
+      throw new Error('A casa está bloqueada para redefinição.');
+    }
+    const previous = cloneConstructionSiteValue(house);
+    const previousUpdatedAt = this.state.constructionSite.updatedAt;
+    house.houseType = null;
+    house.status = 'draft';
+    house.hasHouseBeenDefined = false;
+    house.hasRacBeenPrinted = false;
+    house.designSettings = {selectedPilotiHeights: [...DEFAULT_HOUSE_PILOTI_HEIGHTS]};
+    delete house.lastRacExportedAt;
+    delete house.fieldAnalysis;
+    house.pilotiLayout = {points: []};
+    house.drawingDocument = {...house.drawingDocument, views: {}, house: createInitialHouseState(house.id),
+      canvas: {...house.drawingDocument.canvas, objects: house.drawingDocument.canvas.objects.filter((object) =>
+        object.kind !== 'house' && object.metadata?.myType !== 'house' && !object.metadata?.houseInstanceId)}};
+    delete house.drawingDocument.viewer3D;
+    house.updatedAt = new Date().toISOString();
+    house.version += 1;
+    this.state.constructionSite.updatedAt = house.updatedAt;
+    try { this.persist(); } catch (error) {
+      for (const key of Object.keys(house)) {
+        if (!(key in previous)) delete (house as unknown as Record<string, unknown>)[key];
+      }
+      Object.assign(house, previous);
+      this.state.constructionSite.updatedAt = previousUpdatedAt;
+      throw error;
+    }
+  }
+
   private getFieldAnalysisTarget(constructionSiteId: string, houseId: string) {
     const site = this.constructionSites.find((entry) => entry.constructionSite.id === constructionSiteId);
     const house = site?.houses.find((entry) => entry.id === houseId);
@@ -1004,7 +1037,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     house.houseType = next.house.houseType;
     house.terrainType = next.house.terrainType;
     house.designSettings.selectedPilotiHeights = next.selectedPilotiHeights;
-    house.drawingDocument = {...house.drawingDocument, house: next.house};
+    house.drawingDocument = {...house.drawingDocument, house: {...next.house, views: house.drawingDocument.house?.views ?? next.house.views}};
     const points = toPersistedPilotiPoints(next.house);
     house.pilotiLayout = {masterCode: points.find((point) => point.isMaster)?.code, points};
     house.fieldAnalysis = {status: 'prepared', contraventamentos: next.contraventamentos};

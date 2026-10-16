@@ -60,7 +60,7 @@ describe('useCanvasViewport.ts', () => {
     expect(result.current.viewportY).toBeCloseTo(268);
   });
 
-  it('troca a viewport quando a casa ativa muda', () => {
+  it('preserva o zoom atual e troca somente o pan ao mudar de casa', () => {
     localStorage.setItem(`${STORAGE_KEYS.canvasViewport}:v2:house-a`, JSON.stringify({
       zoom: 0.6,
       viewportX: 380,
@@ -79,7 +79,7 @@ describe('useCanvasViewport.ts', () => {
 
     rerender({houseId: 'house-b'});
 
-    expect(result.current.zoom).toBe(1);
+    expect(result.current.zoom).toBe(0.6);
     expect(result.current.viewportX).toBe(0);
     expect(result.current.viewportY).toBe(0);
   });

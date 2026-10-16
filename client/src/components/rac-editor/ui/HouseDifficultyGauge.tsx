@@ -2,7 +2,7 @@ import type {HouseDifficultyIndicator, HouseDifficultyLevel} from '@/components/
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip.tsx';
 
-type HouseDifficultyGaugeOrientation = 'horizontal' | 'vertical';
+type HouseDifficultyGaugeOrientation = 'horizontal' | 'vertical' | 'semicircular';
 
 interface HouseDifficultyGaugeProps {
   indicator: HouseDifficultyIndicator;
@@ -53,6 +53,18 @@ export function HouseDifficultyGauge({
 }: HouseDifficultyGaugeProps) {
   const score = Math.min(100, Math.max(0, indicator.score));
   const ariaText = `Dificuldade ${indicator.label}, ${score} de 100`;
+
+  if (orientation === 'semicircular') {
+    const colors = ['#10b981', '#a3e635', '#fbbf24', '#ef4444'];
+    const angle = Math.PI * (1 - score / 100);
+    return <svg width='88' height='52' viewBox='0 0 100 60' role='meter' aria-label={ariaText} aria-valuemin={0} aria-valuemax={100} aria-valuenow={score} data-testid={testId}>
+      {colors.map((color, index) => {
+        const a = Math.PI * (1 - index / 4), b = Math.PI * (1 - (index + 1) / 4);
+        return <path key={color} d={`M ${50+40*Math.cos(a)} ${50-40*Math.sin(a)} A 40 40 0 0 1 ${50+40*Math.cos(b)} ${50-40*Math.sin(b)}`} fill='none' stroke={color} strokeWidth='10'/>;
+      })}
+      <path d={`M 50 50 L ${50+32*Math.cos(angle)} ${50-32*Math.sin(angle)}`} stroke='#0f172a' strokeWidth='3'/><circle cx='50' cy='50' r='4' fill='#0f172a'/>
+    </svg>;
+  }
 
   if (orientation === 'vertical') {
     return (

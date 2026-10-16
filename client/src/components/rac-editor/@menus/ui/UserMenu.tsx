@@ -10,8 +10,8 @@ interface UserMenuProps {
   showTips: boolean;
   onRestartDrawing: () => void;
   restartDrawingDisabled?: boolean;
-  onReloadDrawing?: () => void | Promise<void>;
-  reloadDrawingDisabled?: boolean;
+  onRedefineHouse?: () => void | Promise<void>;
+  redefineHouseDisabled?: boolean;
   onOpen3DViewer: () => void;
   onSavePDF: () => void;
   canExportPDF: boolean;
@@ -28,8 +28,8 @@ export function UserMenu({
   showTips,
   onRestartDrawing,
   restartDrawingDisabled = false,
-  onReloadDrawing,
-  reloadDrawingDisabled = false,
+  onRedefineHouse,
+  redefineHouseDisabled = false,
   onOpen3DViewer,
   onSavePDF,
   canExportPDF,
@@ -106,7 +106,7 @@ export function UserMenu({
           <div
             role='menu'
             aria-label='Menu da conta'
-            className='absolute right-0 top-[calc(100%+8px)] z-[60] w-52 rounded-xl border border-slate-200 bg-white/95 p-1 shadow-xl backdrop-blur-xl'
+            className='absolute right-0 top-[calc(100%+8px)] z-[60] max-h-[calc(100dvh-5rem)] w-52 overflow-y-auto rounded-xl border border-slate-200 bg-white/95 p-1 shadow-xl backdrop-blur-xl'
           >
             <Item
               icon={TOP_BAR_ICONS.restart}
@@ -114,12 +114,12 @@ export function UserMenu({
               onClick={onRestartDrawing}
               disabled={restartDrawingDisabled}
             />
-            {isMobile && onReloadDrawing ? (
+            {onRedefineHouse ? (
               <Item
-                icon={TOP_BAR_ICONS.reload}
-                label='Recarregar desenho'
-                onClick={() => void onReloadDrawing()}
-                disabled={reloadDrawingDisabled}
+                icon={TOP_BAR_ICONS.redefine}
+                label='Redefinir Casa'
+                onClick={() => void onRedefineHouse()}
+                disabled={redefineHouseDisabled}
               />
             ) : null}
             <Divider/>

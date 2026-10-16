@@ -25,8 +25,26 @@ export function getHouseFieldAnalysisDisabledReason(site: ConstructionSiteState,
   if (house.status === 'built' || house.status === 'archived') return 'A casa está bloqueada para edição.';
   // Uma vista persistida pode ser uma edição parcial ou um documento legado;
   // somente o estado explícito informa que a análise já foi consumida.
-  if (house.fieldAnalysis?.status === 'inserted') return 'A casa já foi inserida no Canvas.';
+  // Uma casa definida continua editável pela Análise de Campo.
   return null;
+}
+
+/** Recupera os reforços do Canvas antes de editar uma casa já inserida. */
+function readPersistedBraces(house: PersistedHouseRecord): FieldContraventamentoDefinition[] {
+  const groups = house.drawingDocument.canvas.objects.filter((object) => object.metadata?.houseViewType === 'top' || object.metadata?.houseView === 'top');
+  const definitions: FieldContraventamentoDefinition[] = [];
+  for (const child of groups.flatMap((group) => group.children ?? [])) {
+    const meta = child.metadata;
+    if (!meta?.isContraventamento) continue;
+    const horizontal = meta.contraventamentoOrientation === 'horizontal';
+    const start = horizontal ? `piloti_${meta.contraventamentoStartCol}_${meta.contraventamentoRow}` : `piloti_${meta.contraventamentoCol}_${meta.contraventamentoStartRow}`;
+    const end = horizontal ? `piloti_${meta.contraventamentoEndCol}_${meta.contraventamentoRow}` : `piloti_${meta.contraventamentoCol}_${meta.contraventamentoEndRow}`;
+    const origin = typeof meta.contraventamentoAnchorPilotiId === 'string' ? meta.contraventamentoAnchorPilotiId : start;
+    const definition = {originPilotiId: origin, destinationPilotiId: origin === start ? end : start, side: meta.contraventamentoSide, isAuto: meta.isAutoContraventamento === true};
+    const valid = normalizeHouseFieldAnalysis({status: 'prepared', contraventamentos: [definition]});
+    if (valid) definitions.push(...valid.contraventamentos);
+  }
+  return normalizeHouseFieldAnalysis({status: 'prepared', contraventamentos: definitions})?.contraventamentos ?? [];
 }
 
 export function createHouseFieldAnalysisDraft(house: PersistedHouseRecord): HouseFieldAnalysisDraft {
@@ -34,9 +52,9 @@ export function createHouseFieldAnalysisDraft(house: PersistedHouseRecord): Hous
     id: house.id, pilotiIds: getAllPilotiIds(), defaultPiloti: DEFAULT_HOUSE_PILOTI, defaultTerrainType: house.terrainType,
   });
   return structuredClone({
-    house: {...state, id: house.id, houseType: house.houseType, terrainType: house.terrainType},
+    house: {...state, views: {top: [], front: [], back: [], side1: [], side2: []}, id: house.id, houseType: house.houseType, terrainType: house.terrainType},
     selectedPilotiHeights: house.designSettings.selectedPilotiHeights,
-    contraventamentos: house.fieldAnalysis?.contraventamentos ?? [],
+    contraventamentos: house.fieldAnalysis?.status === 'prepared' ? house.fieldAnalysis.contraventamentos : readPersistedBraces(house),
   });
 }
 
@@ -167,7 +185,8 @@ export function normalizeHouseFieldAnalysis(value: unknown): HouseFieldAnalysisM
 export function validateHouseFieldAnalysisDraft(draft: HouseFieldAnalysisDraft): void {
   const ids = getAllPilotiIds();
   const heights = draft.selectedPilotiHeights;
-  const validHeights = heights.length === 8 && new Set(heights).size === 8 && heights.every((height) => (ALL_PILOTI_HEIGHTS as readonly number[]).includes(height));
+  const validHeights = heights.length > 0 && new Set(heights).size === heights.length
+    && heights.every((height) => (ALL_PILOTI_HEIGHTS as readonly number[]).includes(height));
   const validPilotis = ids.every((id) => {
     const piloti = draft.house.pilotis[id];
     return piloti && heights.includes(piloti.height) && Number.isFinite(piloti.nivel)

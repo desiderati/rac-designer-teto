@@ -1,3 +1,4 @@
+import {definedPilotis} from '@/test/defined-pilotis.ts';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {act, renderHook, waitFor} from '@testing-library/react';
 import type {MutableRefObject, ReactNode} from 'react';
@@ -891,7 +892,7 @@ function makeHousePrintable(constructionSite: ConstructionSiteState, houseId: st
       id: house.id,
       houseType: house.houseType,
       terrainType: house.terrainType,
-      pilotis: {},
+      pilotis: definedPilotis(),
       views: {
         top: [{instanceId: 'top_1'}],
         front: [],
@@ -929,7 +930,7 @@ function createDrawingDocument(
       id: houseId,
       houseType: null,
       terrainType: 1,
-      pilotis: {},
+      pilotis: definedPilotis(),
       views: {
         top: [],
         front: [],

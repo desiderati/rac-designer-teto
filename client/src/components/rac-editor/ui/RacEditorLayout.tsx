@@ -1,3 +1,4 @@
+import {CanvasOrientationNotice} from './CanvasOrientationNotice.tsx';
 import type {ComponentProps, MouseEventHandler, RefObject} from 'react';
 import {RacEditorMenus} from '@/components/rac-editor/@menus/ui/RacEditorMenus.tsx';
 import {RacEditorCanvas} from '@/components/rac-editor/ui/RacEditorCanvas.tsx';
@@ -54,7 +55,7 @@ export function RacEditorLayout({
 }: RacEditorLayoutProps) {
   return (
     <div
-      className='rac-min-width-shell relative h-full min-h-[480px] min-w-[420px] w-full overflow-hidden'
+      className='rac-min-width-shell relative h-full min-h-[480px] min-w-[360px] w-full overflow-hidden'
       style={CANVAS_WORKSPACE_STYLE}
       onClick={root.onClick}
     >
@@ -62,6 +63,7 @@ export function RacEditorLayout({
         <ConstructionSiteManagementPanel {...workspace.panel} onBackToCanvas={workspace.onClose}/>
       ) : (
         <>
+          <CanvasOrientationNotice/>
           <RacEditorMenus {...menus}/>
           <RacEditorCanvas {...canvas}/>
           <RacEditorHouseTypeSelector {...houseTypeSelector}/>

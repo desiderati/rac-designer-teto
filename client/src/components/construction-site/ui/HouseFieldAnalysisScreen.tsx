@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ArrowLeft, RotateCw} from 'lucide-react';
+import {ArrowLeft, RotateCw, PanelsTopLeft} from 'lucide-react';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {HouseFieldAnalysisPreview} from '@/components/rac-editor/@canvas/ui/HouseFieldAnalysisPreview.tsx';
 import {PilotiEditor} from '@/components/rac-editor/@modals/ui/editors/piloti/PilotiEditor.tsx';
@@ -23,6 +23,7 @@ import type {HouseFieldAnalysisDraft} from '@/shared/types/house-field-analysis.
 import {DEFAULT_HOUSE_PILOTI, DEFAULT_HOUSE_PILOTI_HEIGHTS, type HouseSide, type HouseType} from '@/shared/types/house.ts';
 import {getAllPilotiIds} from '@/shared/types/piloti.ts';
 import {toast} from '@/components/ui/sonner.tsx';
+import {hasDefinedPilotis} from '../lib/house-definition.ts';
 
 type SetupStage = 'pilotis' | 'type' | 'side' | 'nivel' | 'saving-setup' | 'ready';
 const SAVE_TOAST_WINDOW_MS = 10_000;
@@ -48,15 +49,16 @@ interface HouseFieldAnalysisScreenProps {
   initialDraft: HouseFieldAnalysisDraft;
   onSave(draft: HouseFieldAnalysisDraft): Promise<void>;
   onBack(): Promise<void>;
+  onOpenCanvas?(): Promise<void>;
 }
 
 export function HouseFieldAnalysisScreen({
-  constructionSite, house, initialDraft, onSave, onBack,
+  constructionSite, house, initialDraft, onSave, onBack, onOpenCanvas,
 }: HouseFieldAnalysisScreenProps) {
   const {settingsPort} = useEditorPorts();
   const settings = settingsPort.getSettings();
   const persistedSetupSelection = getPersistedSetupSelection(house, initialDraft);
-  const initialStage: SetupStage = house.fieldAnalysis?.status === 'prepared'
+  const initialStage: SetupStage = Boolean(house.fieldAnalysis) || (Boolean(house.houseType) && (house.hasHouseBeenDefined || house.status === 'rac_printed' || hasDefinedPilotis(house.houseType, initialDraft.house.pilotis)))
     ? 'ready'
     : settings.allowPilotiHeightDefinitionOnHouseInsert
       ? 'pilotis'
@@ -225,14 +227,15 @@ export function HouseFieldAnalysisScreen({
   return (
     <section aria-label={`Análise de Campo da casa ${familyName}`} aria-busy={isSaving}
       className='min-w-0 space-y-4 pb-8'>
-      <div className='flex min-w-0 items-start gap-3'>
+      <div className='flex min-w-0 items-center gap-3'>
         <button type='button' aria-label='Voltar às casas' onClick={() => void leave()} disabled={isLeaving || isSaving || stage === 'saving-setup'}
           className='grid h-11 w-11 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50'>
           <ArrowLeft className='h-5 w-5' aria-hidden='true'/>
         </button>
         <div className='min-w-0 flex-1'>
-          <h1 className='break-words text-2xl font-semibold text-slate-950'>{familyName}</h1>
+          <h1 className='break-words text-xl font-semibold text-slate-950'>{familyName}</h1>
         </div>
+        {onOpenCanvas ? <button type='button' aria-label='Abrir Canvas da casa' disabled={isSaving || Boolean(saveError)} onClick={() => void onOpenCanvas()} className='grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500'><PanelsTopLeft className='h-5 w-5'/></button> : null}
       </div>
 
       {saveError ? (
@@ -250,8 +253,8 @@ export function HouseFieldAnalysisScreen({
       {stage === 'ready' ? (
         <>
           <div>
-            <div className='min-w-0 overflow-hidden rounded-2xl bg-white p-2 shadow-sm' aria-label='Prévia ilustrativa da casa'>
-              <HouseFieldAnalysisPreview draft={draft}/>
+            <div className='min-w-0 overflow-hidden' aria-label='Prévia ilustrativa da casa'>
+              <HouseFieldAnalysisPreview draft={draft} selectedPilotiId={selectedPilotiId} onSelectPiloti={setSelectedPilotiId}/>
             </div>
           </div>
           <div>

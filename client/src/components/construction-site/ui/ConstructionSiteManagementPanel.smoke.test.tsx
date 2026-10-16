@@ -1,3 +1,4 @@
+import {definedPilotis} from '@/test/defined-pilotis.ts';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -116,7 +117,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('construction-management-shell').className).toContain('overflow-x-hidden');
     expect(screen.getByTestId('construction-management-shell').className).toContain('overflow-y-auto');
     expect(screen.getByTestId('construction-management-shell').className).toContain('py-0');
-    expect(screen.getByTestId('construction-management-shell').className).toContain('min-w-[420px]');
+    expect(screen.getByTestId('construction-management-shell').className).toContain('min-w-[360px]');
     expect(screen.getByTestId('construction-management-shell').className).not.toContain('min-h-full');
     expect(screen.getByTestId('construction-management-shell').className).not.toContain('pt-24');
     expect(screen.getByTestId('construction-management-card').className).toContain('min-w-0');
@@ -668,11 +669,11 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       .toHaveAttribute('data-guided-tour-id', 'rac-house-difficulty');
     expect(within(guidedTourHouseRow).getByTestId('house-table-difficulty-gauge').parentElement)
       .toHaveClass('max-w-[8rem]');
-    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Resumo dos materiais extras da casa Família Souza'}))
+    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Resumo da Casa de Família Souza'}))
       .toHaveAttribute('data-guided-tour-id', 'rac-house-extra-materials');
-    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Resumo dos materiais extras da casa Família Souza'}))
+    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Resumo da Casa de Família Souza'}))
       .toHaveClass('rounded-full', 'bg-transparent', 'text-slate-400', 'cursor-pointer', 'transition-colors', 'hover:bg-amber-100', 'hover:text-amber-800');
-    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Resumo dos materiais extras da casa Família Souza'}))
+    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Resumo da Casa de Família Souza'}))
       .not.toHaveClass('text-amber-700', 'text-amber-800', 'bg-amber-100');
     expect(within(guidedTourHouseRow).getByRole('button', {name: 'Exportar RAC PDF da casa Família Souza'}))
       .toHaveClass('hover:bg-blue-100', 'hover:text-blue-600');
@@ -690,7 +691,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       .toHaveTextContent('Ainda não exportada');
     const houseRow = screen.getByRole('row', {name: /Família Santos.*Tipo 3.*Impressa/i});
     expect(within(houseRow).getByText('Impressa')).not.toHaveAttribute('data-guided-tour-id');
-    expect(within(houseRow).getByRole('button', {name: 'Resumo dos materiais extras da casa Família Santos'}))
+    expect(within(houseRow).getByRole('button', {name: 'Resumo da Casa de Família Santos'}))
       .not.toHaveAttribute('data-guided-tour-id');
     expect(within(houseRow).getByText('Impressa').closest('td')).toHaveClass('text-center');
     expect(within(houseRow).getByRole('meter', {name: 'Dificuldade da casa'}))
@@ -720,7 +721,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const blocked = within(mobileList).getByRole('button', {name: 'Análise de Campo da casa Família Arquivada'});
     expect(enabled).toBeEnabled();
     expect(blocked).toBeDisabled();
-    expect(blocked.parentElement).toHaveTextContent('A casa está bloqueada para edição.');
+    expect(blocked.parentElement).not.toHaveTextContent('A casa está bloqueada para edição.');
     expect(screen.getByTestId('house-mobile-list')).toHaveClass('min-[768px]:hidden');
     expect(screen.getByTestId('house-desktop-table')).toHaveClass('min-[768px]:block');
 
@@ -731,7 +732,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
   it.each([
     {label: 'Inicial', patch: {houseType: null}, disabled: false},
-    {label: 'Definida', patch: {fieldAnalysis: {status: 'inserted' as const, contraventamentos: []}}, disabled: true},
+    {label: 'Definida', patch: {fieldAnalysis: {status: 'inserted' as const, contraventamentos: []}}, disabled: false},
     {label: 'Indefinida', patch: {houseType: null, hasHouseBeenDefined: true}, disabled: false},
     {label: 'Impressa', patch: {status: 'rac_printed' as const}, disabled: false},
   ])('mostra $label no card e no filtro sem o aviso de casa inserida', ({label, patch, disabled}) => {
@@ -1429,7 +1430,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByLabelText('Contato Principal')).toHaveAttribute('maxlength', '25');
     expect(screen.getByLabelText('E-mail')).toHaveAttribute('maxlength', '50');
     expect(screen.getByLabelText('Líderes')).toHaveAttribute('maxlength', '50');
-    expect(screen.getByLabelText('Notas')).toHaveAttribute('maxlength', '300');
+    expect(screen.getByLabelText('Notas')).toHaveAttribute('maxlength', '600');
 
     await user.click(screen.getByRole('button', {name: 'Alternar seção Detalhes da Família'}));
     expect(screen.queryByLabelText('Nome da Família')).not.toBeInTheDocument();
@@ -1446,7 +1447,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     fireEvent.change(screen.getByLabelText('E-mail'), {target: {value: 'email inválido'}});
     fireEvent.change(screen.getByLabelText('Localização Geográfica'), {target: {value: '1000, 2000'}});
     fireEvent.change(screen.getByLabelText('Líderes'), {target: {value: 'L'.repeat(51)}});
-    fireEvent.change(screen.getByLabelText('Notas'), {target: {value: 'N'.repeat(301)}});
+    fireEvent.change(screen.getByLabelText('Notas'), {target: {value: 'N'.repeat(601)}});
 
     expect(screen.getByLabelText('Telefone')).toHaveValue('(41) 99999-8888');
 
@@ -1456,7 +1457,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByText('Informe um e-mail válido.')).toBeVisible();
     expect(screen.getByText('Use latitude e longitude, por exemplo: -25.4284, -49.2733.')).toBeVisible();
     expect(screen.getByText('Máximo de 50 caracteres.')).toBeVisible();
-    expect(screen.getByText('Máximo de 300 caracteres.')).toBeVisible();
+    expect(screen.getByText('Máximo de 600 caracteres.')).toBeVisible();
   });
 
   it('avisa antes de sair do formulário de casa com alterações não salvas', async () => {
@@ -2580,7 +2581,7 @@ function makeHousePdfChecklistExportableWithWarnings(
       id: house.id,
       houseType: house.houseType,
       terrainType: house.terrainType,
-      pilotis: {},
+      pilotis: definedPilotis(),
       views: {
         top: [{instanceId: topView.instanceId}],
         front: [],

@@ -65,11 +65,11 @@ export function FloatingEditor({
         {cardContent}
       </div>
 
-      <ActionDock
+      {presentation !== 'inline' ? <ActionDock
         testId='floating-editor-actions'
         surface={isMobile ? 'drawer' : 'dialog'}
         spacing='flush'
-        mobileDocked={presentation !== 'inline'}
+        mobileDocked
       >
         <div className='flex w-full gap-[16px]' data-no-drag>
           <Button
@@ -85,7 +85,7 @@ export function FloatingEditor({
             {confirmLabel}
           </Button>
         </div>
-      </ActionDock>
+      </ActionDock> : null}
     </div>;
 
   if (presentation === 'inline') {

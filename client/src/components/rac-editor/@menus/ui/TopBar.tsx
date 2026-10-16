@@ -1,3 +1,5 @@
+import {useCanvasMobileViewport} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
+import {ResetHouseDialog} from '@/components/construction-site/ui/ResetHouseDialog.tsx';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {CircleAlert, CircleCheck, CloudOff, RefreshCw} from 'lucide-react';
 import {useCallback, useEffect, useState} from 'react';
@@ -68,19 +70,14 @@ export function TopBar({
     ? 'Exportar RAC em PDF'
     : TOAST_MESSAGES.addHouseBeforePdfExport;
 
-  const [isReloadingDrawing, setIsReloadingDrawing] = useState(false);
-  const reloadDrawing = useCallback(async () => {
-    if (!actions.reloadDrawing || isReloadingDrawing) return;
-    setIsReloadingDrawing(true);
-    try {
-      await actions.reloadDrawing();
-    } finally {
-      setIsReloadingDrawing(false);
-    }
-  }, [actions, isReloadingDrawing]);
+  const {mobile: canvasMobile} = useCanvasMobileViewport();
+  const [resetOpen, setResetOpen] = useState(false);
+  const [mobileTopBarOpen, setMobileTopBarOpen] = useState(false);
 
   return (
-    <div data-testid='top-bar-layout' className='fixed left-0 top-4 z-50 h-12 min-w-[420px] w-full'>
+    <>
+    {canvasMobile ? <button type='button' aria-label={mobileTopBarOpen ? 'Ocultar barra superior' : 'Mostrar barra superior'} aria-expanded={mobileTopBarOpen} onClick={() => setMobileTopBarOpen((value) => !value)} className='fixed left-1/2 top-0 z-[60] grid h-7 w-32 -translate-x-1/2 place-items-center rounded-b-xl bg-white/80 focus-visible:ring-2 focus-visible:ring-blue-500'><span className='h-3 w-24 rounded-full bg-slate-400/70'/></button> : null}
+    <div hidden={canvasMobile && !mobileTopBarOpen} data-testid='top-bar-layout' className='fixed left-0 top-4 z-50 h-12 min-w-[360px] w-full'>
       {/* Left: Menu + Family */}
       <div className='absolute left-4 top-0 z-50 flex items-center gap-3'>
         <HamburgerMenu
@@ -126,19 +123,7 @@ export function TopBar({
           <span>3D</span>
         </button>
 
-        {actions.reloadDrawing ? (
-          <button
-            type='button'
-            onClick={() => void reloadDrawing()}
-            disabled={isReloadingDrawing}
-            className='hidden min-[740px]:grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white/85 text-slate-600 shadow-sm backdrop-blur-md transition-colors hover:bg-slate-50 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 disabled:cursor-wait disabled:opacity-70'
-            title='Recarregar desenho do Canvas'
-            aria-label='Recarregar desenho do Canvas'
-            aria-busy={isReloadingDrawing}
-          >
-            <RefreshCw className={cn('h-4 w-4', isReloadingDrawing ? 'animate-spin' : null)} aria-hidden='true'/>
-          </button>
-        ) : null}
+
 
         <button
           type='button'
@@ -164,8 +149,8 @@ export function TopBar({
           showTips={showTips}
           onRestartDrawing={actions.restartDrawing}
           restartDrawingDisabled={isReadOnly}
-          onReloadDrawing={actions.reloadDrawing ? reloadDrawing : undefined}
-          reloadDrawingDisabled={isReloadingDrawing}
+          onRedefineHouse={actions.redefineHouse ? () => setResetOpen(true) : undefined}
+          redefineHouseDisabled={isReadOnly}
           onOpen3DViewer={actions.open3DViewer}
           onSavePDF={actions.savePDF}
           canExportPDF={canExportPDF}
@@ -175,6 +160,8 @@ export function TopBar({
         />
       </div>
     </div>
+    <ResetHouseDialog open={resetOpen} onOpenChange={setResetOpen} onConfirm={async () => { await actions.redefineHouse?.(); }}/>
+    </>
   );
 }
 

@@ -4,6 +4,7 @@ import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {HouseDifficultyControls} from '@/components/rac-editor/ui/HouseDifficultyControls.tsx';
 import type {HouseDifficultyIndicator} from '@/components/rac-editor/lib/house-difficulty-indicator.ts';
 import type {SiteAssessment} from '@/shared/types/construction-site.ts';
+import {useCanvasMobileViewport} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
 
 interface CanvasOverlaysProps {
   showZoomControls: boolean;
@@ -54,6 +55,7 @@ export function CanvasOverlays({
   onSiteAssessmentChange,
   children,
 }: CanvasOverlaysProps) {
+  const {landscape} = useCanvasMobileViewport();
 
   return (
     <>
@@ -87,6 +89,8 @@ export function CanvasOverlays({
       )}
 
       {difficultyIndicator ? (
+        landscape ? <HouseDifficultyControls indicator={difficultyIndicator} siteAssessment={siteAssessment}
+          onSiteAssessmentChange={onSiteAssessmentChange} enableMobileCollapse/> :
         <>
           <div className='absolute right-4 top-1/2 z-10 hidden -translate-y-1/2 min-[767px]:block'>
             <HouseDifficultyControls

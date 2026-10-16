@@ -1,3 +1,5 @@
+import {MobileRadialMenu} from './MobileRadialMenu.tsx';
+import {useCanvasMobileViewport} from '../lib/use-canvas-mobile-viewport.ts';
 import {type ComponentType, type PointerEvent, type SVGProps, useEffect, useRef, useState} from 'react';
 import {
   Check,
@@ -130,11 +132,12 @@ export function HouseDifficultyControls({
   enableMobileCollapse = false,
   className,
 }: HouseDifficultyControlsProps) {
+  const {landscape} = useCanvasMobileViewport();
   const isToolbarCollapseViewport = useToolbarCollapseViewport();
   const shouldDefaultCollapse = usePhoneToolbarCollapseViewport();
   const [collapsedOverride, setCollapsedOverride] = useState<boolean | null>(null);
   const shouldShowMobileHandle = enableMobileCollapse && isToolbarCollapseViewport;
-  const isMobileCollapsed = shouldShowMobileHandle && (collapsedOverride ?? shouldDefaultCollapse);
+  const isMobileCollapsed = !landscape && shouldShowMobileHandle && (collapsedOverride ?? shouldDefaultCollapse);
   const dragStartXRef = useRef<number | null>(null);
   const didDragRef = useRef(false);
   const selectedSoil = SOIL_PROFILE_OPTIONS.find((option) => option.value === (siteAssessment?.soilProfile ?? ''))
@@ -189,7 +192,7 @@ export function HouseDifficultyControls({
       )}
     >
       <span
-        className='block h-16 w-1.5 rounded-full border border-white/70 bg-slate-400/70 shadow-sm'
+        className='block h-16 w-3 rounded-full border border-white/70 bg-slate-400/70 shadow-sm'
         aria-hidden
       />
     </button>
@@ -259,13 +262,13 @@ export function HouseDifficultyControls({
       </DropdownMenu>
 
       <HouseDifficultyGauge
-        orientation='vertical'
+        orientation={landscape ? 'semicircular' : 'vertical'}
         indicator={indicator}
         meterClassName='pointer-events-auto'
         testId='canvas-house-difficulty-gauge'
       />
 
-      <div className='flex flex-col items-center gap-1.5'>
+      <div data-radial-group className='flex flex-col items-center gap-1.5'>
         {OBSTACLE_OPTIONS.map(({key, label, Icon, iconClassName}) => {
           const checked = Boolean(siteAssessment?.[key]);
 
@@ -299,6 +302,7 @@ export function HouseDifficultyControls({
     </div>
   );
 
+  if (landscape && enableMobileCollapse) return <MobileRadialMenu side='right' label='Dificuldade da casa'>{controls.props.children}</MobileRadialMenu>;
   if (!enableMobileCollapse) return controls;
 
   return (

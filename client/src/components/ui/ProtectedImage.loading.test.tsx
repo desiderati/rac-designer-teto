@@ -37,13 +37,12 @@ it('não confunde o GIF de fallback com a foto durante reconexão nem conclui o 
   await waitFor(() => expect(image.getAttribute('src')).toMatch(/^data:image\/gif/));
   fireEvent.load(image);
   expect(onLoad).not.toHaveBeenCalled();
-  expect(screen.getByTestId('protected-image-loading-indicator')).toHaveAttribute('aria-label', 'Reconectando imagem');
-  expect(screen.getByTestId('protected-image-loading-indicator').parentElement).toHaveAttribute('data-image-load-state', 'retrying');
+  expect(screen.getByRole('button', {name: 'Tentar carregar imagem novamente'})).toBeVisible();
 
   await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
   await waitFor(() => expect(image.getAttribute('src')).toMatch(/^data:image\/png/));
   expect(onLoad).not.toHaveBeenCalled();
-  expect(screen.getByTestId('protected-image-loading-indicator')).toBeInTheDocument();
+  expect(image).toHaveClass('transition-opacity');
   fireEvent.load(image);
   expect(onLoad).toHaveBeenCalledOnce();
   expect(screen.queryByTestId('protected-image-loading-indicator')).not.toBeInTheDocument();

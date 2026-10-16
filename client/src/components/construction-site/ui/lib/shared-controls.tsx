@@ -117,6 +117,7 @@ export function RoundIconActionButton({
   tone = 'neutral',
   guidedTourId,
   disabled = false,
+  disabledReason,
 }: {
   label: string;
   onClick(event: MouseEvent<HTMLButtonElement>): void;
@@ -124,12 +125,14 @@ export function RoundIconActionButton({
   tone?: 'neutral' | 'archive' | 'unarchive' | 'success' | 'destructive';
   guidedTourId?: string;
   disabled?: boolean;
+  disabledReason?: string;
 }) {
   return (
     <button
       type='button'
       aria-label={label}
-      title={label}
+      title={disabled && disabledReason ? disabledReason : label}
+      aria-description={disabled ? disabledReason : undefined}
       data-guided-tour-id={guidedTourId}
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
@@ -430,7 +433,7 @@ export function RadioField({
 
 export function StaticMapPreview({locationQuery}: { locationQuery: string }) {
   const coordinates = parseMapCoordinates(locationQuery);
-  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_EMBED_API_KEY;
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_EMBED_API_KEY || import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   const googleMapsUrl = coordinates && googleMapsApiKey
     ? buildGoogleMapsEmbedUrl(coordinates, googleMapsApiKey)
     : null;

@@ -1,5 +1,8 @@
 import {Canvas as FabricCanvas, FabricImage} from 'fabric';
 import type {FabricObject} from 'fabric';
+import {isCanvasGroup} from '../../lib/canvas.ts';
+import {applyCurrentHouseDataToGroups} from '../../lib/house-visual-runtime.ts';
+import {applyFieldAnalysisContraventamentos} from '../../lib/field-analysis-contraventamentos.ts';
 import {isProtectedImageSource, resolveProtectedImageSource} from '@/shared/lib/protected-image.ts';
 import {refreshHouseGroupsOnCanvas} from '@/components/rac-editor/@canvas/lib';
 import {
@@ -1083,6 +1086,16 @@ async function exportSafeImageDataUrlWithStatus(canvas: FabricCanvas): Promise<{
  */
 export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocumentPort {
   return {
+    applyHouseDefinition: (house, pendingBraces) => {
+      const groups = canvas.getObjects().filter((object) => isCanvasGroup(object) && (object as CanvasObject).myType === 'house')
+        .map((object) => toCanvasGroup(object)).filter((group): group is NonNullable<typeof group> => group !== null);
+      applyCurrentHouseDataToGroups({groups, pilotis: house.pilotis, terrainType: house.terrainType});
+      if (pendingBraces) groups.filter((group) => group.houseViewType === 'top' || group.houseView === 'top').forEach((group) => {
+        group.remove(...group.getObjects().filter((object) => (object as CanvasObject).isContraventamento));
+        applyFieldAnalysisContraventamentos(group, pendingBraces);
+      });
+      canvas.requestRenderAll();
+    },
     exportCanvasDocument: () => {
       if (canvasWithIncompleteDocument.get(canvas)) {
         throw new Error('O desenho não foi carregado por completo; recarregue o documento antes de salvar.');

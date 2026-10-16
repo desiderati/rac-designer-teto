@@ -20,6 +20,7 @@ import type {
 export interface ConstructionSiteManagementPort {
   getHouseFieldAnalysis(constructionSiteId: string, houseId: string): import('@/shared/types/house-field-analysis.ts').HouseFieldAnalysisDraft;
   saveHouseFieldAnalysis(constructionSiteId: string, houseId: string, draft: import('@/shared/types/house-field-analysis.ts').HouseFieldAnalysisDraft): void;
+  resetHouseDefinition(houseId: string): void;
   subscribe(listener: () => void): () => void;
   getConstructionSiteSummaries(): ConstructionSiteSummary[];
   getConstructionSiteSnapshots(): ConstructionSiteState[];

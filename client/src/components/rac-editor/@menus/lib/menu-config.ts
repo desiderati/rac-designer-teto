@@ -131,7 +131,7 @@ export const TOP_BAR_ICONS = {
   toolFitContent: faCrosshairs,
   // Avatar dropdown
   restart: faRotateLeft,
-  reload: faRotate,
+  redefine: faHouseChimney,
   tips: faLightbulb,
   guidedTour: faGraduationCap,
   settings: faGear,
