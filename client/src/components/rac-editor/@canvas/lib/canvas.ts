@@ -55,6 +55,7 @@ type CanvasProperties = {
   isTopSlopeIndicator?: boolean;
   isTopSlopeIndicatorText?: boolean;
 
+  siteElementVariant?: string;
   streetVariant?: 'straight' | 'corner' | 'dirt';
 
   isPilotiCircle?: boolean;
@@ -415,6 +416,7 @@ export const canvasObjectProps = [
   'isTopSlopeIndicatorText',
 
   'streetVariant',
+  'siteElementVariant',
 
   'isPilotiCircle',
   'isPilotiRect',

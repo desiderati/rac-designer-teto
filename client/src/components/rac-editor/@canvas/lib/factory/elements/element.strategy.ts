@@ -1,7 +1,8 @@
 import type {Canvas as FabricCanvas} from 'fabric';
+import type {SiteElementKey} from '@shared/types/site-element.ts';
 import type {CanvasGroup, CanvasObject} from '@/components/rac-editor/@canvas/lib/canvas.ts';
 
-export type ElementStrategyKey =
+export type ElementStrategyKey = SiteElementKey
   | 'line'
   | 'arrow'
   | 'distance'

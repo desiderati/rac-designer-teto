@@ -1,10 +1,12 @@
 import {Canvas as FabricCanvas, IText} from 'fabric';
-import {CanvasObject} from '@/components/rac-editor/@canvas/lib/canvas.ts';
+import {CanvasObject, toCanvasGroup} from '@/components/rac-editor/@canvas/lib/canvas.ts';
 import {LINEAR_LABEL_TOP} from '@/components/rac-editor/@canvas/lib/factory/elements/shared.ts';
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 import type {GenericCanvasObjectEditorType} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import {toPastelWallFill} from '@/components/rac-editor/@canvas/lib/factory/elements/wall.strategy.ts';
 import {positionShapeLabel} from '@/components/rac-editor/@canvas/lib/factory/elements/shape-label-layout.ts';
+import type {SiteLabelEditorType} from '@shared/types/site-element.ts';
+import {fitSiteLabel} from './factory/elements/site.strategy.ts';
 
 export type GenericObjectEditorType = GenericCanvasObjectEditorType;
 
@@ -22,6 +24,10 @@ export interface GenericObjectEditorStrategy {
 }
 
 const genericObjectEditorStrategyRegistry: Record<GenericObjectEditorType, GenericObjectEditorStrategy> = {
+  siteHouse: createSiteStrategy('siteHouse'),
+  siteBuilding: createSiteStrategy('siteBuilding'),
+  fence: createSiteStrategy('fence'),
+  terrainEntry: createSiteStrategy('terrainEntry'),
   wall: createWallStrategy('wall'),
   square: createWallStrategy('square'),
   triangle: createWallStrategy('triangle'),
@@ -35,6 +41,38 @@ const genericObjectEditorStrategyRegistry: Record<GenericObjectEditorType, Gener
 
 export function getGenericObjectEditorStrategy(kind: GenericObjectEditorType): GenericObjectEditorStrategy {
   return genericObjectEditorStrategyRegistry[kind];
+}
+
+function createSiteStrategy(kind: SiteLabelEditorType): GenericObjectEditorStrategy {
+  return {
+    kind,
+    apply: ({canvas, object, color, label}) => {
+      const visit = (child: CanvasObject) => {
+        if (child.myType === 'siteLabel') {
+          child.set({text: label, fill: color, visible: Boolean(label.trim())});
+          (child as IText).initDimensions();
+        } else {
+          if (child.stroke && child.stroke !== 'transparent') child.set({stroke: color});
+          if (kind === 'terrainEntry' && child.myType === 'siteBody') child.set({fill: color});
+          child.getObjects?.().forEach(visit);
+        }
+      };
+      object.getObjects().forEach(visit);
+      if (kind === 'fence') {
+        const children = object.getObjects();
+        const body = children.find(child => child.myType === 'fenceBody');
+        children.find(child => child.myType === 'siteLabel')?.set({
+          left: body?.left ?? 0,
+          top: (body?.top ?? 0) + (label.trim() ? (body?.height ?? 12) / 2 + 18 : 0),
+        });
+      }
+      const group = toCanvasGroup(object);
+      if (group) {fitSiteLabel(group); group.triggerLayout();}
+      object.setCoords();
+      canvas.requestRenderAll();
+    },
+    getInfoMessage: () => 'Objeto atualizado.',
+  };
 }
 
 function createWallStrategy(kind: 'wall' | 'square' | 'triangle' | 'circle'): GenericObjectEditorStrategy {

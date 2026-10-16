@@ -56,8 +56,11 @@ export function GenericObjectEditor({
 
   const getTitle = (): string => {
     switch (editorType) {
-      case 'wall':
-        return 'Muro';
+      case 'wall': return 'Muro';
+      case 'siteHouse': return 'Casa';
+      case 'siteBuilding': return 'Construção';
+      case 'fence': return 'Cerca';
+      case 'terrainEntry': return 'Entrada no Terreno';
 
       case 'square': return 'Quadrado';
       case 'triangle': return 'Triângulo';
@@ -78,8 +81,11 @@ export function GenericObjectEditor({
 
   const getPlaceholder = (): string => {
     switch (editorType) {
-      case 'wall':
-        return 'Ex.: Muro, Vizinho, etc.';
+      case 'wall': return 'Ex.: Muro, Vizinho, etc.';
+      case 'siteHouse': return 'Casa';
+      case 'siteBuilding': return 'Banheiro';
+      case 'fence': return 'Texto opcional';
+      case 'terrainEntry': return 'Entrada no Terreno';
 
       case 'square':
       case 'triangle':

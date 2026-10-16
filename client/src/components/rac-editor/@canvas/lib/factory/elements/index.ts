@@ -1,4 +1,5 @@
 import type {ElementStrategy, ElementStrategyKey} from './element.strategy.ts';
+import {siteElementStrategies} from './site.strategy.ts';
 import {arrowStrategy} from './arrow.strategy.ts';
 import {distanceStrategy} from './distance.strategy.ts';
 import {doorStrategy} from './door.strategy.ts';
@@ -17,6 +18,7 @@ import {
 } from './street.strategy.ts';
 
 export const elementStrategies: Record<ElementStrategyKey, ElementStrategy> = {
+  ...siteElementStrategies,
   line: lineStrategy,
   arrow: arrowStrategy,
   distance: distanceStrategy,

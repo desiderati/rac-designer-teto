@@ -1,6 +1,6 @@
 import {Canvas as FabricCanvas, Group as FabricGroup, Line, Rect} from 'fabric';
 import {ElementStrategy} from './element.strategy.ts';
-import {setCanvasGroupMyType, setCanvasObjectMyType} from './shared.ts';
+import {setCanvasGroupMyType, setCanvasObjectMyType, withScalingGuard} from './shared.ts';
 import type {CanvasGroup, CanvasObject} from '@/components/rac-editor/@canvas/lib/canvas.ts';
 
 export type StreetVariant = 'straight' | 'corner' | 'dirt';
@@ -38,9 +38,26 @@ function createStreetStrategy(variant: StreetVariant): ElementStrategy {
 
       const canvasGroup = setCanvasGroupMyType(group, 'street');
       canvasGroup.streetVariant = variant;
+      if (variant === 'dirt') bindDirtRoadScaling(canvasGroup);
       return canvasGroup;
     },
   };
+}
+
+/** A textura acompanha a estrada com crescimento mais suave, mantendo traços finos. */
+export function bindDirtRoadScaling(road: CanvasGroup): void {
+  const update = () => {
+    const scale = road.getObjectScaling();
+    road.getCanvasObjects().forEach(child => {
+      if (child.myType === 'streetBody') child.set({strokeUniform: true});
+      if (child.myType === 'streetTexture') child.set({strokeUniform: true,
+        scaleX: 1 / Math.sqrt(Math.max(1, scale.x)),
+        scaleY: 1 / Math.sqrt(Math.max(1, scale.y))});
+    });
+    road.dirty = true;
+  };
+  update();
+  withScalingGuard(road, update);
 }
 
 function createStreetBody(params: {

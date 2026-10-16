@@ -11,6 +11,9 @@ import {
   getCanvasGroupObjects,
   toCanvasGroup,
 } from '@/components/rac-editor/@canvas/lib/canvas.ts';
+import {bindFenceScaling, refreshSiteElementGeometry} from '@/components/rac-editor/@canvas/lib/factory/elements/site.strategy.ts';
+import {applyElementControlPolicy} from '@/components/rac-editor/@canvas/lib/factory/elements/shared.ts';
+import {bindDirtRoadScaling} from '@/components/rac-editor/@canvas/lib/factory/elements/street.strategy.ts';
 import {bindWallCanvasGroupScaling} from '@/components/rac-editor/@canvas/lib/factory/elements/wall.strategy.ts';
 import {bindStairsCanvasGroupScaling} from '@/components/rac-editor/@canvas/lib/factory/elements/stairs.strategy.ts';
 import {positionShapeLabel} from '@/components/rac-editor/@canvas/lib/factory/elements/shape-label-layout.ts';
@@ -85,6 +88,9 @@ const styleKeys = [
   'lockScalingX',
   'lockScalingY',
   'lockRotation',
+  'flipX',
+  'flipY',
+  'lockScalingFlip',
 ] as const;
 
 const resourceKeys = [
@@ -666,7 +672,11 @@ function restoreCanvasRuntimeBehaviors(canvas: FabricCanvas): void {
     const group = toCanvasGroup(object);
     if (!group) return;
     const kind = group.myType;
+    applyElementControlPolicy(group);
+    refreshSiteElementGeometry(group);
+    if (kind === 'street' && group.streetVariant === 'dirt') bindDirtRoadScaling(group);
     if (kind === 'wall') bindWallCanvasGroupScaling(group);
+    if (kind === 'fence') bindFenceScaling(group);
     if (kind === 'stairs') bindStairsCanvasGroupScaling(group);
     if (kind === 'wall' || kind === 'square' || kind === 'circle' || kind === 'triangle') {
       positionShapeLabel(group, kind);
@@ -909,7 +919,8 @@ function drawSafe2DElement(
   context.save();
   context.translate(left, top);
   context.rotate(angle);
-  context.scale(scaleX, scaleY);
+  context.scale(scaleX * (element.style?.flipX === true ? -1 : 1),
+    scaleY * (element.style?.flipY === true ? -1 : 1));
   applySafe2DStyle(context, element);
 
   if (element.shape === 'group') {

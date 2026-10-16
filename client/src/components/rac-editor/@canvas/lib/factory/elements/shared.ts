@@ -3,6 +3,15 @@ import {CanvasGroup, CanvasObject, toCanvasGroup, toCanvasObject} from '@/compon
 
 export const LINEAR_LABEL_TOP = -20;
 
+const cornerOnlyKinds = new Set(['siteHouse', 'siteBuilding', 'terrainEntry', 'tree', 'water', 'fossa']);
+
+/** A visibilidade dos controles é runtime e precisa ser reaplicada ao reabrir o documento. */
+export function applyElementControlPolicy(object: CanvasObject): void {
+  if (!cornerOnlyKinds.has(object.myType)) return;
+  object.setControlsVisibility({mt: false, mb: false, ml: false, mr: false,
+    tl: true, tr: true, bl: true, br: true, mtr: true});
+}
+
 export function setCanvasGroupMyType(group: FabricGroup, myType: string): CanvasGroup;
 export function setCanvasGroupMyType<T extends { myType?: string }>(group: T, myType: string): T;
 export function setCanvasGroupMyType(
@@ -13,6 +22,7 @@ export function setCanvasGroupMyType(
   if (group instanceof FabricGroup) {
     const canvasGroup = toCanvasGroup(group);
     canvasGroup.myType = myType;
+    applyElementControlPolicy(canvasGroup);
     return canvasGroup;
   }
 

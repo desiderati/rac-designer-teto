@@ -1,3 +1,4 @@
+import {isSiteLabelEditorType} from '@shared/types/site-element.ts';
 import {useCallback} from 'react';
 import {Canvas as FabricCanvas, util as fabricUtil} from 'fabric';
 import {
@@ -58,8 +59,9 @@ export function useCanvasEditorEvents() {
 
       onWallSelect({
         objectId,
-        editorType: wallObject.myType === 'square' || wallObject.myType === 'triangle' || wallObject.myType === 'circle'
-          ? wallObject.myType : 'wall',
+        editorType: isSiteLabelEditorType(wallObject.myType) ? wallObject.myType
+          : wallObject.myType === 'square' || wallObject.myType === 'triangle' || wallObject.myType === 'circle'
+            ? wallObject.myType : 'wall',
         editorSelection: {
           type: 'wall',
           objectId,
@@ -235,7 +237,7 @@ export function useCanvasEditorEvents() {
       if (isMobileDevice || !targetRuntime) return;
       if (isAnyEditorOpen()) return;
 
-      if (targetRuntime?.myType === 'wall' || targetRuntime?.myType === 'square'
+      if (isSiteLabelEditorType(targetRuntime?.myType) || targetRuntime?.myType === 'wall' || targetRuntime?.myType === 'square'
         || targetRuntime?.myType === 'triangle' || targetRuntime?.myType === 'circle') {
         handleWallSelection(targetRuntime);
         return;
@@ -306,7 +308,7 @@ export function useCanvasEditorEvents() {
       if (!isMobileDevice || !runtimeTarget) return;
       if (isAnyEditorOpen()) return;
 
-      if (runtimeTarget.myType === 'wall' || runtimeTarget.myType === 'square'
+      if (isSiteLabelEditorType(runtimeTarget.myType) || runtimeTarget.myType === 'wall' || runtimeTarget.myType === 'square'
         || runtimeTarget.myType === 'triangle' || runtimeTarget.myType === 'circle') {
         setTimeout(() => {
           if (canvas.getActiveObject() === runtimeTarget) {
