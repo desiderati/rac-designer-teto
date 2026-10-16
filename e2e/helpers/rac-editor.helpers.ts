@@ -242,14 +242,18 @@ export async function ensureOverflowMenuOpen(page: Page) {
 
 export async function triggerElementsAction(page: Page, actionLabel: string) {
   await ensureMainMenuOpen(page);
-  const actionButton = page.getByRole('button', {name: actionLabel});
-
-  if (!(await actionButton.isVisible({timeout: 500}).catch(() => false))) {
-    await page.getByRole('button', {name: 'Elementos'}).click();
+  const label = actionLabel.replace(/^Objeto \/ /, '');
+  if (!(await page.getByRole('group', {name: 'Categorias de Elementos'}).isVisible().catch(() => false))) {
+    await page.getByRole('button', {name: 'Elementos', exact: true}).click();
   }
-
+  const group = ['Muro', 'Cerca', 'Entrada no Terreno', 'Portão'].includes(label) ? 'Limites e acessos'
+    : ['Rua Reta', 'Estrada de Chão'].includes(label) ? 'Vias'
+    : ['Árvore', 'Água / Rio', 'Fossa'].includes(label) ? 'Terreno e entorno' : 'Edificações';
+  const categoryButton = page.getByRole('button', {name: group, exact: true});
+  if (await categoryButton.getAttribute('aria-expanded') !== 'true') await categoryButton.click();
+  const actionButton = page.getByRole('button', {name: label, exact: true});
   await expect(actionButton).toBeVisible();
-  await actionButton.click({force: true});
+  await actionButton.click();
 }
 
 export async function triggerLinesAction(page: Page, actionLabel: string) {

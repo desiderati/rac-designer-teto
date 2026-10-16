@@ -35,6 +35,45 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
 2. Submenus
     - Devem abrir/fechar de forma clara, sem conflito entre si.
     - Em telas móveis, os submenus laterais devem manter proporção visual com a largura do menu principal.
+    - No menu radial de ferramentas do mobile horizontal, tocar em item com submenu leva seu
+      ícone ao centro, no lugar do ícone principal, e distribui somente seus filhos no arco.
+      Isso também se aplica às categorias e variantes de Elementos.
+    - Tocar no centro retorna um nível; na raiz, recolhe o menu. Escape retorna um nível ou
+      recolhe a raiz; tocar fora fecha. A ação final mantém o comportamento do comando escolhido.
+    - A transição comunica o deslocamento do item ao centro e a abertura das opções ao redor,
+      com duração curta. Reduzir movimento quando essa preferência estiver ativa no dispositivo.
+      Preservar nomes acessíveis e alvos de toque de pelo menos 44 px.
+    - Os itens dos arcos mostram nomes persistentes: à direita no menu esquerdo e à esquerda
+      no menu direito, voltados para dentro da tela. Tocar no nome também aciona o item.
+      O botão central conserva somente o ícone, inclusive ao navegar por submenus.
+      Evitar nomes sobrepostos ou cruzando outros botões em alturas compactas; não duplicar
+      rótulos com tooltips. O nome visível da Casa TETO pode omitir o complemento "(Opções)".
+    - No menu da direita, agrupar os controles hidráulicos, subterrâneos, elevados e de servidões
+      vizinhas no submenu `Obstáculos`, fechado inicialmente. Seu ícone fica marcado quando
+      qualquer um dos quatro controles estiver ativo e desmarca ao desligar o último.
+    - No radial mobile da direita, a raiz mostra apenas o seletor de solo e `Obstáculos`.
+      `Tipo de solo` abre suas cinco opções no arco, levando o ícone ao centro com a mesma
+      animação e navegação de `Obstáculos`. Selecionar um perfil mantém o submenu aberto,
+      destaca somente o perfil atual e permite limpar o valor escolhendo `Não informado`.
+      Abrir o grupo leva seu ícone ao centro e distribui os quatro controles no arco. Alternar
+      um controle mantém o submenu aberto. O centro e o ícone principal direito também refletem
+      a existência de obstáculos ativos, inclusive com o menu recolhido.
+      O indicador de dificuldade fica oculto nesse modo e permanece nos demais layouts.
+    - Nos demais layouts, `Obstáculos` abre uma lista vertical no padrão do seletor de solo:
+      ícone à esquerda, nome e marca de seleção à direita. O botão principal mantém o cone
+      como ícone fixo. As seleções são independentes e não fecham o submenu.
+      As listas de solo e obstáculos têm a mesma largura e altura de linha; a altura total
+      acompanha a quantidade de opções de cada lista.
+    - Os botões principais dos radiais usam ícones de ferramentas de desenho à esquerda e de
+      ajustes à direita, ambos de 16x16. Ao entrar em um submenu, seu ícone ocupa o respectivo centro.
+    - Grupos com poucas opções usam um arco menor, aproximando os itens do centro e entre si.
+      Adaptar o raio à quantidade de opções e à altura disponível, mantendo alvos de pelo menos
+      44 px e espaço para os nomes. Compartilhar essa regra nos dois menus radiais.
+    - Nos grupos de quatro ou mais itens, reduzir o alcance horizontal do arco, trazendo os
+      intermediários para a esquerda no menu esquerdo e espelhando no direito. Distribuir por
+      ângulos iguais no semicírculo, mantendo os extremos alinhados e folga visível entre os
+      círculos, sem permitir que encostem; adaptar o raio em telas baixas.
+      Os grupos de duas ou três opções conservam a distribuição já aprovada.
 
 3. Overflow (mais opções)
     - No Canvas, o FAB hamburger exibe "Construções TETO" como primeira opção e, depois de um separador, lista
@@ -73,6 +112,40 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
 
 2. Elementos
     - Inserção cria objeto no canvas com comportamento padrão esperado.
+    - O botão Elementos permanece na barra lateral existente. Seus submenus em cápsula agrupam
+      Edificações (Casa, Construção), Limites e acessos (Muro, Cerca, Entrada no Terreno, Portão),
+      Vias (Rua Reta, Estrada de Chão) e Terreno e entorno (Árvore, Água / Rio, Fossa).
+    - Nas cápsulas, itens usam apenas ícones de 16x16, em botões de 40x40 como a barra atual. Nomes aparecem
+      em tooltips de hover/foco e permanecem acessíveis por aria-label, sem rótulos visíveis.
+    - Abrir Elementos mostra apenas as categorias, sem seleção inicial. Cada submenu ou conjunto
+      de variantes abre somente ao clicar no item correspondente; novo clique o recolhe.
+    - Cada nível começa com o primeiro ícone alinhado ao botão que o abriu. Quando faltar espaço
+      à direita, deslocar apenas o necessário para manter a cápsula dentro da tela.
+    - Terreno e entorno usa ícone de paisagem (montanha e sol), distinto do elemento Árvore.
+    - Limites e acessos usa ícone de contorno de terreno, mantendo o tamanho dos demais ícones.
+    - Casa representa uma edificação do entorno com telhado visto de cima; não cria uma vista da
+      Casa TETO. O nome inicial é Casa, editável e posicionado na metade inferior do telhado.
+    - Construção oferece miniaturas com porta em cima, embaixo, à esquerda ou à direita.
+      O nome inicial é Banheiro, editável e horizontal independentemente do lado escolhido.
+    - Textos de Casa e Construção acompanham a escala do objeto. Nomes longos se ajustam ao corpo.
+    - O contorno e as diagonais do telhado da Casa mantêm traços finos ao ampliar o objeto.
+      As quinas da Casa e das quatro variantes de Construção devem se encontrar sem lacunas.
+    - Entrada no Terreno oferece quatro direções de seta, com texto inicial Entrada no Terreno,
+      editável e removível. O texto acompanha a escala do elemento.
+      Nas verticais, a fonte inicial é um pouco maior. Na seta para baixo, o nome fica acima;
+      nas demais, abaixo, com o mesmo intervalo entre texto e desenho em todas as direções.
+    - Casa do entorno, Construção, Entrada no Terreno, Árvore, Água e Fossa oferecem somente
+      controles nos cantos para redimensionar, preservando a rotação, inclusive após reabrir.
+      Os controles laterais dos demais elementos permanecem disponíveis.
+    - Na Estrada de Chão, os detalhes crescem menos que o corpo e mantêm traços finos ao ampliar.
+    - Cerca usa postes e fios em planta, pode ser redimensionada e girada, e começa sem texto.
+      Seu texto é opcional, editável pelo mesmo fluxo de Muro.
+    - Portão insere diretamente um portão de abrir, sempre aberto e sem texto no desenho.
+      Não há variante de correr nem opção de inverter sentido. A rotação do Canvas ajusta
+      sua orientação. Objetos salvos anteriormente conservam o desenho e as transformações.
+    - Na orientação móvel horizontal, navegar por categorias e variantes no próprio arco,
+      com o item pai no centro, sem abrir cápsulas sobre os outros botões.
+    - Variantes, textos, escalas e transformações devem persistir ao salvar e reabrir o documento.
     - Upload de imagem é uma ação direta do menu lateral e abre seleção/drag-and-drop antes de inserir a imagem no
       canvas.
     - Upload de imagem aceita somente PNG, JPG ou WEBP dentro do limite de tamanho definido pela aplicação.

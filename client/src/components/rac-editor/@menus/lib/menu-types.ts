@@ -1,3 +1,4 @@
+import type {SiteElementKey} from '@shared/types/site-element.ts';
 import {HouseType} from '@/shared/types/house.ts';
 import type {HouseDocumentSaveStatus} from '@/components/rac-editor/ports/HouseDocumentSaveStatus.ts';
 
@@ -10,6 +11,7 @@ export interface MenuActionMap {
   addHouseSide1: () => void;
   addHouseSide2: () => void;
   addWall: () => void;
+  addSiteElement: (kind: SiteElementKey) => void;
   addStreetStraight: () => void;
   addStreetCorner: () => void;
   addDirtRoad: () => void;
@@ -88,6 +90,7 @@ export interface RacEditorMenusProps {
   activeSubmenu: MenuSubmenu;
   showTips: boolean;
   showZoomControls: boolean;
+  showToolMenuLabels?: boolean;
   isMenuOpen: boolean;
   houseType: HouseType;
   frontViewCount?: MenuViewCount;

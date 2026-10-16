@@ -9,6 +9,7 @@ export interface UseMenuActionsArgs {
   handleOpenHouseTypeSelector: () => void;
   handleAddHouseView: (viewType: 'front' | 'back' | 'side1' | 'side2') => void;
   handleAddWall: () => void;
+  handleAddSiteElement: MenuActionMap['addSiteElement'];
   handleAddStreetStraight: () => void;
   handleAddStreetCorner: () => void;
   handleAddDirtRoad: () => void;
@@ -55,6 +56,7 @@ export function useRacEditorMenuActions({
   handleOpenHouseTypeSelector,
   handleAddHouseView,
   handleAddWall,
+  handleAddSiteElement,
   handleAddStreetStraight,
   handleAddStreetCorner,
   handleAddDirtRoad,
@@ -104,6 +106,7 @@ export function useRacEditorMenuActions({
     addHouseSide1: () => handleAddHouseView('side1'),
     addHouseSide2: () => handleAddHouseView('side2'),
     addWall: handleAddWall,
+    addSiteElement: handleAddSiteElement,
     addStreetStraight: handleAddStreetStraight,
     addStreetCorner: handleAddStreetCorner,
     addDirtRoad: handleAddDirtRoad,
@@ -166,6 +169,7 @@ export function useRacEditorMenuActions({
     handleAddText,
     handleAddTree,
     handleAddWall,
+    handleAddSiteElement,
     handleAddWater,
     handleDelete,
     handleExit,

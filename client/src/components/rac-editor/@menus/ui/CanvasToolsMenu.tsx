@@ -1,12 +1,13 @@
+import {ElementsSubmenu} from './ElementsSubmenu.tsx';
+import {getElementsRadialItems} from './ElementsRadialItems.tsx';
 import {MobileRadialMenu} from '@/components/rac-editor/ui/MobileRadialMenu.tsx';
+import type {RadialMenuItem} from '@/components/rac-editor/ui/RadialTreeMenu.tsx';
 import {useCanvasMobileViewport} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
 import {PointerEvent, ReactElement, useEffect, useRef, useState} from 'react';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
-import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip.tsx';
+import {RailButton} from './RailButton.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {
-  ELEMENTS_MENU_CONFIG,
   GEOMETRY_MENU_CONFIG,
   HOUSE_MENU_CONFIG,
   HouseMenuLimitKey,
@@ -31,6 +32,7 @@ interface CanvasToolsMenuProps {
   side2ViewCount: MenuViewCount;
   isMobile: boolean;
   disabled?: boolean;
+  showToolMenuLabels?: boolean;
 }
 
 export function CanvasToolsMenu({
@@ -44,8 +46,10 @@ export function CanvasToolsMenu({
   side2ViewCount,
   isMobile,
   disabled = false,
+  showToolMenuLabels = false,
 }: CanvasToolsMenuProps) {
-  const {landscape} = useCanvasMobileViewport();
+  const {landscape, mobile} = useCanvasMobileViewport();
+  const showLabels = showToolMenuLabels && !mobile;
   const houseMenuItems = houseType ? HOUSE_MENU_CONFIG[houseType] : [];
   const isHouseMenuOpen = activeSubmenu === 'house' && !!houseType;
   const isToolbarCollapseViewport = useToolbarCollapseViewport();
@@ -55,6 +59,39 @@ export function CanvasToolsMenu({
   const isCollapsed = !landscape && shouldShowMobileHandle && (collapsedOverride ?? shouldDefaultCollapse);
   const dragStartXRef = useRef<number | null>(null);
   const didDragRef = useRef(false);
+  const radialItems: RadialMenuItem[] = [
+    {id: 'house', label: 'Casa TETO (Opções)', caption: 'Casa TETO', icon: MAIN_MENU_ICONS.house, disabled,
+      ...(houseType ? {children: houseMenuItems.map(item => ({
+        id: item.title, label: item.title, icon: item.icon, disabled,
+        atLimit: resolveLimitState(item.limitKey, {
+          frontViewCount, backViewCount, side1ViewCount, side2ViewCount,
+        }), onSelect: actions[item.action],
+      }))} : {onSelect: actions.openHouseTypeSelector})},
+    {id: 'elements', label: 'Elementos', icon: MAIN_MENU_ICONS.elements, disabled,
+      children: getElementsRadialItems(actions, disabled)},
+    {id: 'geometry', label: 'Objetos Geométricos', icon: MAIN_MENU_ICONS.geometry, disabled,
+      children: GEOMETRY_MENU_CONFIG.map(item => ({id: item.title, label: item.title,
+        icon: item.icon, disabled, onSelect: actions[item.action]}))},
+    {id: 'lines', label: 'Linhas', icon: MAIN_MENU_ICONS.lines, disabled,
+      children: LINES_MENU_CONFIG.map(item => ({id: item.title, label: item.title,
+        icon: item.icon, disabled, guidedTourId: item.guidedTourId, onSelect: actions[item.action]}))},
+    {id: 'pencil', label: 'Lápis', icon: MAIN_MENU_ICONS.pencil, disabled, active: isDrawing,
+      onSelect: actions.toggleDrawMode},
+    {id: 'text', label: 'Texto Livre', icon: MAIN_MENU_ICONS.text, disabled, onSelect: actions.addText},
+    {id: 'upload', label: 'Upload de Imagem', icon: MAIN_MENU_ICONS.upload, disabled,
+      onSelect: actions.openImageUpload},
+    {id: 'delete', label: 'Excluir Item', icon: MAIN_MENU_ICONS.delete, disabled,
+      destructive: true, onSelect: actions.deleteSelection},
+  ];
+
+  useEffect(() => {
+    if (!landscape || !activeSubmenu) return;
+    const closeSubmenu = activeSubmenu === 'house' ? actions.toggleHouseMenu
+      : activeSubmenu === 'elements' ? actions.toggleElementsMenu
+        : activeSubmenu === 'geometry' ? actions.toggleGeometryMenu
+          : activeSubmenu === 'lines' ? actions.toggleLinesMenu : undefined;
+    closeSubmenu?.();
+  }, [landscape, activeSubmenu, actions]);
 
   const handleHandlePointerDown = (event: PointerEvent<HTMLButtonElement>) => {
     dragStartXRef.current = event.clientX;
@@ -111,12 +148,13 @@ export function CanvasToolsMenu({
   return (
     <>
       {mobileHandle}
-      <MobileRadialMenu side='left' label='Ferramentas do Canvas'
+      <MobileRadialMenu side='left' label='Ferramentas do Canvas' items={radialItems}
         role='toolbar'
         className={cn(
           'fixed left-4 top-1/2 -translate-y-1/2 z-40',
-          'flex flex-col items-center gap-1 p-1',
-          'w-12 rounded-full bg-white/85 backdrop-blur-xl',
+          showLabels ? 'flex flex-col items-center gap-1 px-[5px] py-[6px]' : 'flex flex-col items-center gap-1 p-1',
+          showLabels ? 'w-[88px] rounded-[24px] bg-white/85 backdrop-blur-xl'
+            : 'w-12 rounded-full bg-white/85 backdrop-blur-xl',
           'border border-slate-200 shadow-lg',
         )}
         aria-label='Barra de ferramentas principal'
@@ -133,6 +171,8 @@ export function CanvasToolsMenu({
               isActive={activeSubmenu === 'house'}
               isDisabled={disabled}
               hideTooltip={activeSubmenu === 'house'}
+              showLabel={showLabels}
+              label='Casa TETO'
             />
           )}
           items={houseMenuItems.map((item) => ({
@@ -147,28 +187,24 @@ export function CanvasToolsMenu({
               side2ViewCount,
             }),
           }))}
+          showLabels={showLabels}
         />
 
-        <RailItemWithSubmenu
-          anchorOpen={!disabled && activeSubmenu === 'elements'}
-          anchor={(
-            <RailButton
-              icon={MAIN_MENU_ICONS.elements}
-              title='Elementos'
-              onClick={actions.toggleElementsMenu}
-              isActive={activeSubmenu === 'elements'}
-              isDisabled={disabled}
-              hideTooltip={activeSubmenu === 'elements'}
-            />
-          )}
-          items={ELEMENTS_MENU_CONFIG.map((item) => ({
-            icon: item.icon,
-            title: item.title,
-            onClick: actions[item.action],
-            isDisabled: disabled || item.disabled,
-            guidedTourId: item.guidedTourId,
-          }))}
-        />
+        <div className='relative'>
+          <RailButton
+            icon={MAIN_MENU_ICONS.elements}
+            title='Elementos'
+            isExpanded={!disabled && activeSubmenu === 'elements'}
+            onClick={actions.toggleElementsMenu}
+            isActive={activeSubmenu === 'elements'}
+            isDisabled={disabled}
+            hideTooltip={activeSubmenu === 'elements'}
+            showLabel={showLabels}
+          />
+          {!disabled && activeSubmenu === 'elements' && <ElementsSubmenu
+            actions={actions} disabled={disabled} onDismiss={actions.toggleElementsMenu}
+            showToolMenuLabels={showLabels}/>}
+        </div>
 
         <RailItemWithSubmenu
           anchorOpen={!disabled && activeSubmenu === 'geometry'}
@@ -180,6 +216,8 @@ export function CanvasToolsMenu({
               isActive={activeSubmenu === 'geometry'}
               isDisabled={disabled}
               hideTooltip={activeSubmenu === 'geometry'}
+              showLabel={showLabels}
+              label='Geometria'
             />
           )}
           items={GEOMETRY_MENU_CONFIG.map((item) => ({
@@ -188,6 +226,7 @@ export function CanvasToolsMenu({
             onClick: actions[item.action],
             isDisabled: disabled,
           }))}
+          showLabels={showLabels}
         />
 
         <RailItemWithSubmenu
@@ -200,6 +239,7 @@ export function CanvasToolsMenu({
               isActive={activeSubmenu === 'lines'}
               isDisabled={disabled}
               hideTooltip={activeSubmenu === 'lines'}
+              showLabel={showLabels}
             />
           )}
           items={LINES_MENU_CONFIG.map((item) => ({
@@ -209,6 +249,7 @@ export function CanvasToolsMenu({
             isDisabled: disabled,
             guidedTourId: item.guidedTourId,
           }))}
+          showLabels={showLabels}
         />
 
         <RailButton
@@ -217,6 +258,7 @@ export function CanvasToolsMenu({
           onClick={actions.toggleDrawMode}
           isActive={isDrawing}
           isDisabled={disabled}
+          showLabel={showLabels}
         />
 
         <RailButton
@@ -224,6 +266,8 @@ export function CanvasToolsMenu({
           title='Texto Livre'
           onClick={actions.addText}
           isDisabled={disabled}
+          showLabel={showLabels}
+          label='Texto'
         />
 
         <RailButton
@@ -231,9 +275,11 @@ export function CanvasToolsMenu({
           title='Upload de Imagem'
           onClick={actions.openImageUpload}
           isDisabled={disabled}
+          showLabel={showLabels}
+          label='Imagem'
         />
 
-        {!landscape ? <RailDivider/> : null}
+        {!landscape ? <RailDivider showLabels={showLabels}/> : null}
 
         <RailButton
           icon={MAIN_MENU_ICONS.delete}
@@ -241,77 +287,22 @@ export function CanvasToolsMenu({
           onClick={actions.deleteSelection}
           isDestructive
           isDisabled={disabled}
+          showLabel={showLabels}
+          label='Excluir'
         />
       </MobileRadialMenu>
     </>
   );
 }
 
-interface RailButtonProps {
-  icon: IconDefinition;
-  title: string;
-  onClick: () => void;
-  isActive?: boolean;
-  isDisabled?: boolean;
-  isDestructive?: boolean;
-  isAtLimit?: boolean;
-  hideTooltip?: boolean;
-  guidedTourId?: string;
-}
-
-export function RailButton({
-  icon,
-  title,
-  onClick,
-  isActive = false,
-  isDisabled = false,
-  isDestructive = false,
-  isAtLimit = false,
-  hideTooltip = false,
-  guidedTourId,
-}: RailButtonProps) {
-  const button = (
-    <button
-      type='button'
-      onClick={isDisabled ? undefined : onClick}
-      aria-label={title}
-      disabled={isDisabled}
-      data-guided-tour-id={guidedTourId}
-      className={cn(
-        'relative flex items-center justify-center w-10 h-10 rounded-full',
-        'transition-colors text-sm',
-        isDisabled && 'opacity-40 cursor-not-allowed text-slate-400',
-        !isDisabled && !isActive && !isDestructive
-        && 'text-slate-500 hover:text-slate-800 hover:bg-slate-100',
-        !isDisabled && isActive
-        && 'bg-blue-50 text-blue-600 hover:bg-blue-100',
-        !isDisabled && isDestructive
-        && 'text-red-500 hover:text-red-600 hover:bg-red-50',
-        isAtLimit && !isDisabled && 'opacity-60',
-      )}
-    >
-      <FontAwesomeIcon icon={icon}/>
-    </button>
-  );
-
-  if (hideTooltip) return button;
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent side='right' className='bg-slate-900 text-white text-xs'>
-        {title}
-      </TooltipContent>
-    </Tooltip>
-  );
-}
-
 interface RailItemWithSubmenuProps {
   anchorOpen: boolean;
   anchor: ReactElement;
+  showLabels?: boolean;
   items: Array<{
     icon: IconDefinition;
     title: string;
+    label?: string;
     onClick: () => void;
     isDisabled?: boolean;
     isAtLimit?: boolean;
@@ -323,6 +314,7 @@ function RailItemWithSubmenu({
   anchorOpen,
   anchor,
   items,
+  showLabels = false,
 }: RailItemWithSubmenuProps) {
   return (
     <div className='relative'>
@@ -332,8 +324,10 @@ function RailItemWithSubmenu({
           data-testid='rac-side-rail-submenu'
           className={cn(
             'absolute left-full top-1/2 -translate-y-1/2 ml-2',
-            'flex h-12 flex-row items-center gap-1 px-1 py-1',
-            'rounded-full bg-white/90 backdrop-blur-xl border border-slate-200 shadow-md',
+            showLabels ? 'flex h-[76px] max-w-[calc(100vw-8rem)] flex-row items-center gap-1 overflow-x-auto px-[5px] py-1'
+              : 'flex h-12 flex-row items-center gap-1 px-1 py-1',
+            showLabels ? 'rounded-[24px] bg-white/90 backdrop-blur-xl border border-slate-200 shadow-md'
+              : 'rounded-full bg-white/90 backdrop-blur-xl border border-slate-200 shadow-md',
             'animate-in slide-in-from-left-2 duration-150',
           )}
         >
@@ -342,6 +336,9 @@ function RailItemWithSubmenu({
               key={item.title}
               icon={item.icon}
               title={item.title}
+              label={item.label}
+              showLabel={showLabels}
+              labelVariant='submenu'
               onClick={item.onClick}
               isDisabled={item.isDisabled}
               isAtLimit={item.isAtLimit}
@@ -354,8 +351,8 @@ function RailItemWithSubmenu({
   );
 }
 
-function RailDivider() {
-  return <div className='w-6 h-px bg-slate-200 my-0.5' aria-hidden/>;
+function RailDivider({showLabels = false}: {showLabels?: boolean}) {
+  return <div className={showLabels ? 'my-0.5 h-px w-[60px] bg-slate-200' : 'w-6 h-px bg-slate-200 my-0.5'} aria-hidden/>;
 }
 
 function useToolbarCollapseViewport() {

@@ -177,6 +177,7 @@ export function useCanvasTools({
     handleAddTree,
     handleAddWater,
     handleAddFossa,
+    handleAddSiteElement: addCanvasObject,
     handleAddLine,
     handleAddArrow,
     handleAddDistance,

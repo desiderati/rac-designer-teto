@@ -1,4 +1,5 @@
-import {MobileRadialMenu} from './MobileRadialMenu.tsx';
+import {RadialTreeMenu, type RadialMenuItem} from './RadialTreeMenu.tsx';
+import {faSliders} from '@fortawesome/free-solid-svg-icons';
 import {useCanvasMobileViewport} from '../lib/use-canvas-mobile-viewport.ts';
 import {type ComponentType, type PointerEvent, type SVGProps, useEffect, useRef, useState} from 'react';
 import {
@@ -11,6 +12,7 @@ import {
   Pickaxe,
   Ruler,
   UtilityPole,
+  TrafficCone,
   Waves,
 } from 'lucide-react';
 import {
@@ -28,6 +30,7 @@ import type {SiteAssessment, SoilProfile} from '@/shared/types/construction-site
 type SiteAssessmentChange = (input: Partial<SiteAssessment>) => void;
 type SoilMenuValue = SoilProfile | '';
 type ObstacleIcon = ComponentType<SVGProps<SVGSVGElement>>;
+const FACTOR_MENU_CLASS_NAME = 'w-56 rounded-xl border border-slate-200 bg-white/95 p-1 text-slate-700 shadow-xl backdrop-blur-xl';
 
 function HydraulicObstacleIcon({className, ...props}: SVGProps<SVGSVGElement>) {
   return (
@@ -50,6 +53,7 @@ interface HouseDifficultyControlsProps {
   onSiteAssessmentChange?: SiteAssessmentChange;
   enableMobileCollapse?: boolean;
   className?: string;
+  showToolMenuLabels?: boolean;
 }
 
 const SOIL_PROFILE_OPTIONS: Array<{
@@ -131,8 +135,11 @@ export function HouseDifficultyControls({
   onSiteAssessmentChange,
   enableMobileCollapse = false,
   className,
+  showToolMenuLabels = false,
 }: HouseDifficultyControlsProps) {
-  const {landscape} = useCanvasMobileViewport();
+  const {landscape, mobile} = useCanvasMobileViewport();
+  const showLabels = showToolMenuLabels && !mobile;
+  const isRadialMenu = landscape && enableMobileCollapse;
   const isToolbarCollapseViewport = useToolbarCollapseViewport();
   const shouldDefaultCollapse = usePhoneToolbarCollapseViewport();
   const [collapsedOverride, setCollapsedOverride] = useState<boolean | null>(null);
@@ -198,6 +205,77 @@ export function HouseDifficultyControls({
     </button>
   ) : null;
 
+  const hasObstacles = OBSTACLE_OPTIONS.some(({key}) => Boolean(siteAssessment?.[key]));
+  const soilControl = (
+    <DropdownMenu>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <button
+              type='button'
+              aria-label={`Editar perfil do solo. Atual: ${selectedSoil.label}`}
+              className={cn(
+                showLabels
+                  ? 'relative flex h-[64px] w-[88px] cursor-pointer flex-col items-center justify-center gap-1 rounded-[18px] bg-white/90 text-slate-600 shadow-sm ring-1 ring-slate-200 backdrop-blur-sm transition-colors hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200'
+                  : 'relative grid h-8 w-8 cursor-pointer place-items-center rounded-full bg-white/90 text-slate-600 shadow-sm ring-1 ring-slate-200 backdrop-blur-sm transition-colors hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200',
+                'pointer-events-auto',
+                onSiteAssessmentChange ? null : 'cursor-not-allowed opacity-60',
+              )}
+              disabled={!onSiteAssessmentChange}
+            >
+              <SoilIcon aria-hidden='true' className={cn('h-4 w-4', selectedSoil.iconClassName)}/>
+              {showLabels && <span aria-hidden='true' className='text-center text-[12px] leading-[1.2]'>Tipo de solo</span>}
+            </button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side='left' className='bg-slate-900 text-xs text-white'>
+          {`Tipo de solo: ${selectedSoil.label}`}
+        </TooltipContent>
+      </Tooltip>
+      <DropdownMenuContent
+        align='center'
+        side='left'
+        sideOffset={8}
+        className={FACTOR_MENU_CLASS_NAME}
+      >
+        {SOIL_PROFILE_OPTIONS.map((option) => {
+          const selected = option.value === (siteAssessment?.soilProfile ?? '');
+          const OptionIcon = option.Icon;
+
+          return (
+            <DropdownMenuItem
+              key={option.value || 'unknown'}
+              aria-label={`Selecionar solo ${option.label}`}
+              onSelect={() => updateSoilProfile(option.value)}
+              className={cn(
+                'flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold',
+                selected ? 'bg-blue-50 text-blue-900' : 'text-slate-700 focus:bg-slate-100',
+              )}
+            >
+              <OptionIcon aria-hidden='true' className={cn('h-4 w-4 shrink-0', option.iconClassName)}/>
+              <span className='min-w-0 flex-1 truncate'>{option.label}</span>
+              <Check aria-hidden='true' className={cn('h-3.5 w-3.5 shrink-0', selected ? 'opacity-100' : 'opacity-0')}/>
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+  const obstacleControls = OBSTACLE_OPTIONS.map(({key, label, Icon, iconClassName}) => {
+    const checked = Boolean(siteAssessment?.[key]);
+    return (
+      <DropdownMenuItem key={key} role='menuitemcheckbox' aria-label={label} aria-checked={checked}
+        disabled={!onSiteAssessmentChange}
+        onSelect={event => {event.preventDefault(); toggleObstacle(key);}}
+        className={cn('flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold',
+          checked ? 'bg-blue-50 text-blue-900 focus:bg-blue-100 focus:text-blue-900' : 'text-slate-700 focus:bg-slate-100')}>
+        <Icon aria-hidden='true' className={cn('h-4 w-4 shrink-0', iconClassName)}/>
+        <span className='min-w-0 flex-1 truncate'>{label}</span>
+        <Check aria-hidden='true' className={cn('h-3.5 w-3.5 shrink-0', checked ? 'opacity-100' : 'opacity-0')}/>
+      </DropdownMenuItem>
+    );
+  });
+
   const controls = (
     <div
       data-testid='house-difficulty-controls'
@@ -210,99 +288,68 @@ export function HouseDifficultyControls({
         !enableMobileCollapse && className,
       )}
     >
+      {soilControl}
+
+      {!isRadialMenu && (showLabels
+        ? <div className='flex w-[88px] flex-col items-center gap-1 text-slate-500'>
+          <HouseDifficultyGauge orientation='vertical' indicator={indicator}
+            meterClassName='pointer-events-auto' testId='canvas-house-difficulty-gauge'/>
+          <span aria-hidden='true' className='text-center text-[12px] leading-[1.2]'>Dificuldade</span>
+        </div>
+        : <HouseDifficultyGauge orientation={landscape ? 'semicircular' : 'vertical'} indicator={indicator}
+          meterClassName='pointer-events-auto' testId='canvas-house-difficulty-gauge'/>)}
+
       <DropdownMenu>
         <Tooltip>
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
-              <button
-                type='button'
-                aria-label={`Editar perfil do solo. Atual: ${selectedSoil.label}`}
-                className={cn(
-                  'relative grid h-8 w-8 cursor-pointer place-items-center rounded-full bg-white/90 text-slate-600 shadow-sm ring-1 ring-slate-200 backdrop-blur-sm transition-colors hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200',
-                  'pointer-events-auto',
-                  onSiteAssessmentChange ? null : 'cursor-not-allowed opacity-60',
-                )}
-                disabled={!onSiteAssessmentChange}
-              >
-                <SoilIcon aria-hidden='true' className={cn('h-4 w-4', selectedSoil.iconClassName)}/>
+              <button type='button' aria-label='Obstáculos' aria-pressed={hasObstacles}
+                className={cn(showLabels
+                  ? 'pointer-events-auto relative flex h-[64px] w-[88px] flex-col items-center justify-center gap-1 rounded-[18px] shadow-sm ring-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'
+                  : 'pointer-events-auto relative grid h-8 w-8 place-items-center rounded-full shadow-sm ring-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
+                  hasObstacles ? 'bg-blue-600 text-white ring-blue-500 hover:bg-blue-500' : 'bg-white/90 text-slate-500 ring-slate-200 hover:bg-blue-50 hover:text-blue-700')}>
+                <TrafficCone aria-hidden='true' className='h-4 w-4'/>
+                {showLabels && <span aria-hidden='true' className='text-center text-[12px] leading-[1.2]'>Obstáculos</span>}
               </button>
             </DropdownMenuTrigger>
           </TooltipTrigger>
-          <TooltipContent side='left' className='bg-slate-900 text-xs text-white'>
-            {`Tipo de solo: ${selectedSoil.label}`}
-          </TooltipContent>
+          <TooltipContent side='left' className='bg-slate-900 text-xs text-white'>Obstáculos</TooltipContent>
         </Tooltip>
-        <DropdownMenuContent
-          align='center'
-          side='left'
-          sideOffset={8}
-          className='w-44 rounded-xl border border-slate-200 bg-white/95 p-1 text-slate-700 shadow-xl backdrop-blur-xl'
-        >
-          {SOIL_PROFILE_OPTIONS.map((option) => {
-            const selected = option.value === (siteAssessment?.soilProfile ?? '');
-            const OptionIcon = option.Icon;
-
-            return (
-              <DropdownMenuItem
-                key={option.value || 'unknown'}
-                aria-label={`Selecionar solo ${option.label}`}
-                onSelect={() => updateSoilProfile(option.value)}
-                className={cn(
-                  'flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold',
-                  selected ? 'bg-blue-50 text-blue-900' : 'text-slate-700 focus:bg-slate-100',
-                )}
-              >
-                <OptionIcon aria-hidden='true' className={cn('h-4 w-4 shrink-0', option.iconClassName)}/>
-                <span className='min-w-0 flex-1 truncate'>{option.label}</span>
-                <Check aria-hidden='true' className={cn('h-3.5 w-3.5 shrink-0', selected ? 'opacity-100' : 'opacity-0')}/>
-              </DropdownMenuItem>
-            );
-          })}
+        <DropdownMenuContent align='center' side='left' sideOffset={8} aria-label='Obstáculos'
+          className={FACTOR_MENU_CLASS_NAME}>
+          {obstacleControls}
         </DropdownMenuContent>
       </DropdownMenu>
-
-      <HouseDifficultyGauge
-        orientation={landscape ? 'semicircular' : 'vertical'}
-        indicator={indicator}
-        meterClassName='pointer-events-auto'
-        testId='canvas-house-difficulty-gauge'
-      />
-
-      <div data-radial-group className='flex flex-col items-center gap-1.5'>
-        {OBSTACLE_OPTIONS.map(({key, label, Icon, iconClassName}) => {
-          const checked = Boolean(siteAssessment?.[key]);
-
-          return (
-            <Tooltip key={key}>
-              <TooltipTrigger asChild>
-                <button
-                  type='button'
-                  aria-label={label}
-                  aria-pressed={checked}
-                  onClick={() => toggleObstacle(key)}
-                  disabled={!onSiteAssessmentChange}
-                  className={cn(
-                    'pointer-events-auto grid h-8 w-8 cursor-pointer place-items-center rounded-full shadow-sm ring-1 backdrop-blur-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
-                    checked
-                      ? 'bg-blue-600 text-white ring-blue-500 hover:bg-blue-500'
-                      : 'bg-white/90 text-slate-500 ring-slate-200 hover:bg-blue-50 hover:text-blue-700',
-                    onSiteAssessmentChange ? null : 'cursor-not-allowed opacity-60',
-                  )}
-                >
-                  <Icon aria-hidden='true' className={cn('h-4 w-4', iconClassName)}/>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side='left' className='bg-slate-900 text-xs text-white'>
-                {label}
-              </TooltipContent>
-            </Tooltip>
-          );
-        })}
-      </div>
     </div>
   );
 
-  if (landscape && enableMobileCollapse) return <MobileRadialMenu side='right' label='Dificuldade da casa'>{controls.props.children}</MobileRadialMenu>;
+  if (isRadialMenu) {
+    const items: RadialMenuItem[] = [
+      {id: 'soil', label: 'Tipo de solo', content: <SoilIcon aria-hidden='true' className={cn('h-4 w-4', selectedSoil.iconClassName)}/>,
+        children: SOIL_PROFILE_OPTIONS.map(option => {
+          const selected = option.value === (siteAssessment?.soilProfile ?? '');
+          const OptionIcon = option.Icon;
+          return {
+            id: option.value || 'unknown', label: option.label,
+            content: <OptionIcon aria-hidden='true' className={cn('h-4 w-4', !selected && option.iconClassName)}/>,
+            pressed: selected, disabled: !onSiteAssessmentChange, keepOpenOnSelect: true,
+            onSelect: () => updateSoilProfile(option.value),
+          };
+        }),
+      },
+      {id: 'obstacles', label: 'Obstáculos', content: <TrafficCone aria-hidden='true' className='h-4 w-4'/>,
+        active: hasObstacles, pressed: hasObstacles,
+        children: OBSTACLE_OPTIONS.map(({key, label, Icon, iconClassName}) => ({
+          id: key, label, content: <Icon aria-hidden='true' className={cn('h-4 w-4', iconClassName)}/>,
+          pressed: Boolean(siteAssessment?.[key]), disabled: !onSiteAssessmentChange,
+          keepOpenOnSelect: true, onSelect: () => toggleObstacle(key),
+        })),
+      },
+    ];
+    return <RadialTreeMenu side='right' label='Dificuldade da casa' rootIcon={faSliders}
+      active={hasObstacles} items={items} testId='house-difficulty-controls'
+      guidedTourId='rac-house-difficulty-controls'/>;
+  }
   if (!enableMobileCollapse) return controls;
 
   return (
