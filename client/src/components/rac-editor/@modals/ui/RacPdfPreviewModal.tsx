@@ -4,6 +4,7 @@ import {Button} from '@/components/ui/button.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
 import {PdfDocumentPagePreview} from './PdfDocumentPagePreview.tsx';
+import {createResizeObserverScheduler} from '@/shared/lib/resize-observer-scheduler.ts';
 
 interface RacPdfPreviewModalProps {
   isMobile: boolean;
@@ -73,9 +74,10 @@ export function RacPdfPreviewModal({
     if (!isOpen || !pdfUrl) return;
 
     const host = previewContainerRef.current?.querySelector<HTMLElement>('[data-testid="pdf-preview-host"]');
+    const scheduler = createResizeObserverScheduler(fitToPage);
     const observer = typeof ResizeObserver === 'undefined' || !host
       ? null
-      : new ResizeObserver(() => fitToPage());
+      : new ResizeObserver(scheduler.schedule);
     observer?.observe(host);
 
     const frame = requestAnimationFrame(() => fitToPage());
@@ -84,6 +86,7 @@ export function RacPdfPreviewModal({
       cancelAnimationFrame(frame);
       window.clearTimeout(settledFit);
       observer?.disconnect();
+      scheduler.cancel();
     };
   }, [fitToPage, isOpen, pageCount, pdfUrl]);
 

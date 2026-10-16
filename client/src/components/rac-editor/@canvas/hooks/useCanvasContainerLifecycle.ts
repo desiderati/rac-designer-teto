@@ -1,5 +1,6 @@
-import {Dispatch, MutableRefObject, SetStateAction, useEffect} from 'react';
+import {Dispatch, MutableRefObject, SetStateAction, useEffect, useRef} from 'react';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
+import {createResizeObserverScheduler} from '@/shared/lib/resize-observer-scheduler.ts';
 
 interface UseCanvasContainerLifecycleArgs {
   containerRef: MutableRefObject<HTMLDivElement | null>;
@@ -18,6 +19,7 @@ export function useCanvasContainerLifecycle({
   setViewportX,
   setViewportY,
 }: UseCanvasContainerLifecycleArgs) {
+  const lastSizeRef = useRef<{width: number; height: number} | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -25,17 +27,29 @@ export function useCanvasContainerLifecycle({
     const updateSize = () => {
       if (!containerRef.current) return;
 
-      setContainerSize({
+      const nextSize = {
         width: containerRef.current.clientWidth,
         height: containerRef.current.clientHeight,
-      });
+      };
+      const previousSize = lastSizeRef.current;
+      if (previousSize?.width === nextSize.width && previousSize.height === nextSize.height) return;
+      lastSizeRef.current = nextSize;
+      setContainerSize((currentSize) =>
+        currentSize.width === nextSize.width && currentSize.height === nextSize.height
+          ? currentSize
+          : nextSize,
+      );
     };
 
     updateSize();
-    const resizeObserver = new ResizeObserver(updateSize);
+    const scheduler = createResizeObserverScheduler(updateSize);
+    const resizeObserver = new ResizeObserver(scheduler.schedule);
     resizeObserver.observe(containerRef.current);
 
-    return () => resizeObserver.disconnect();
+    return () => {
+      resizeObserver.disconnect();
+      scheduler.cancel();
+    };
   }, [containerRef, setContainerSize]);
 
   useEffect(() => {

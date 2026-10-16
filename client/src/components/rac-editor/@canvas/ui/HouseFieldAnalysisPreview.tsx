@@ -6,6 +6,7 @@ import {createConfiguredHouseViewGroup} from '../lib/house-view-groups.ts';
 import {applyFieldAnalysisContraventamentos} from '../lib/field-analysis-contraventamentos.ts';
 import {refreshTopDoorMarkersInViews} from '../lib/house-top-view-door-marker.ts';
 import {getPilotiName} from '@/shared/types/piloti.ts';
+import {createResizeObserverScheduler} from '@/shared/lib/resize-observer-scheduler.ts';
 
 interface Target {id: string; x: number; y: number; diameter: number}
 export function styleFieldAnalysisPilotis(group: ReturnType<typeof createConfiguredHouseViewGroup>, selectedPilotiId?: string) {
@@ -74,9 +75,15 @@ export function HouseFieldAnalysisPreview({draft, selectedPilotiId, onSelectPilo
       }));
     };
     fit();
-    const observer = new ResizeObserver(fit);
+    const scheduler = createResizeObserverScheduler(fit);
+    const observer = new ResizeObserver(scheduler.schedule);
     observer.observe(container);
-    return () => { disposed = true; observer.disconnect(); void canvas.dispose().then(() => element.remove()); };
+    return () => {
+      disposed = true;
+      observer.disconnect();
+      scheduler.cancel();
+      void canvas.dispose().then(() => element.remove());
+    };
   }, [draft, selectedPilotiId]);
   return <div ref={containerRef} aria-label='Planta da casa: selecione um piloti' className='relative w-full min-w-0 overflow-hidden'>
     {targets.map(({id, x, y, diameter}) => <button key={id} type='button' aria-label={`Selecionar piloti ${getPilotiName(id)}`}

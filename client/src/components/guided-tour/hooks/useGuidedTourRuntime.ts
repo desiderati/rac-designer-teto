@@ -14,6 +14,7 @@ import type {
   GuidedTourStep,
   GuidedTourTip,
 } from '@/components/guided-tour/ports/types.ts';
+import {createResizeObserverScheduler} from '@/shared/lib/resize-observer-scheduler.ts';
 
 interface GuidedTourEventRect {
   left: number;
@@ -182,18 +183,19 @@ export function useGuidedTourRuntime(registry: GuidedTourRegistry) {
   }, [registry.tips, registry.tours]);
 
   useEffect(() => {
-    const notify = () => setObserverVersion((version) => version + 1);
-    const resizeObserver = new ResizeObserver(notify);
+    const scheduler = createResizeObserverScheduler(() => setObserverVersion((version) => version + 1));
+    const resizeObserver = new ResizeObserver(scheduler.schedule);
     resizeObserver.observe(document.documentElement);
-    const mutationObserver = new MutationObserver(notify);
+    const mutationObserver = new MutationObserver(scheduler.schedule);
     mutationObserver.observe(document.body, {attributes: true, childList: true, subtree: true});
-    window.addEventListener('resize', notify);
-    window.addEventListener('scroll', notify, true);
+    window.addEventListener('resize', scheduler.schedule);
+    window.addEventListener('scroll', scheduler.schedule, true);
     return () => {
       resizeObserver.disconnect();
       mutationObserver.disconnect();
-      window.removeEventListener('resize', notify);
-      window.removeEventListener('scroll', notify, true);
+      window.removeEventListener('resize', scheduler.schedule);
+      window.removeEventListener('scroll', scheduler.schedule, true);
+      scheduler.cancel();
     };
   }, []);
 
