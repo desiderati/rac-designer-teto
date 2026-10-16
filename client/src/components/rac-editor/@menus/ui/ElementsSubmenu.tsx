@@ -18,7 +18,7 @@ const groups = [
 ] as const;
 type GroupId = typeof groups[number]['id'];
 const pill = 'flex h-12 w-max max-w-full items-center gap-1 rounded-full border border-slate-200 bg-white/90 px-1 py-1 shadow-md backdrop-blur-xl';
-const labeledPill = 'flex h-[76px] w-max max-w-[calc(100vw-8rem)] items-center gap-1 overflow-x-auto rounded-[24px] border border-slate-200 bg-white/90 px-[5px] py-1 shadow-md backdrop-blur-xl';
+const labeledPill = 'flex h-[76px] w-max max-w-[calc(100vw-8rem)] items-center gap-1 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden rounded-[24px] border border-slate-200 bg-white/90 px-[5px] py-1 shadow-md backdrop-blur-xl';
 
 export function ElementsSubmenu({actions, disabled, onDismiss, showToolMenuLabels = false}: {
   actions: MenuActionMap; disabled: boolean; onDismiss: () => void; showToolMenuLabels?: boolean;

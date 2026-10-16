@@ -324,7 +324,7 @@ function RailItemWithSubmenu({
           data-testid='rac-side-rail-submenu'
           className={cn(
             'absolute left-full top-1/2 -translate-y-1/2 ml-2',
-            showLabels ? 'flex h-[76px] max-w-[calc(100vw-8rem)] flex-row items-center gap-1 overflow-x-auto px-[5px] py-1'
+            showLabels ? 'flex h-[76px] max-w-[calc(100vw-8rem)] flex-row items-center gap-1 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-[5px] py-1'
               : 'flex h-12 flex-row items-center gap-1 px-1 py-1',
             showLabels ? 'rounded-[24px] bg-white/90 backdrop-blur-xl border border-slate-200 shadow-md'
               : 'rounded-full bg-white/90 backdrop-blur-xl border border-slate-200 shadow-md',
