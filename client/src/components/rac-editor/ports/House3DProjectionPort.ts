@@ -1,5 +1,6 @@
 import type {
   HousePiloti,
+  HousePreAssignedSides,
   HouseSide,
   HouseType,
   HouseViewType,
@@ -108,6 +109,9 @@ export interface House3DProjection {
 
   /** Mapeamento entre lados do canvas e tipos de vista. */
   sideMappings: Record<HouseSide, HouseViewType | null>;
+
+  /** Orientação escolhida antes de inserir elevações; opcional em projeções legadas. */
+  preAssignedSides?: HousePreAssignedSides;
 
   /** Indica se existe ao menos uma vista registrada. */
   hasHouseViews: boolean;

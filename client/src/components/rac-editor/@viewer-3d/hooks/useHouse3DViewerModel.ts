@@ -75,20 +75,29 @@ export function buildHouse3DViewerModel(projection: House3DProjection | null): H
     };
   }
 
+  // A planta já usa a pré-atribuição antes de existir uma elevação. O 3D deve
+  // usar a mesma orientação, sem gravar essa inferência no estado canônico.
+  const sideMappings = {...projection.sideMappings};
+  const doorView = projection.houseType === 'tipo6' ? 'front' : 'side2';
+  const preAssignedDoorSide = projection.preAssignedSides?.[doorView];
+  if (preAssignedDoorSide && !Object.values(sideMappings).includes(doorView)) {
+    sideMappings[preAssignedDoorSide] = doorView;
+  }
+
   return {
     houseType: projection.houseType,
     hasHouseViews: projection.hasHouseViews,
     canRenderHouse: Boolean(projection.houseType && projection.hasHouseViews),
     isProjectionLoading: false,
     pilotis: {...projection.pilotis},
-    tipo6FrontSide: projection.houseType === 'tipo6' ? resolveTipo6FrontSide(projection.sideMappings) : null,
-    tipo3OpenSide: projection.houseType === 'tipo3' ? resolveTipo3OpenSide(projection.sideMappings) : null,
+    tipo6FrontSide: projection.houseType === 'tipo6' ? resolveTipo6FrontSide(sideMappings) : null,
+    tipo3OpenSide: projection.houseType === 'tipo3' ? resolveTipo3OpenSide(sideMappings) : null,
     contraventamentos: parseContraventamentosFromTopView(projection.topView),
     stairs: parseStairsFromElevationViews({
       houseType: projection.houseType,
-      sideMappings: projection.sideMappings,
+      sideMappings,
       elevationViews: projection.elevationViews,
-    }) ?? deriveStairsFromHouse(projection),
+    }) ?? deriveStairsFromHouse({...projection, sideMappings}),
   };
 }
 

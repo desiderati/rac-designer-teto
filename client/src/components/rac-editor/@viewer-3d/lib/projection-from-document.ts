@@ -55,6 +55,7 @@ export function createHouse3DProjectionFromDocument(document: HouseDrawingDocume
     houseType: document.house.houseType,
     pilotis: {...document.house.pilotis},
     sideMappings: document.house.sideMappings,
+    preAssignedSides: {...document.house.preAssignedSides},
     hasHouseViews: Object.values(document.house.views).some((instances) => instances.length > 0),
     topView: topGroup ? {
       contraventamentos: (topGroup.children ?? [])

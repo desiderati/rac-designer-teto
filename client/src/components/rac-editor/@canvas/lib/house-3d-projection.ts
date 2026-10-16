@@ -29,6 +29,7 @@ export function createHouse3DProjectionFromCanvasHouse(
     houseType: house.houseType,
     pilotis: {...house.pilotis},
     sideMappings: house.sideMappings,
+    preAssignedSides: {...house.preAssignedSides},
     hasHouseViews,
     topView: topGroup ? createTopViewProjection(topGroup) : null,
     elevationViews: collectElevationViews(house).map(createElevationViewProjection),
