@@ -1,5 +1,4 @@
-import {Canvas as FabricCanvas, FabricImage} from 'fabric';
-import type {FabricObject} from 'fabric';
+import {Canvas as FabricCanvas, FabricImage, FabricObject, util} from 'fabric';
 import {isCanvasGroup} from '../../lib/canvas.ts';
 import {applyCurrentHouseDataToGroups} from '../../lib/house-visual-runtime.ts';
 import {applyFieldAnalysisContraventamentos} from '../../lib/field-analysis-contraventamentos.ts';
@@ -48,6 +47,8 @@ const geometryKeys = [
   'scaleX',
   'scaleY',
   'angle',
+  'skewX',
+  'skewY',
   'radius',
   'x1',
   'y1',
@@ -354,7 +355,24 @@ function toFabricSerializableObject(object: FabricObject): Record<string, unknow
 
 function readCanvasObjectsForExport(canvas: FabricCanvas): unknown[] {
   if (typeof canvas.getObjects === 'function') {
-    return canvas.getObjects().map(toFabricSerializableObject);
+    return canvas.getObjects().map((object) => {
+      const serialized = toFabricSerializableObject(object);
+      if (!object.group?.isType('ActiveSelection')) return serialized;
+
+      // Durante a seleção múltipla, left/top pertencem à seleção, não ao
+      // Canvas. Projete a transformação completa em um objeto temporário:
+      // o autosave não pode desfazer a seleção nem alterar o desenho vivo.
+      const absolute = new FabricObject({
+        width: object.width,
+        height: object.height,
+        strokeWidth: object.strokeWidth,
+        strokeUniform: object.strokeUniform,
+        originX: object.originX,
+        originY: object.originY,
+      });
+      util.applyTransformToObject(absolute, object.calcTransformMatrix());
+      return {...serialized, ...util.saveObjectTransform(absolute)};
+    });
   }
 
   const rawDocument = canvas.toJSON() as {objects?: unknown[]};

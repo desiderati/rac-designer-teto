@@ -102,6 +102,8 @@ const HOUSE_DRAWING_ELEMENT_SCALAR_GEOMETRY_KEYS = [
   'scaleX',
   'scaleY',
   'angle',
+  'skewX',
+  'skewY',
   'radius',
   'x1',
   'y1',
@@ -129,6 +131,8 @@ export interface HouseDrawingElementGeometry {
   scaleX?: number;
   scaleY?: number;
   angle?: number;
+  skewX?: number;
+  skewY?: number;
   radius?: number;
   x1?: number;
   y1?: number;

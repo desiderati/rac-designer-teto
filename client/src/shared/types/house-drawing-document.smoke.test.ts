@@ -140,6 +140,14 @@ describe('house-drawing-document.ts', () => {
     expect(isHouseDrawingDocument(shapeDocument)).toBe(false);
   });
 
+  it('aceita inclinação de objetos e rejeita valores não numéricos', () => {
+    const document = createDocument();
+    document.canvas.objects[0].geometry = {left: 200, top: 300, skewX: 15, skewY: 8};
+    expect(isHouseDrawingDocument(document)).toBe(true);
+    (document.canvas.objects[0].geometry as Record<string, unknown>).skewX = 'inválido';
+    expect(isHouseDrawingDocument(document)).toBe(false);
+  });
+
   it('aceita geometria com pontos de Polygon e Polyline', () => {
     const document = createDocument();
 
