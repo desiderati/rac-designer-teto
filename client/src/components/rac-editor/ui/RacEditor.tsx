@@ -23,7 +23,7 @@ import {LegacyDataBlockedState, RemoteLegacyDataDialog} from './RemoteLegacyData
 import {VIEWPORT} from '@/shared/config.ts';
 
 const PRODUCT_SCREENSHOT_URL = '/landing/rac-editor-landing-screenshot-harmonized_95473d21.png';
-const HOUSE_ILLUSTRATION_URL = '/landing/teto-house-linework-transparent-cropped_770579e2.png';
+const HOUSE_ILLUSTRATION_URL = '/api/public-assets/teto-house-linework-transparent-cropped_770579e2_2577c3cb.png';
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   missing_parameters: 'A tentativa de login foi interrompida antes de concluir. Volte e tente novamente.',
   invalid_state: 'A sessão de login expirou ou foi aberta em outra tentativa. Inicie o acesso novamente.',

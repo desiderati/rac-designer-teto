@@ -169,15 +169,6 @@ export function toDateOnly(date: Date): string {
   ].join('-');
 }
 
-export function buildGoogleMapsEmbedUrl(
-  coordinates: { latitude: number; longitude: number },
-  apiKey: string,
-): string {
-  const query = encodeURIComponent(`${coordinates.latitude},${coordinates.longitude}`);
-  const key = encodeURIComponent(apiKey);
-  return `https://www.google.com/maps/embed/v1/place?key=${key}&q=${query}&zoom=17`;
-}
-
 export function getConstructionCode(summary: ConstructionSiteSummary): string {
   return summary.externalCode?.trim() || 'Construção sem código';
 }

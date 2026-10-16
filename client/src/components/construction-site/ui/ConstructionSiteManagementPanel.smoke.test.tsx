@@ -1265,7 +1265,6 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
   });
 
   it('exibe formulário de casa sem campo de tipo e sem ações de duplicar ou arquivar', async () => {
-    vi.stubEnv('VITE_GOOGLE_MAPS_EMBED_API_KEY', '');
     const user = userEvent.setup();
     const actions = createActions();
 
@@ -1353,7 +1352,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByRole('button', {name: 'Usar localização atual'})).not.toHaveClass('sm:w-auto');
     expect(screen.getByTestId('static-map-wrapper').className).toContain('md:col-span-2');
     expect(screen.getByTestId('static-map-preview')).toBeVisible();
-    expect(screen.queryByTestId('google-maps-embed')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('google-maps-map')).not.toBeInTheDocument();
     expect(screen.getByTestId('site-actions-grid')).toHaveClass('grid', 'gap-4', 'md:grid-cols-2');
     expect(screen.getByTestId('site-actions-grid')).toHaveClass('mt-12', 'sm:w-full');
     expect(screen.getByTestId('site-actions-grid')).toHaveClass('sm:col-start-2');
@@ -1480,8 +1479,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByRole('heading', {name: /Casas - CC2603/i, hidden: true})).toBeInTheDocument();
   }, SLOW_UI_TEST_TIMEOUT_MS);
 
-  it('carrega Google Maps por coordenadas quando a chave está configurada', async () => {
-    vi.stubEnv('VITE_GOOGLE_MAPS_EMBED_API_KEY', 'test-key');
+  it('carrega o MapView nativo por coordenadas sem exigir chave própria do Google', async () => {
     const user = userEvent.setup();
 
     renderPanel();
@@ -1491,24 +1489,15 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     fireEvent.change(screen.getByLabelText('Localização Geográfica'), {target: {value: '-25.4284, -49.2733'}});
 
-    const iframe = screen.getByTestId('google-maps-embed');
-    expect(iframe).toHaveAttribute('title', 'Mapa do local informado');
-    expect(iframe).toHaveAttribute('loading', 'lazy');
-    expect(iframe).toHaveAttribute('allowfullscreen', '');
-    expect(iframe).toHaveAttribute('referrerpolicy', 'no-referrer-when-downgrade');
-    expect(iframe).toHaveAttribute(
-      'src',
-      'https://www.google.com/maps/embed/v1/place?key=test-key&q=-25.4284%2C-49.2733&zoom=17',
-    );
+    expect(screen.getByTestId('google-maps-map')).toBeVisible();
 
     fireEvent.change(screen.getByLabelText('Localização Geográfica'), {target: {value: 'Rua A, 123'}});
 
-    expect(screen.queryByTestId('google-maps-embed')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('google-maps-map')).not.toBeInTheDocument();
     expect(screen.getByText('Coordenadas inválidas')).toBeVisible();
   });
 
-  it('carrega o mapa com Enter no campo de coordenadas sem salvar configurações', async () => {
-    vi.stubEnv('VITE_GOOGLE_MAPS_EMBED_API_KEY', 'test-key');
+  it('carrega o mapa nativo com Enter no campo de coordenadas sem salvar configurações', async () => {
     const user = userEvent.setup();
     const actions = createActions();
 
@@ -1522,15 +1511,11 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     await user.type(screen.getByLabelText('Localização Geográfica'), '-25.4284, -49.2733{Enter}');
 
-    expect(screen.getByTestId('google-maps-embed')).toHaveAttribute(
-      'src',
-      'https://www.google.com/maps/embed/v1/place?key=test-key&q=-25.4284%2C-49.2733&zoom=17',
-    );
+    expect(screen.getByTestId('google-maps-map')).toBeVisible();
     expect(actions.createHouse).not.toHaveBeenCalled();
   });
 
-  it('usa a localização atual do navegador para preencher coordenadas e atualizar o Google Maps', async () => {
-    vi.stubEnv('VITE_GOOGLE_MAPS_EMBED_API_KEY', 'test-key');
+  it('usa a localização atual do navegador para preencher coordenadas e atualizar o MapView nativo', async () => {
     const user = userEvent.setup();
     const getCurrentPosition = vi.fn((
       success: PositionCallback,
@@ -1557,15 +1542,11 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       },
     );
     expect(screen.getByLabelText('Localização Geográfica')).toHaveValue('-25.428412, -49.273312');
-    expect(screen.getByRole('status')).toHaveTextContent('Localização atual aplicada ao mapa.');
-    expect(screen.getByTestId('google-maps-embed')).toHaveAttribute(
-      'src',
-      'https://www.google.com/maps/embed/v1/place?key=test-key&q=-25.428412%2C-49.273312&zoom=17',
-    );
+    expect(screen.getByText('Localização atual aplicada ao mapa.')).toBeVisible();
+    expect(screen.getByTestId('google-maps-map')).toBeVisible();
   });
 
-  it('mantém fallback do mapa quando a localização atual é aplicada sem chave do Google Maps', async () => {
-    vi.stubEnv('VITE_GOOGLE_MAPS_EMBED_API_KEY', '');
+  it('mantém o MapView nativo quando a localização atual é aplicada sem chave Embed', async () => {
     const user = userEvent.setup();
     const getCurrentPosition = vi.fn((success: PositionCallback) => {
       success(createGeolocationPosition(-25.4284, -49.2733));
@@ -1579,8 +1560,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await user.click(screen.getByRole('button', {name: 'Usar localização atual'}));
 
     expect(screen.getByLabelText('Localização Geográfica')).toHaveValue('-25.428400, -49.273300');
-    expect(screen.queryByTestId('google-maps-embed')).not.toBeInTheDocument();
-    expect(screen.getByText('Configure a chave do Google Maps')).toBeVisible();
+    expect(screen.getByTestId('google-maps-map')).toBeVisible();
   });
 
   it('exibe feedback quando a localização atual não está disponível ou é negada', async () => {

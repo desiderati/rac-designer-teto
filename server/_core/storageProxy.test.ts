@@ -92,7 +92,7 @@ describe('storageProxy', () => {
 
   it.each([
     'rac-editor-landing-screenshot-harmonized_95473d21.png',
-    'teto-house-linework-transparent-cropped_770579e2.png',
+    'teto-house-linework-transparent-cropped_770579e2_2577c3cb.png',
   ])('mantém somente o asset da Landing Page público: %s', async (asset) => {
     vi.stubGlobal('fetch', vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify({url: 'https://bucket.example.test/landing.png'})))

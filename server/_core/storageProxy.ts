@@ -5,7 +5,7 @@ import {logSafeServerError} from './safe-error-log';
 
 const PUBLIC_LANDING_ASSETS = new Set([
   'rac-editor-landing-screenshot-harmonized_95473d21.png',
-  'teto-house-linework-transparent-cropped_770579e2.png',
+  'teto-house-linework-transparent-cropped_770579e2_2577c3cb.png',
 ]);
 
 export function registerStorageProxy(app: Express) {

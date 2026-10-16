@@ -1,4 +1,5 @@
 import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
+import {MapView} from '@/components/Map.tsx';
 import {
   type ButtonHTMLAttributes,
   type ChangeEvent,
@@ -37,7 +38,6 @@ import {
 } from '@/shared/lib/photo-data-url.ts';
 import {GRIDDED_WORKSPACE_STYLE} from '@/shared/ui/workspace-style.ts';
 import type {StatusChangeAction, VisualSelectOption} from './types.ts';
-import {buildGoogleMapsEmbedUrl} from './view-model.ts';
 
 export function StatusActionButton({
   action,
@@ -440,33 +440,28 @@ export function RadioField({
 
 export function StaticMapPreview({locationQuery}: { locationQuery: string }) {
   const coordinates = parseMapCoordinates(locationQuery);
-  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_EMBED_API_KEY || import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  const googleMapsUrl = coordinates && googleMapsApiKey
-    ? buildGoogleMapsEmbedUrl(coordinates, googleMapsApiKey)
-    : null;
 
-  if (googleMapsUrl) {
+  if (coordinates) {
     return (
       <div
         data-testid='static-map-preview'
         aria-label='Mapa do local informado'
         className='relative min-h-40 overflow-hidden rounded-[28px] bg-blue-50'
       >
-        <iframe
-          title='Mapa do local informado'
-          data-testid='google-maps-embed'
-          src={googleMapsUrl}
-          className='absolute inset-0 h-full w-full border-0'
-          loading='lazy'
-          allowFullScreen
-          referrerPolicy='no-referrer-when-downgrade'
+        <MapView
+          key={`${coordinates.latitude},${coordinates.longitude}`}
+          className='absolute inset-0'
+          initialCenter={{lat: coordinates.latitude, lng: coordinates.longitude}}
+          initialZoom={17}
+          markerPosition={{lat: coordinates.latitude, lng: coordinates.longitude}}
+          markerTitle='Local informado'
         />
       </div>
     );
   }
 
   const fallbackLabel = locationQuery.trim()
-    ? coordinates ? 'Configure a chave do Google Maps' : 'Coordenadas inválidas'
+    ? 'Coordenadas inválidas'
     : 'Localização a definir';
 
   return (

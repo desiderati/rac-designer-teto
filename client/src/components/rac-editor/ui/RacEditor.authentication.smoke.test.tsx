@@ -52,7 +52,7 @@ describe('RacEditor authentication landing', () => {
     );
     expect(screen.getByRole('img', { name: /casa TETO elevada/i })).toHaveAttribute(
       'src',
-      '/landing/teto-house-linework-transparent-cropped_770579e2.png',
+      '/api/public-assets/teto-house-linework-transparent-cropped_770579e2_2577c3cb.png',
     );
     expect(screen.queryByText('Imagens devem ser enviadas ao Storage do Manus')).not.toBeInTheDocument();
   });
