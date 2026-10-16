@@ -5,7 +5,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/git-freshness-preflight/git-freshness-preflight.ps1\" -Event SessionStart",
+            "command": "if command -v pwsh >/dev/null 2>&1; then ps=pwsh; elif [ -x \"$HOME/.local/bin/pwsh\" ]; then ps=\"$HOME/.local/bin/pwsh\"; else echo 'pwsh 7 is required for Codex hooks' >&2; exit 1; fi; \"$ps\" -NoLogo -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/.codex/hooks/git-freshness-preflight/git-freshness-preflight.ps1\" -Event SessionStart",
+            "commandWindows": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/git-freshness-preflight/git-freshness-preflight.ps1\" -Event SessionStart",
             "statusMessage": "Git Freshness Preflight",
             "timeout": 20
           }
@@ -15,7 +16,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/resolution-time/resolution-time.ps1\" -Event SessionStart",
+            "command": "if command -v pwsh >/dev/null 2>&1; then ps=pwsh; elif [ -x \"$HOME/.local/bin/pwsh\" ]; then ps=\"$HOME/.local/bin/pwsh\"; else echo 'pwsh 7 is required for Codex hooks' >&2; exit 1; fi; \"$ps\" -NoLogo -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/.codex/hooks/graphify-context.ps1\" -Event SessionStart",
+            "commandWindows": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/graphify-context.ps1\" -Event SessionStart",
+            "statusMessage": "Graphify Context",
+            "timeout": 20
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if command -v pwsh >/dev/null 2>&1; then ps=pwsh; elif [ -x \"$HOME/.local/bin/pwsh\" ]; then ps=\"$HOME/.local/bin/pwsh\"; else echo 'pwsh 7 is required for Codex hooks' >&2; exit 1; fi; \"$ps\" -NoLogo -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/.codex/hooks/resolution-time/resolution-time.ps1\" -Event SessionStart",
+            "commandWindows": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/resolution-time/resolution-time.ps1\" -Event SessionStart",
             "statusMessage": "Resolution Time",
             "timeout": 20
           }
@@ -25,19 +38,10 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event SessionStart",
+            "command": "if command -v pwsh >/dev/null 2>&1; then ps=pwsh; elif [ -x \"$HOME/.local/bin/pwsh\" ]; then ps=\"$HOME/.local/bin/pwsh\"; else echo 'pwsh 7 is required for Codex hooks' >&2; exit 1; fi; \"$ps\" -NoLogo -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event SessionStart",
+            "commandWindows": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event SessionStart",
             "statusMessage": "Self Improvement Observer",
             "timeout": 90
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/graphify-context.ps1\" -Event SessionStart",
-            "statusMessage": "Graphify Context",
-            "timeout": 20
           }
         ]
       }
@@ -47,7 +51,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/resolution-time/resolution-time.ps1\" -Event Stop",
+            "command": "if command -v pwsh >/dev/null 2>&1; then ps=pwsh; elif [ -x \"$HOME/.local/bin/pwsh\" ]; then ps=\"$HOME/.local/bin/pwsh\"; else echo 'pwsh 7 is required for Codex hooks' >&2; exit 1; fi; \"$ps\" -NoLogo -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/.codex/hooks/resolution-time/resolution-time.ps1\" -Event Stop",
+            "commandWindows": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/resolution-time/resolution-time.ps1\" -Event Stop",
             "statusMessage": "Resolution Time",
             "timeout": 20
           }
@@ -57,7 +62,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event Stop",
+            "command": "if command -v pwsh >/dev/null 2>&1; then ps=pwsh; elif [ -x \"$HOME/.local/bin/pwsh\" ]; then ps=\"$HOME/.local/bin/pwsh\"; else echo 'pwsh 7 is required for Codex hooks' >&2; exit 1; fi; \"$ps\" -NoLogo -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event Stop",
+            "commandWindows": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event Stop",
             "statusMessage": "Self Improvement Observer",
             "timeout": 90
           }
@@ -69,7 +75,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/git-freshness-preflight/git-freshness-preflight.ps1\" -Event UserPromptSubmit",
+            "command": "if command -v pwsh >/dev/null 2>&1; then ps=pwsh; elif [ -x \"$HOME/.local/bin/pwsh\" ]; then ps=\"$HOME/.local/bin/pwsh\"; else echo 'pwsh 7 is required for Codex hooks' >&2; exit 1; fi; \"$ps\" -NoLogo -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/.codex/hooks/git-freshness-preflight/git-freshness-preflight.ps1\" -Event UserPromptSubmit",
+            "commandWindows": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/git-freshness-preflight/git-freshness-preflight.ps1\" -Event UserPromptSubmit",
             "statusMessage": "Git Freshness Preflight",
             "timeout": 20
           }
@@ -79,27 +86,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/resolution-time/resolution-time.ps1\" -Event UserPromptSubmit",
-            "statusMessage": "Resolution Time",
-            "timeout": 20
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event UserPromptSubmit",
-            "statusMessage": "Self Improvement Observer",
-            "timeout": 90
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/scaffold-context-visibility.ps1\" -Event UserPromptSubmit",
+            "command": "if command -v pwsh >/dev/null 2>&1; then ps=pwsh; elif [ -x \"$HOME/.local/bin/pwsh\" ]; then ps=\"$HOME/.local/bin/pwsh\"; else echo 'pwsh 7 is required for Codex hooks' >&2; exit 1; fi; \"$ps\" -NoLogo -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/.codex/hooks/scaffold-context-visibility.ps1\" -Event UserPromptSubmit",
+            "commandWindows": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/scaffold-context-visibility.ps1\" -Event UserPromptSubmit",
             "statusMessage": "Scaffold Context Visibility",
             "timeout": 20
           }
@@ -109,8 +97,42 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/production-change-audit.ps1\" -Event UserPromptSubmit",
+            "command": "if command -v pwsh >/dev/null 2>&1; then ps=pwsh; elif [ -x \"$HOME/.local/bin/pwsh\" ]; then ps=\"$HOME/.local/bin/pwsh\"; else echo 'pwsh 7 is required for Codex hooks' >&2; exit 1; fi; \"$ps\" -NoLogo -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/.codex/hooks/production-change-audit.ps1\" -Event UserPromptSubmit",
+            "commandWindows": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/production-change-audit.ps1\" -Event UserPromptSubmit",
             "statusMessage": "Production Change Audit",
+            "timeout": 20
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if command -v pwsh >/dev/null 2>&1; then ps=pwsh; elif [ -x \"$HOME/.local/bin/pwsh\" ]; then ps=\"$HOME/.local/bin/pwsh\"; else echo 'pwsh 7 is required for Codex hooks' >&2; exit 1; fi; \"$ps\" -NoLogo -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/.codex/hooks/resolution-time/resolution-time.ps1\" -Event UserPromptSubmit",
+            "commandWindows": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/resolution-time/resolution-time.ps1\" -Event UserPromptSubmit",
+            "statusMessage": "Resolution Time",
+            "timeout": 20
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if command -v pwsh >/dev/null 2>&1; then ps=pwsh; elif [ -x \"$HOME/.local/bin/pwsh\" ]; then ps=\"$HOME/.local/bin/pwsh\"; else echo 'pwsh 7 is required for Codex hooks' >&2; exit 1; fi; \"$ps\" -NoLogo -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event UserPromptSubmit",
+            "commandWindows": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event UserPromptSubmit",
+            "statusMessage": "Self Improvement Observer",
+            "timeout": 90
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if command -v pwsh >/dev/null 2>&1; then ps=pwsh; elif [ -x \"$HOME/.local/bin/pwsh\" ]; then ps=\"$HOME/.local/bin/pwsh\"; else echo 'pwsh 7 is required for Codex hooks' >&2; exit 1; fi; \"$ps\" -NoLogo -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/.codex/hooks/scope-checkpoint/scope-checkpoint.ps1\" -Event UserPromptSubmit",
+            "commandWindows": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/scope-checkpoint/scope-checkpoint.ps1\" -Event UserPromptSubmit",
+            "statusMessage": "Scope Checkpoint",
             "timeout": 20
           }
         ]
@@ -121,7 +143,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event PostToolUse",
+            "command": "if command -v pwsh >/dev/null 2>&1; then ps=pwsh; elif [ -x \"$HOME/.local/bin/pwsh\" ]; then ps=\"$HOME/.local/bin/pwsh\"; else echo 'pwsh 7 is required for Codex hooks' >&2; exit 1; fi; \"$ps\" -NoLogo -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event PostToolUse",
+            "commandWindows": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event PostToolUse",
             "statusMessage": "Self Improvement Observer",
             "timeout": 90
           }
@@ -135,9 +158,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/windows-shell-preflight.ps1\" -Event PreToolUse",
+            "command": "if command -v pwsh >/dev/null 2>&1; then ps=pwsh; elif [ -x \"$HOME/.local/bin/pwsh\" ]; then ps=\"$HOME/.local/bin/pwsh\"; else echo 'pwsh 7 is required for Codex hooks' >&2; exit 1; fi; \"$ps\" -NoLogo -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/.codex/hooks/windows-shell-preflight.ps1\" -Event PreToolUse",
+            "commandWindows": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/windows-shell-preflight.ps1\" -Event PreToolUse",
             "statusMessage": "Windows Shell Preflight",
             "timeout": 20
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "rtk hook codex"
           }
         ]
       }
