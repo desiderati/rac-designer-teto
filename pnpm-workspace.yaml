@@ -7,3 +7,5 @@ allowBuilds:
 
 overrides:
   nwsapi: 2.2.28
+  'fabric@6>canvas': '-'
+  'jsdom@20>canvas': '-'
