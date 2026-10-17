@@ -228,13 +228,19 @@ trabalho.
     npm run test:coverage
     ```
 
-7. Testes E2E (o Playwright inicia seu próprio servidor com `VITE_E2E=true` em `127.0.0.1:5200`;
-   encerre o servidor de uso manual nessa porta antes de executar a suíte):
+7. Testes E2E (o Playwright inicia seu próprio servidor com `VITE_E2E=true` em `127.0.0.1:5200`):
 
     ```bash
     npm run test:e2e
     npm run test:e2e:ui
     ```
+
+   Antes de iniciar os cenários, o runner verifica a identificação do aplicativo e exige o perfil
+   `development` com `VITE_E2E=true`. Um servidor E2E compatível já aberto pode ser reutilizado
+   localmente. Se a porta estiver ocupada por `dev:local`, `dev:isolated` ou outro servidor, a suíte
+   para com uma mensagem de perfil incompatível. Encerre manualmente esse servidor e execute os
+   testes novamente. O runner não encerra processos nem troca a porta automaticamente. O endpoint de
+   identificação é servido apenas durante o desenvolvimento e fica indisponível em produção.
 
 8. Regressão completa:
 

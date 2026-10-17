@@ -3,6 +3,7 @@ import path from 'node:path';
 import react from '@vitejs/plugin-react-swc';
 import { VitePWA } from 'vite-plugin-pwa';
 import { vitePluginManusRuntime } from 'vite-plugin-manus-runtime';
+import { e2eServerProfilePlugin } from './scripts/e2e-server-profile';
 
 const projectRoot = import.meta.dirname;
 const appVersion = process.env.VITE_APP_VERSION ?? '5.1.1';
@@ -16,6 +17,7 @@ export default defineConfig(({command, mode}) => {
   root: path.resolve(projectRoot, 'client'),
   publicDir: path.resolve(projectRoot, 'client', 'public'),
   plugins: [
+    e2eServerProfilePlugin(),
     react(),
     ...(mode === 'isolated' ? [] : [vitePluginManusRuntime()]),
     VitePWA({
