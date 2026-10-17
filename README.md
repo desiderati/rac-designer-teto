@@ -180,11 +180,20 @@ trabalho.
 
 ### Comandos principais (estado atual)
 
-1. Instalação de dependências:
+1. Instalação de dependências com pnpm:
 
     ```bash
-    npm install
+    pnpm install --frozen-lockfile
     ```
+
+   Use pnpm para instalar e atualizar as dependências. O arquivo `pnpm-lock.yaml` é o lockfile
+   canônico do projeto; `--frozen-lockfile` instala as versões registradas sem atualizá-lo.
+   A configuração em `pnpm-workspace.yaml` define as permissões de build e os overrides, incluindo
+   a remoção do Canvas 2 opcional do Fabric e do jsdom 20, preservando o Canvas 3 dos testes.
+
+   Os arquivos `package-lock.json` e `bun.lock` permanecem no repositório, mas não são a referência
+   para esta instalação. Os comandos `npm run` abaixo apenas executam os scripts do `package.json`
+   e podem ser usados após a instalação com pnpm.
 
 2. Desenvolvimento local na rede:
 
