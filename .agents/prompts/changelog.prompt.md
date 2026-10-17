@@ -155,18 +155,28 @@
          the execution date. Inspect that path before creating a file; never infer a different
          filename from the human-readable title date.
 
-      11. Only then write or append the entry using the structure in
+      11. Only then prepare one sanitized entry using the structure in
           `.agents/templates/changelog.template.md` when present, or
           `scaffold/dot-agents/templates/changelog.template.md` when running directly from the
           `changelog` skill.
 
-      12. Immediately after writing, run
-          `python .agents/scripts/validate_changelog_contract.py .agents/changelogs/YYYY-MM/AAAAMMDD.changelog.md`
-          in a repository prepared by `agents-bootstrap`. When running the skill directly, run
-          `python scaffold/dot-agents/scripts/validate_changelog_contract.py .agents/changelogs/YYYY-MM/AAAAMMDD.changelog.md`.
-          A non-zero result is a contract violation: correct the same canonical file and rerun the
-          validator before considering the changelog recorded. If the expected validator is absent,
-          report the outdated bootstrap instead of creating a loose fallback file.
+      12. Resolve the active changelog skill root and absolute repository, daily target and entry-file
+          paths. Inspect the target bytes and compute their SHA-256; use `absent` only after proving
+          that exact destination absent. Preview with
+          `python -B <skill-root>/scripts/changelog_write.py --repo-root <absolute-repo-root> --path <absolute-daily-target> --entry-file <absolute-entry-file> --expected-sha256 <observed-hash-or-absent>`.
+          Publish with the same inputs and `--apply`. The writer validates the candidate before
+          publication and that exact absolute destination after writing. Require `status=applied`,
+          the intended `validated_path` and the written hash. Never use raw append, apply_patch or a
+          local helper that writes the daily file directly; helpers must delegate to this owner.
+          A successful check on another repository's same relative filename proves nothing here.
+          On drift, stop and inspect; never retry a write automatically. Invalid history needs its
+          separately authorized repair. For specialized repairs, immediately run the read-only
+          validator on the exact destination. If the authorization covers one entry, use the owner's
+          `changelog_normalize.py --entry-index <positive-1-based-index>`; preview first and preserve
+          every byte outside that entry. Invalid unselected entries block the complete-file gate;
+          never widen the repair implicitly. Use absolute validator and target paths for every
+          repair. Missing writer or validator means an
+          outdated skill/bootstrap; report it instead of creating an ad hoc emitter or loose file.
   </process>
 
   <template_fallback>
