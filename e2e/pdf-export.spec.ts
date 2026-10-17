@@ -1,4 +1,4 @@
-import {expect, test} from '@playwright/test';
+import {expect, test, type Page} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 import {
   createHouse,
@@ -38,7 +38,7 @@ const pdfExportSeed = {
   },
 };
 
-async function expectPdfPreviewRendered(page: Parameters<typeof test>[0]['page']) {
+async function expectPdfPreviewRendered(page: Page) {
   await expect(page.getByTestId('pdf-preview-surface')).toBeVisible();
   const canvas = page.getByTestId('pdf-preview-canvas-1');
   await expect(canvas).toBeVisible();

@@ -1,4 +1,5 @@
 import type {Page} from '@playwright/test';
+import type {StoredConstructionSitesDocument} from '../../client/src/infra/storage/indexed-db-construction-sites.storage';
 import type {HouseExtraMaterials, MonitorStatus, SiteAssessment} from '../../client/src/shared/types/construction-site';
 import type {HousePiloti, HouseSideMapping, HouseType, HouseViews} from '../../client/src/shared/types/house';
 import {getAllPilotiIds} from '../../client/src/shared/types/piloti';
@@ -35,7 +36,7 @@ export async function seedConstructionSiteDocument(
   page: Page,
   options: SeedConstructionSiteDocumentOptions = {},
 ) {
-  await page.evaluate(async (document) => {
+  await page.evaluate<void, unknown>(async (document) => {
     await new Promise<void>((resolve, reject) => {
       const request = indexedDB.open('rac-designer-teto', 2);
       request.onerror = () => reject(request.error ?? new Error('Falha ao abrir IndexedDB.'));
@@ -64,8 +65,8 @@ export async function seedConstructionSiteDocument(
   }, createSeedDocument(options));
 }
 
-export async function readConstructionSiteDocument(page: Page): Promise<ReturnType<typeof createSeedDocument> | null> {
-  return page.evaluate(async () => new Promise((resolve, reject) => {
+export async function readConstructionSiteDocument(page: Page): Promise<StoredConstructionSitesDocument | null> {
+  return page.evaluate(async () => new Promise<StoredConstructionSitesDocument | null>((resolve, reject) => {
     const request = indexedDB.open('rac-designer-teto', 2);
     request.onerror = () => reject(request.error ?? new Error('Falha ao abrir IndexedDB.'));
     request.onupgradeneeded = () => {

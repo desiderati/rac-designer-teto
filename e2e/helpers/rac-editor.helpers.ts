@@ -319,9 +319,9 @@ export async function getContraventamentoProjectionSignatures(
       };
 
       return group.getObjects()
-        .filter((object) => Boolean((object as Record<string, unknown>).isContraventamentoElevation))
+        .filter((object) => Boolean((object as unknown as Record<string, unknown>).isContraventamentoElevation))
         .map((object) => {
-          const canvasObject = object as Record<string, unknown>;
+          const canvasObject = object as unknown as Record<string, unknown>;
           return {
             id: typeof canvasObject.contraventamentoId === 'string'
               ? canvasObject.contraventamentoId
