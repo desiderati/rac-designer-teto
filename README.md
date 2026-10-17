@@ -222,6 +222,8 @@ trabalho.
 6. Qualidade e testes unitários:
 
     ```bash
+    npm run check
+    npm run check:e2e
     npm run lint
     npm run test
     npm run test:watch
@@ -259,7 +261,9 @@ trabalho.
 
 - Smoke tests coexistem com unit/integration tests em arquivos `*.smoke.test.ts` e `*.smoke.test.tsx`
 - A suíte E2E vive em `e2e/` e gera relatórios em `playwright-report/`
-- `npm run test:regression` encadeia `test`, `build` e `test:e2e`; use-o quando a mudança tiver blast radius maior
+- `npm run test:regression` executa, nesta ordem: `check`, `check:e2e`, `test`, `test:server`,
+  `build` e `test:e2e`. As checagens TypeScript da aplicação e dos E2E são executadas antes dos
+  testes; qualquer falha interrompe a sequência. Use-o para validar mudanças de maior alcance.
 
 ## ⚙️ Configurações Importantes
 
