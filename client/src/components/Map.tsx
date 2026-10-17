@@ -12,6 +12,7 @@ declare global {
 }
 
 const DEFAULT_FORGE_BASE_URL = "https://forge.butterfly-effect.dev";
+const COMPACT_MAP_CONTROLS_QUERY = "(max-width: 767px)";
 let mapsScriptPromise: Promise<void> | null = null;
 
 type MapLoadState = "loading" | "ready" | "error";
@@ -84,6 +85,25 @@ function loadMapScript(): Promise<void> {
 
 function toError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error));
+}
+
+function getCompactMapControls(): boolean {
+  return typeof window !== "undefined" && typeof window.matchMedia === "function"
+    ? window.matchMedia(COMPACT_MAP_CONTROLS_QUERY).matches
+    : false;
+}
+
+function getMapControlsOptions(compact: boolean): Pick<google.maps.MapOptions,
+  "controlSize" | "fullscreenControl" | "mapTypeControl" | "streetViewControl" | "zoomControl"> {
+  return {
+    // O Maps aceita controlSize somente na criação; por isso ele é definido
+    // também no objeto inicial e não é alterado no listener de resize.
+    controlSize: compact ? 32 : 40,
+    fullscreenControl: !compact,
+    mapTypeControl: !compact,
+    streetViewControl: !compact,
+    zoomControl: true,
+  };
 }
 
 function MapFallback({onRetry}: {onRetry?: () => void}) {
@@ -172,6 +192,7 @@ function MapViewContent({
   const map = useRef<google.maps.Map | null>(null);
   const marker = useRef<google.maps.marker.AdvancedMarkerElement | google.maps.Marker | null>(null);
   const mounted = useRef(true);
+  const responsiveControlsCleanup = useRef<(() => void) | null>(null);
   const [loadState, setLoadState] = useState<MapLoadState>("loading");
   const [retryKey, setRetryKey] = useState(0);
 
@@ -200,6 +221,8 @@ function MapViewContent({
 
     marker.current = null;
     map.current = null;
+    responsiveControlsCleanup.current?.();
+    responsiveControlsCleanup.current = null;
   });
 
   const init = usePersistFn(async () => {
@@ -213,17 +236,29 @@ function MapViewContent({
         throw new Error("A API de mapas não está disponível após o carregamento do SDK.");
       }
 
+      const compactControls = getCompactMapControls();
       const mapInstance = new googleApi.maps.Map(mapHost.current, {
         zoom: initialZoom,
         center: initialCenter,
-        mapTypeControl: true,
-        fullscreenControl: true,
-        zoomControl: true,
-        streetViewControl: true,
+        ...getMapControlsOptions(compactControls),
         mapId: "DEMO_MAP_ID",
       });
 
       map.current = mapInstance;
+
+      if (typeof window.matchMedia === "function") {
+        const mediaQuery = window.matchMedia(COMPACT_MAP_CONTROLS_QUERY);
+        const updateControls = () => {
+          mapInstance.setOptions({
+            fullscreenControl: !mediaQuery.matches,
+            mapTypeControl: !mediaQuery.matches,
+            streetViewControl: !mediaQuery.matches,
+            zoomControl: true,
+          });
+        };
+        mediaQuery.addEventListener?.("change", updateControls);
+        responsiveControlsCleanup.current = () => mediaQuery.removeEventListener?.("change", updateControls);
+      }
 
       if (markerPosition) {
         const markerApi = googleApi.maps.marker;

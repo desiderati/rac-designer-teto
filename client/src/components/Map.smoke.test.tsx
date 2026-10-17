@@ -31,7 +31,7 @@ describe('MapView', () => {
   it('carrega o SDK pelo proxy Manus, cria o mapa e adiciona o marcador', async () => {
     const mapConstructor = vi.fn();
     const markerConstructor = vi.fn();
-    const mapInstance = {setCenter: vi.fn()};
+    const mapInstance = {setCenter: vi.fn(), setOptions: vi.fn()};
     const onMapReady = vi.fn();
 
     class FakeMap {
@@ -81,6 +81,11 @@ describe('MapView', () => {
       expect.objectContaining({
         center: {lat: -25.4284, lng: -49.2733},
         zoom: 17,
+        controlSize: 40,
+        fullscreenControl: true,
+        mapTypeControl: true,
+        streetViewControl: true,
+        zoomControl: true,
       }),
     );
     expect(markerConstructor).toHaveBeenCalledWith({
@@ -91,8 +96,63 @@ describe('MapView', () => {
     expect(onMapReady).toHaveBeenCalledWith(mapInstance);
   });
 
+  it('reduz os controles no mobile e restaura os controles ao voltar para desktop', async () => {
+    const mapConstructor = vi.fn();
+    const setOptions = vi.fn();
+    const mapInstance = {setCenter: vi.fn(), setOptions};
+    let mediaChangeHandler: ((event: MediaQueryListEvent) => void) | undefined;
+    const mediaQuery = {
+      matches: true,
+      addEventListener: vi.fn((_type: string, handler: (event: MediaQueryListEvent) => void) => {
+        mediaChangeHandler = handler;
+      }),
+      removeEventListener: vi.fn(),
+    };
+
+    vi.stubGlobal('matchMedia', vi.fn(() => mediaQuery));
+
+    class FakeMap {
+      constructor(element: HTMLElement, options: Record<string, unknown>) {
+        mapConstructor(element, options);
+        return mapInstance;
+      }
+    }
+
+    vi.stubGlobal('google', {
+      maps: {
+        Map: FakeMap,
+        event: {clearInstanceListeners: vi.fn()},
+      },
+    });
+
+    render(<MapView/>);
+    const script = document.head.querySelector<HTMLScriptElement>('script[data-manus-google-maps="true"]');
+    script?.dispatchEvent(new Event('load'));
+
+    await waitFor(() => expect(screen.getByTestId('google-maps-map')).toHaveAttribute('data-map-state', 'ready'));
+    expect(mapConstructor).toHaveBeenCalledWith(
+      expect.any(HTMLElement),
+      expect.objectContaining({
+        controlSize: 32,
+        fullscreenControl: false,
+        mapTypeControl: false,
+        streetViewControl: false,
+        zoomControl: true,
+      }),
+    );
+
+    mediaQuery.matches = false;
+    mediaChangeHandler?.({matches: false} as MediaQueryListEvent);
+    expect(setOptions).toHaveBeenCalledWith({
+      fullscreenControl: true,
+      mapTypeControl: true,
+      streetViewControl: true,
+      zoomControl: true,
+    });
+  });
+
   it('mantém o fallback React fora do host que o SDK pode reescrever', async () => {
-    const mapInstance = {setCenter: vi.fn()};
+    const mapInstance = {setCenter: vi.fn(), setOptions: vi.fn()};
 
     class FakeMap {
       constructor(element: HTMLElement) {
