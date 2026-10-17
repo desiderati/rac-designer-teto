@@ -2,8 +2,31 @@ import {act, renderHook} from '@testing-library/react';
 import {beforeEach, describe, expect, it} from 'vitest';
 import {STORAGE_KEYS} from '@/shared/config.ts';
 import {useCanvasViewport} from './useCanvasViewport.ts';
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 
 describe('useCanvasViewport.ts', () => {
+  it('enquadra toda a página na altura disponível de um celular horizontal', () => {
+    const {result, unmount} = renderHook(() => useCanvasViewport({}));
+    act(() => result.current.setContainerSize({width: 915, height: 280}));
+    act(() => {result.current.setZoom(2); result.current.handleViewportChange(1000, 800);});
+    act(() => result.current.fitToView());
+    expect(CANVAS_HEIGHT * result.current.zoom).toBeLessThanOrEqual(280 * 0.95);
+    expect(CANVAS_WIDTH * result.current.zoom).toBeLessThanOrEqual(915 * 0.95);
+    expect(result.current.viewportX).toBe(0);
+    expect(result.current.viewportY).toBe(0);
+    const fittedZoom = result.current.zoom;
+    unmount();
+    const reopened = renderHook(() => useCanvasViewport({}));
+    expect(reopened.result.current.zoom).toBe(fittedZoom);
+  });
+
+  it('preserva o mínimo normal de zoom em uma janela desktop', () => {
+    const {result} = renderHook(() => useCanvasViewport({}));
+    act(() => result.current.setContainerSize({width: 1280, height: 900}));
+    expect(result.current.minimumZoom).toBe(0.25);
+    act(() => result.current.handleZoomChange(0.1));
+    expect(result.current.zoom).toBe(0.25);
+  });
   beforeEach(() => {
     localStorage.clear();
   });

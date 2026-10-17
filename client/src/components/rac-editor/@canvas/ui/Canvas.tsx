@@ -159,6 +159,7 @@ export const Canvas =
 
       const {
         zoom,
+        minimumZoom,
         viewportX,
         setViewportX,
         viewportY,
@@ -644,6 +645,7 @@ export const Canvas =
 
         zoom,
         handleZoomChange,
+        minimumZoom,
         setViewportX,
         setViewportY,
       });
@@ -695,7 +697,7 @@ export const Canvas =
           ref={containerRef}
           data-testid='rac-canvas-container'
           data-guided-tour-id='rac-canvas'
-          className='relative h-full min-h-[480px] min-w-[360px] w-full overflow-hidden touch-none'
+          className='relative h-full min-h-0 min-w-[360px] w-full overflow-hidden touch-none'
           style={{
             ...CANVAS_WORKSPACE_STYLE,
             cursor: canvasCursor,

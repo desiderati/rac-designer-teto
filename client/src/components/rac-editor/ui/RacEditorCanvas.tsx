@@ -92,7 +92,7 @@ export function RacEditorCanvas({
   }, [canvasRef, onSelectionAuxCleanup, onSelectionMessage]);
 
   return (
-    <div className='relative h-full min-h-[480px] min-w-[360px] overflow-hidden'>
+    <div className='relative h-full min-h-0 min-w-[360px] overflow-hidden'>
       <Canvas
         ref={canvasRef}
         activeHouseId={activeHouseId}

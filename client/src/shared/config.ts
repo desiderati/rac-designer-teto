@@ -202,6 +202,8 @@ export function normalizeTerrainSolidityLevel(value: number): TerrainSolidityLev
 
 export const ZOOM_LIMITS = {
   min: 0.25,
+  // O mínimo normal cede ao enquadramento da página em telas baixas.
+  fitMin: 0.1,
   max: 2,
   wheelStep: 0.1,
   pinchScaleFactor: 0.005,

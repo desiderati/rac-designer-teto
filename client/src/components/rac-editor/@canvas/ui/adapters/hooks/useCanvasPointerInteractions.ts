@@ -1,6 +1,7 @@
 import React, {MutableRefObject, RefObject, useCallback, useEffect} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
-import {INTERACTION_THRESHOLDS, TIMINGS, VIEWPORT, ZOOM_LIMITS} from '@/shared/config.ts';
+import {INTERACTION_THRESHOLDS, TIMINGS, ZOOM_LIMITS} from '@/shared/config.ts';
+import type {CanvasZoomGesture} from '@/components/rac-editor/@canvas/hooks/useCanvasViewport.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import type {CanvasToolMode} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 
@@ -8,6 +9,7 @@ interface UseCanvasPointerInteractionsArgs {
   containerRef: RefObject<HTMLDivElement | null>;
   fabricCanvasRef: RefObject<FabricCanvas | null>;
   zoom: number;
+  minimumZoom: number;
   containerSize: { width: number; height: number };
   isPanning: boolean;
   setIsPanning: (value: boolean) => void;
@@ -21,7 +23,7 @@ interface UseCanvasPointerInteractionsArgs {
   singleFingerMoved: MutableRefObject<boolean>;
   setViewportX: React.Dispatch<React.SetStateAction<number>>;
   setViewportY: React.Dispatch<React.SetStateAction<number>>;
-  handleZoomChange: (newZoom: number) => void;
+  handleZoomChange: (newZoom: number, gesture?: CanvasZoomGesture) => void;
   canvasToolMode: CanvasToolMode;
 }
 
@@ -40,6 +42,7 @@ export function useCanvasPointerInteractions({
   containerRef,
   fabricCanvasRef,
   zoom,
+  minimumZoom,
   containerSize,
   isPanning,
   setIsPanning,
@@ -117,7 +120,7 @@ export function useCanvasPointerInteractions({
 
     if (event.ctrlKey || event.metaKey) {
       const delta = event.deltaY > 0 ? -ZOOM_LIMITS.wheelStep : ZOOM_LIMITS.wheelStep;
-      const newZoom = Math.max(ZOOM_LIMITS.min, Math.min(ZOOM_LIMITS.max, zoom + delta));
+      const newZoom = Math.max(minimumZoom, Math.min(ZOOM_LIMITS.max, zoom + delta));
       handleZoomChange(newZoom);
       return;
     }
@@ -127,11 +130,9 @@ export function useCanvasPointerInteractions({
 
     setViewportX((previous) => Math.max(0, Math.min(previous + event.deltaX, maxX)));
     setViewportY((previous) => Math.max(0, Math.min(previous + event.deltaY, maxY)));
-  }, [containerSize, handleZoomChange, setViewportX, setViewportY, zoom]);
+  }, [containerSize, handleZoomChange, minimumZoom, setViewportX, setViewportY, zoom]);
 
   const handleTouchStart = useCallback((event: React.TouchEvent) => {
-    const isMobileDevice = window.matchMedia(VIEWPORT.mobileMaxWidthQuery).matches;
-
     if (event.touches.length === 2) {
       event.preventDefault();
       setIsSingleFingerPanning(false);
@@ -162,7 +163,7 @@ export function useCanvasPointerInteractions({
       return;
     }
 
-    if (event.touches.length === 1 && isMobileDevice) {
+    if (event.touches.length === 1) {
       singleFingerStartPoint.current = {
         x: event.touches[0].clientX,
         y: event.touches[0].clientY,
@@ -191,8 +192,6 @@ export function useCanvasPointerInteractions({
   ]);
 
   const handleTouchMove = useCallback((event: React.TouchEvent) => {
-    const isMobileDevice = window.matchMedia(VIEWPORT.mobileMaxWidthQuery).matches;
-
     if (event.touches.length === 2 && lastPinchDistance.current !== null && lastPinchCenter.current !== null) {
       event.preventDefault();
       const dx = event.touches[0].clientX - event.touches[1].clientX;
@@ -204,27 +203,20 @@ export function useCanvasPointerInteractions({
         y: (event.touches[0].clientY + event.touches[1].clientY) / 2,
       };
 
-      const panDeltaX = lastPinchCenter.current.x - currentCenter.x;
-      const panDeltaY = lastPinchCenter.current.y - currentCenter.y;
-
-      const maxX = Math.max(0, CANVAS_WIDTH * zoom - containerSize.width);
-      const maxY = Math.max(0, CANVAS_HEIGHT * zoom - containerSize.height);
-
-      setViewportX((previous) => Math.max(0, Math.min(previous + panDeltaX, maxX)));
-      setViewportY((previous) => Math.max(0, Math.min(previous + panDeltaY, maxY)));
-
       const delta = (currentDistance - lastPinchDistance.current) * ZOOM_LIMITS.pinchScaleFactor;
-      const newZoom = Math.max(ZOOM_LIMITS.min, Math.min(ZOOM_LIMITS.max, zoom + delta));
-      if (newZoom !== zoom) {
-        handleZoomChange(newZoom);
-      }
+      const newZoom = Math.max(minimumZoom, Math.min(ZOOM_LIMITS.max, zoom + delta));
+      const rect = containerRef.current?.getBoundingClientRect();
+      handleZoomChange(newZoom, {
+        from: {x: lastPinchCenter.current.x - (rect?.left ?? 0), y: lastPinchCenter.current.y - (rect?.top ?? 0)},
+        to: {x: currentCenter.x - (rect?.left ?? 0), y: currentCenter.y - (rect?.top ?? 0)},
+      });
 
       lastPinchDistance.current = currentDistance;
       lastPinchCenter.current = currentCenter;
       return;
     }
 
-    if (event.touches.length === 1 && singleFingerStartPoint.current && isMobileDevice) {
+    if (event.touches.length === 1 && singleFingerStartPoint.current) {
       const touch = event.touches[0];
       const deltaX = touch.clientX - lastPanPoint.current.x;
       const deltaY = touch.clientY - lastPanPoint.current.y;
@@ -248,10 +240,12 @@ export function useCanvasPointerInteractions({
     }
   }, [
     containerSize,
+    containerRef,
     handleZoomChange,
     lastPanPoint,
     lastPinchCenter,
     lastPinchDistance,
+    minimumZoom,
     setIsSingleFingerPanning,
     setViewportX,
     setViewportY,

@@ -1,6 +1,7 @@
 import {SetStateAction, useCallback, useEffect, useReducer, useRef} from 'react';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {ZOOM_LIMITS} from '@/shared/config.ts';
+import {getCanvasViewportOffset} from '@/components/rac-editor/@canvas/lib/canvas-screen-position.ts';
 import {
   readCanvasViewportStorage,
   writeCanvasViewportStorage,
@@ -8,6 +9,17 @@ import {
 
 /** Margin kept around the canvas when fitting to the visible container. */
 const FIT_TO_VIEW_MARGIN = 0.95;
+
+export interface CanvasZoomGesture {
+  from: {x: number; y: number};
+  to: {x: number; y: number};
+}
+
+function getMinimumZoom({width, height}: {width: number; height: number}): number {
+  if (width <= 0 || height <= 0) return ZOOM_LIMITS.min;
+  return Math.max(ZOOM_LIMITS.fitMin, Math.min(ZOOM_LIMITS.min,
+    Math.min(width / CANVAS_WIDTH, height / CANVAS_HEIGHT) * FIT_TO_VIEW_MARGIN));
+}
 
 interface CanvasViewportState {
   zoom: number;
@@ -151,18 +163,23 @@ export function useCanvasViewport({
     onMinimapInteraction?.();
   }, [onMinimapInteraction]);
 
-  const handleZoomChange = useCallback((newZoom: number) => {
-    const centerX = state.viewportX + state.containerSize.width / 2;
-    const centerY = state.viewportY + state.containerSize.height / 2;
-
-    const zoomRatio = newZoom / state.zoom;
-    const newViewportX = centerX * zoomRatio - state.containerSize.width / 2;
-    const newViewportY = centerY * zoomRatio - state.containerSize.height / 2;
+  const handleZoomChange = useCallback((newZoom: number, gesture?: CanvasZoomGesture) => {
+    const size = containerSizeRef.current;
+    newZoom = Math.max(getMinimumZoom(size), Math.min(ZOOM_LIMITS.max, newZoom));
+    const from = gesture?.from ?? {x: size.width / 2, y: size.height / 2};
+    const to = gesture?.to ?? from;
+    const {canvasX, canvasY} = getCanvasViewportOffset({
+      canvasPosition: {x: viewportXRef.current, y: viewportYRef.current, zoom: zoomRef.current},
+      containerWidth: size.width, containerHeight: size.height,
+      canvasWidth: CANVAS_WIDTH, canvasHeight: CANVAS_HEIGHT,
+    });
+    const newViewportX = (from.x - canvasX) * newZoom / zoomRef.current - to.x;
+    const newViewportY = (from.y - canvasY) * newZoom / zoomRef.current - to.y;
 
     dispatch({type: 'setZoom', value: newZoom});
 
-    const maxX = Math.max(0, CANVAS_WIDTH * newZoom - state.containerSize.width);
-    const maxY = Math.max(0, CANVAS_HEIGHT * newZoom - state.containerSize.height);
+    const maxX = Math.max(0, CANVAS_WIDTH * newZoom - size.width);
+    const maxY = Math.max(0, CANVAS_HEIGHT * newZoom - size.height);
     dispatch({
       type: 'setViewport',
       value: {
@@ -172,7 +189,7 @@ export function useCanvasViewport({
     });
 
     onZoomInteraction?.();
-  }, [onZoomInteraction, state]);
+  }, [onZoomInteraction]);
 
   const setZoom = useCallback((value: SetStateAction<number>) => {
     const resolved = typeof value === 'function' ? value(zoomRef.current) : value;
@@ -214,7 +231,7 @@ export function useCanvasViewport({
     if (width <= 0 || height <= 0) return;
 
     const fitZoomRaw = Math.min(width / CANVAS_WIDTH, height / CANVAS_HEIGHT) * FIT_TO_VIEW_MARGIN;
-    const fitZoom = Math.max(ZOOM_LIMITS.min, Math.min(ZOOM_LIMITS.max, fitZoomRaw));
+    const fitZoom = Math.max(getMinimumZoom({width, height}), Math.min(ZOOM_LIMITS.max, fitZoomRaw));
 
     const overflowX = Math.max(0, CANVAS_WIDTH * fitZoom - width);
     const overflowY = Math.max(0, CANVAS_HEIGHT * fitZoom - height);
@@ -237,7 +254,7 @@ export function useCanvasViewport({
     const {width, height} = containerSizeRef.current;
     if (width <= 0 || height <= 0) return;
     const margin = 0.88;
-    const fitZoom = Math.max(ZOOM_LIMITS.min, Math.min(ZOOM_LIMITS.max,
+    const fitZoom = Math.max(getMinimumZoom({width, height}), Math.min(ZOOM_LIMITS.max,
       Math.min(width * margin / Math.max(bounds.width, 1), height * margin / Math.max(bounds.height, 1))));
     const centerX = (bounds.left + bounds.width / 2) * fitZoom;
     const centerY = (bounds.top + bounds.height / 2) * fitZoom;
@@ -264,7 +281,7 @@ export function useCanvasViewport({
       height * 0.88 / Math.max(bounds.height, 1),
     );
     const targetZoom = Math.max(
-      ZOOM_LIMITS.min,
+      getMinimumZoom({width, height}),
       Math.min(ZOOM_LIMITS.max, currentZoom, contentZoom),
     );
     const centerX = (bounds.left + bounds.width / 2) * targetZoom;
@@ -284,6 +301,7 @@ export function useCanvasViewport({
 
   return {
     zoom: state.zoom,
+    minimumZoom: getMinimumZoom(state.containerSize),
     setZoom,
     viewportX: state.viewportX,
     setViewportX,

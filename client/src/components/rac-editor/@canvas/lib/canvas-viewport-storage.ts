@@ -30,7 +30,7 @@ function normalizeStoredCanvasViewport(value: unknown): StoredCanvasViewport {
   const viewportY = normalizeFiniteNumber(value.viewportY, DEFAULT_CANVAS_VIEWPORT_STORAGE.viewportY);
 
   return {
-    zoom: Math.max(ZOOM_LIMITS.min, Math.min(zoom, ZOOM_LIMITS.max)),
+    zoom: Math.max(ZOOM_LIMITS.fitMin, Math.min(zoom, ZOOM_LIMITS.max)),
     viewportX: Math.max(0, viewportX),
     viewportY: Math.max(0, viewportY),
   };
