@@ -1,5 +1,6 @@
 import {expect, Page} from '@playwright/test';
 import {HousePiloti, HouseSide, HouseType, HouseViewType} from '../../client/src/shared/types/house';
+import type {AppSettings} from '../../client/src/shared/types/settings';
 import {CanvasGroup, CanvasObjectSummary, CanvasPosition} from '../../client/src/components/rac-editor/@canvas/lib';
 import type {HouseRuntimeSnapshot} from '../../client/src/components/rac-editor/lib/house-runtime-snapshot';
 import {RacEditorUiState} from '../../client/src/components/rac-editor/lib/rac-editor';
@@ -68,8 +69,8 @@ export function expectNoConsoleErrors(page: Page): void {
   expect(errors, errors.join('\n')).toEqual([]);
 }
 
-export async function applyRacEditorInitScript(page: Page) {
-  await page.addInitScript(() => {
+export async function applyRacEditorInitScript(page: Page, settingsOverrides: Partial<AppSettings> = {}) {
+  await page.addInitScript((overrides) => {
     const storage = window.localStorage;
     if (!storage) return;
     try {
@@ -102,12 +103,13 @@ export async function applyRacEditorInitScript(page: Page) {
       allowPilotiHeightDefinitionOnHouseInsert: false,
       showStairsOnTopView: false,
       showPilotiLabelsOnTopView: true,
+      ...overrides,
       }));
       storage.removeItem('rac-projects');
     } catch {
       // O helper não deve transformar a indisponibilidade do Storage em pageerror.
     }
-  });
+  }, settingsOverrides);
 }
 
 export async function setupRacEditorPage(

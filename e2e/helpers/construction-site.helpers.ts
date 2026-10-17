@@ -1,9 +1,28 @@
 import {expect, type Page} from '@playwright/test';
+import type {AppSettings} from '../../client/src/shared/types/settings';
 import {applyRacEditorInitScript, showCanvasTopBar} from './rac-editor.helpers';
 import {
   seedConstructionSiteDocument,
   type SeedConstructionSiteDocumentOptions,
 } from './construction-site-storage.helpers';
+
+/** Prepara a origem sem montar React nem passar pelo Canvas desktop antes do mobile. */
+export async function setupMobileFirstRacEditorPage(
+  page: Page,
+  options: SeedConstructionSiteDocumentOptions = {},
+  settings: Partial<AppSettings> = {},
+) {
+  const bootstrapPath = '**/__e2e/mobile-storage';
+  await page.route(bootstrapPath, (route) => route.fulfill({
+    contentType: 'text/html',
+    body: '<!doctype html><html><head><title>Fixture local</title></head><body></body></html>',
+  }));
+  await page.goto('/__e2e/mobile-storage');
+  await seedConstructionSiteDocument(page, options);
+  await page.unroute(bootstrapPath);
+  await applyRacEditorInitScript(page, settings);
+  await page.goto('/', {waitUntil: 'domcontentloaded'});
+}
 
 export async function setupSeededRacEditorPage(
   page: Page,
