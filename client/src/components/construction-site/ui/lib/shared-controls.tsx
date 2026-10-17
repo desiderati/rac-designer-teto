@@ -8,6 +8,7 @@ import {
   type MouseEvent,
   type ReactNode,
   useEffect,
+  useId,
   useRef,
   useState,
 } from 'react';
@@ -168,6 +169,7 @@ export function PhotoUploadField({
   dropZoneClassName,
   loadedDropZoneClassName,
   disabled = false,
+  error,
 }: {
   label: string;
   value: string;
@@ -178,10 +180,13 @@ export function PhotoUploadField({
   dropZoneClassName?: string;
   loadedDropZoneClassName?: string;
   disabled?: boolean;
+  error?: string;
 }) {
+  const errorId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [photoOrientation, setPhotoOrientation] = useState<PhotoOrientation | undefined>();
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const displayedError = uploadError ?? error;
   const [reviewFile, setReviewFile] = useState<File | null>(null);
   const [pendingPreview, setPendingPreview] = useState<{localUrl: string; remoteUrl: string | null} | null>(null);
   const storageImageUpload = useStorageImageUpload();
@@ -277,6 +282,8 @@ export function PhotoUploadField({
         tabIndex={disabled || storageImageUpload.isUploading ? -1 : 0}
         aria-label={label}
         aria-disabled={disabled || storageImageUpload.isUploading}
+        aria-invalid={Boolean(displayedError)}
+        aria-describedby={displayedError ? errorId : undefined}
         data-photo-orientation={photoOrientation}
         onClick={openFilePicker}
         onKeyDown={handleKeyDown}
@@ -285,7 +292,7 @@ export function PhotoUploadField({
         className={cn(
           'relative flex h-36 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border border-dashed border-blue-200 bg-blue-50/80 px-3 py-4 text-center text-sm font-medium text-slate-600 transition-colors hover:border-blue-300 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-200',
           disabled || storageImageUpload.isUploading ? 'cursor-not-allowed opacity-60 hover:border-blue-200 hover:bg-blue-50/80 focus:ring-0' : null,
-          uploadError ? 'border-red-300 bg-red-50/70 text-red-700 hover:border-red-300 hover:bg-red-50 focus:ring-red-100' : null,
+          displayedError ? 'border-red-300 bg-red-50/70 text-red-700 hover:border-red-300 hover:bg-red-50 focus:ring-red-100' : null,
           dropZoneClassName,
           value || pendingPreview ? cn('p-0', loadedDropZoneClassName) : null,
         )}
@@ -357,8 +364,8 @@ export function PhotoUploadField({
           ) : null}
         </div>
       ) : null}
-      {uploadError ? (
-        <p role='alert' className='text-xs font-semibold text-red-600'>{uploadError}</p>
+      {displayedError ? (
+        <p id={errorId} role='alert' className='text-xs font-semibold text-red-600'>{displayedError}</p>
       ) : null}
       <ImageUploadReview
         file={reviewFile}

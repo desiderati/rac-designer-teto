@@ -1,6 +1,9 @@
 import {describe, expect, it} from 'vitest';
 import {
   calculateReductionPercent,
+  hasValidOptionalPhotoDataUrl,
+  normalizeOptionalPhotoDataUrl,
+  isManusStoragePhotoUrl,
   isSupportedPhotoDataUrl,
   needsPhotoCompression,
   MAX_PHOTO_SOURCE_BYTES,
@@ -17,6 +20,18 @@ const VALID_PNG_DATA_URL = 'data:image/png;base64,iVBORw0KGgo=';
 const PNG_SIGNATURE = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
 describe('photo-data-url.ts', () => {
+  it.each(['/api/private-storage/', '/manus-storage/'])('preserva fotos de storage em %s', (prefix) => {
+    const url = `${prefix}rac-designer-teto/site/photos/familia_1234.jpg`;
+    expect(isManusStoragePhotoUrl(url)).toBe(true);
+    expect(hasValidOptionalPhotoDataUrl(url)).toBe(true);
+    expect(normalizeOptionalPhotoDataUrl(url)).toBe(url);
+  });
+
+  it.each(['https://example.com/photo.jpg', '//example.com/photo.jpg', '/api/private-storage/', '/api/private-storage/photo.jpg?token=example', '/other/photo.jpg'])('rejeita referências fora do contrato: %s', (url) => {
+    expect(hasValidOptionalPhotoDataUrl(url)).toBe(false);
+    expect(normalizeOptionalPhotoDataUrl(url)).toBeUndefined();
+  });
+
   it('aceita apenas DataURLs de imagem suportada com assinatura compatível', () => {
     expect(isSupportedPhotoDataUrl(VALID_PNG_DATA_URL)).toBe(true);
     expect(isSupportedPhotoDataUrl('data:image/svg+xml;base64,PHN2Zy8+')).toBe(false);

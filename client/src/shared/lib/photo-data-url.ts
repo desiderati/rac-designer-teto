@@ -1,6 +1,6 @@
 const ALLOWED_PHOTO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
 const DATA_URL_PATTERN = /^data:(image\/png|image\/jpeg|image\/webp);base64,([A-Za-z0-9+/]+={0,2})$/i;
-const MANUS_STORAGE_URL_PATTERN = /^\/manus-storage\/[A-Za-z0-9][A-Za-z0-9._\-/]*$/;
+const MANUS_STORAGE_URL_PATTERN = /^\/(?:manus-storage|api\/private-storage)\/[A-Za-z0-9][A-Za-z0-9._\-/]*$/;
 export const MAX_PHOTO_UPLOAD_BYTES = 7.5 * 1024 * 1024;
 export const MAX_PHOTO_SOURCE_BYTES = 50 * 1024 * 1024;
 export const PHOTO_COMPRESSION_THRESHOLD_BYTES = 2.5 * 1024 * 1024;
@@ -49,6 +49,7 @@ export function normalizeOptionalPhotoDataUrl(value: unknown): string | undefine
 }
 
 export function isManusStoragePhotoUrl(value: unknown): value is string {
+  // O storage usa a rota privada; documentos antigos ainda referenciam /manus-storage/.
   return typeof value === 'string' && MANUS_STORAGE_URL_PATTERN.test(value.trim());
 }
 

@@ -67,6 +67,7 @@ export function HouseConfigurationScreen({
   readOnly?: boolean;
 }) {
   const isReadOnly = readOnly || house?.status === 'built' || house?.status === 'archived';
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [locationLookupStatus, setLocationLookupStatus] = useState<'idle' | 'loading'>('idle');
   const [locationLookupMessage, setLocationLookupMessage] = useState<{
     tone: 'success' | 'error';
@@ -119,6 +120,7 @@ export function HouseConfigurationScreen({
     form.reset(getHouseConfigurationInitialState(constructionSite, house));
     setLocationLookupStatus('idle');
     setLocationLookupMessage(null);
+    setSaveError(null);
   }, [constructionSite, form, formSourceKey, house]);
   useFormDirtyChange(form.formState.isDirty, onDirtyChange);
 
@@ -129,7 +131,14 @@ export function HouseConfigurationScreen({
 
   const submitForm = form.handleSubmit(async (values) => {
     if (isReadOnly) return;
-    await onSave(toHouseConfigurationInput(values));
+    setSaveError(null);
+    try {
+      await onSave(toHouseConfigurationInput(values));
+    } catch {
+      setSaveError('Não foi possível salvar a casa. Seus dados foram mantidos. Tente novamente.');
+    }
+  }, () => {
+    setSaveError(null);
   });
 
   const useCurrentLocation = () => {
@@ -215,7 +224,7 @@ export function HouseConfigurationScreen({
             <Controller
               control={form.control}
               name='familyPhotoDataUrl'
-              render={({field}) => (
+              render={({field, fieldState}) => (
                 <PhotoUploadField
                   label='Foto da Família'
                   value={field.value ?? ''}
@@ -223,6 +232,7 @@ export function HouseConfigurationScreen({
                   dirty={Boolean(dirtyFields.familyPhotoDataUrl)}
                   loadedDropZoneClassName='h-72'
                   disabled={isReadOnly}
+                  error={fieldState.error?.message}
                 />
               )}
             />
@@ -596,7 +606,16 @@ export function HouseConfigurationScreen({
         </HouseFormSection>
       </Accordion>
       <FormActionDock testId='site-actions-grid' desktopPlacement='form-column' desktopSpacing='standard' className='sm:mt-2'>
-        <PrimaryButton type='submit' disabled={isReadOnly} className='w-full min-w-0'>Salvar Configurações</PrimaryButton>
+        <div className='w-full min-w-0 space-y-2'>
+          {saveError || (submitCount > 0 && Object.keys(errors).length > 0) ? (
+            <p role='alert' className='text-xs font-semibold text-red-600'>
+              {saveError ?? 'Revise os campos indicados antes de salvar.'}
+            </p>
+          ) : null}
+          <PrimaryButton type='submit' disabled={isReadOnly || form.formState.isSubmitting} className='w-full min-w-0'>
+            {form.formState.isSubmitting ? 'Salvando...' : 'Salvar Configurações'}
+          </PrimaryButton>
+        </div>
       </FormActionDock>
     </form>
   );
