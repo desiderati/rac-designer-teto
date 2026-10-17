@@ -1,6 +1,7 @@
 /// <reference types="@types/google.maps" />
 
-import { useEffect, useRef, useState } from "react";
+import { Component, type ReactNode, useEffect, useRef, useState } from "react";
+import { MapPin, RefreshCw } from "lucide-react";
 import { usePersistFn } from "@/hooks/usePersistFn";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,7 @@ function getMapsProxyScriptUrl(): string {
   const params = new URLSearchParams({
     key: apiKey,
     v: "weekly",
+    loading: "async",
     libraries: "marker,places,geocoding,geometry",
   });
 
@@ -84,6 +86,32 @@ function toError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error));
 }
 
+function MapFallback({onRetry}: {onRetry?: () => void}) {
+  return (
+    <div
+      role="alert"
+      className="absolute inset-0 z-10 grid place-items-center bg-blue-50 px-4 text-center text-sm font-semibold text-slate-600"
+    >
+      <div className="flex max-w-sm flex-col items-center gap-3">
+        <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-blue-600 shadow-sm">
+          <MapPin className="h-5 w-5" aria-hidden="true"/>
+        </span>
+        <p>Não foi possível carregar o mapa agora.</p>
+        {onRetry ? (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          >
+            <RefreshCw className="h-3.5 w-3.5" aria-hidden="true"/>
+            Tentar novamente
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 interface MapViewProps {
   className?: string;
   initialCenter?: google.maps.LatLngLiteral;
@@ -94,33 +122,98 @@ interface MapViewProps {
   onError?: (error: Error) => void;
 }
 
-export function MapView({
+interface MapViewErrorBoundaryProps {
+  children: ReactNode;
+  onError?: (error: Error) => void;
+}
+
+interface MapViewErrorBoundaryState {
+  error: Error | null;
+}
+
+/**
+ * O SDK do Maps é uma biblioteca imperativa que pode falhar fora do ciclo React.
+ * O boundary mantém essa falha restrita ao card do mapa, sem derrubar o formulário.
+ */
+class MapViewErrorBoundary extends Component<MapViewErrorBoundaryProps, MapViewErrorBoundaryState> {
+  state: MapViewErrorBoundaryState = {error: null};
+
+  static getDerivedStateFromError(error: Error): MapViewErrorBoundaryState {
+    return {error};
+  }
+
+  componentDidCatch(error: Error) {
+    this.props.onError?.(error);
+  }
+
+  handleRetry = () => {
+    this.setState({error: null});
+  };
+
+  render() {
+    if (this.state.error) {
+      return <MapFallback onRetry={this.handleRetry}/>;
+    }
+
+    return this.props.children;
+  }
+}
+
+function MapViewContent({
   className,
-  initialCenter = { lat: 37.7749, lng: -122.4194 },
+  initialCenter = {lat: 37.7749, lng: -122.4194},
   initialZoom = 12,
   markerPosition,
   markerTitle = "Local informado",
   onMapReady,
   onError,
 }: MapViewProps) {
-  const mapContainer = useRef<HTMLDivElement>(null);
+  const mapHost = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
   const marker = useRef<google.maps.marker.AdvancedMarkerElement | google.maps.Marker | null>(null);
   const mounted = useRef(true);
   const [loadState, setLoadState] = useState<MapLoadState>("loading");
+  const [retryKey, setRetryKey] = useState(0);
+
+  const cleanupMap = usePersistFn(() => {
+    const currentMarker = marker.current;
+    try {
+      if (currentMarker) {
+        if ("setMap" in currentMarker && typeof currentMarker.setMap === "function") {
+          currentMarker.setMap(null);
+        } else if ("map" in currentMarker) {
+          currentMarker.map = null;
+        }
+      }
+    } catch {
+      // A desmontagem tardia do SDK não pode propagar uma exceção ao formulário.
+    }
+
+    const currentMap = map.current;
+    if (currentMap) {
+      try {
+        window.google?.maps?.event?.clearInstanceListeners?.(currentMap);
+      } catch {
+        // O SDK pode já ter liberado seus listeners durante uma desmontagem.
+      }
+    }
+
+    marker.current = null;
+    map.current = null;
+  });
 
   const init = usePersistFn(async () => {
     try {
       await loadMapScript();
 
-      if (!mounted.current || !mapContainer.current) return;
+      if (!mounted.current || !mapHost.current) return;
 
       const googleApi = window.google;
       if (!googleApi?.maps?.Map) {
         throw new Error("A API de mapas não está disponível após o carregamento do SDK.");
       }
 
-      const mapInstance = new googleApi.maps.Map(mapContainer.current, {
+      const mapInstance = new googleApi.maps.Map(mapHost.current, {
         zoom: initialZoom,
         center: initialCenter,
         mapTypeControl: true,
@@ -149,6 +242,7 @@ export function MapView({
         }
       }
 
+      if (!mounted.current) return;
       setLoadState("ready");
       onMapReady?.(mapInstance);
     } catch (error) {
@@ -162,23 +256,35 @@ export function MapView({
 
   useEffect(() => {
     mounted.current = true;
+    setLoadState("loading");
     void init();
 
     return () => {
       mounted.current = false;
-      marker.current = null;
-      map.current = null;
+      cleanupMap();
     };
-  }, [init]);
+  }, [cleanupMap, init, retryKey]);
+
+  const handleRetry = () => {
+    cleanupMap();
+    setLoadState("loading");
+    setRetryKey((current) => current + 1);
+  };
 
   return (
     <div
-      ref={mapContainer}
       data-testid="google-maps-map"
       data-map-state={loadState}
       aria-label="Mapa do local informado"
       className={cn("relative h-full min-h-40 w-full overflow-hidden", className)}
     >
+      {/* O SDK recebe um host sem filhos React. Ele pode reescrever seu conteúdo sem
+          provocar uma remoção duplicada durante o próximo commit do React. */}
+      <div
+        ref={mapHost}
+        data-testid="google-maps-surface"
+        className="absolute inset-0"
+      />
       {loadState === "loading" ? (
         <div
           role="status"
@@ -187,14 +293,15 @@ export function MapView({
           Carregando mapa...
         </div>
       ) : null}
-      {loadState === "error" ? (
-        <div
-          role="alert"
-          className="absolute inset-0 z-10 grid place-items-center bg-blue-50 px-4 text-center text-sm font-semibold text-slate-600"
-        >
-          Não foi possível carregar o mapa agora.
-        </div>
-      ) : null}
+      {loadState === "error" ? <MapFallback onRetry={handleRetry}/> : null}
     </div>
+  );
+}
+
+export function MapView(props: MapViewProps) {
+  return (
+    <MapViewErrorBoundary onError={props.onError}>
+      <MapViewContent {...props}/>
+    </MapViewErrorBoundary>
   );
 }

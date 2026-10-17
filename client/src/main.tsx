@@ -9,6 +9,7 @@ import { racTrpcClient } from '@/lib/trpc-client.ts';
 import { trpc } from '@/lib/trpc.ts';
 import {installChunkRecovery} from '@/shared/lib/runtime-resilience.ts';
 import {isIsolatedLocalMode} from '@/shared/local-runtime.ts';
+import ErrorBoundary from '@/components/ErrorBoundary.tsx';
 import './index.css';
 
 installChunkRecovery();
@@ -58,7 +59,9 @@ queryClient.getMutationCache().subscribe((event) => {
 createRoot(document.getElementById('root')!).render(
   <trpc.Provider client={racTrpcClient} queryClient={queryClient}>
     <QueryClientProvider client={queryClient}>
-      <App/>
+      <ErrorBoundary>
+        <App/>
+      </ErrorBoundary>
     </QueryClientProvider>
   </trpc.Provider>,
 );

@@ -69,14 +69,17 @@ export function RacEditorLayout({
           <RacEditorHouseTypeSelector {...houseTypeSelector}/>
           <RacEditorModalEditors {...modalEditors}/>
           <RacEditorModals {...modals}/>
-          <House3DPdfSnapshot
-            ref={house3DPdfSnapshot.snapshotRef}
-            activeHouseId={house3DPdfSnapshot.activeHouseId}
-            houseIllustrationPort={house3DPdfSnapshot.houseIllustrationPort}
-          />
           <House3DViewerOverlay {...viewer}/>
         </>
       )}
+      {/* O snapshot fica fora da troca Canvas/formulário. Assim, a navegação para
+          edição não desmonta um renderer WebGL offscreen no mesmo commit em que
+          o painel de gestão é montado. */}
+      <House3DPdfSnapshot
+        ref={house3DPdfSnapshot.snapshotRef}
+        activeHouseId={house3DPdfSnapshot.activeHouseId}
+        houseIllustrationPort={house3DPdfSnapshot.houseIllustrationPort}
+      />
     </div>
   );
 }

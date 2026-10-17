@@ -63,6 +63,7 @@ describe('MapView', () => {
     expect(scriptUrl.origin).toBe('https://maps-proxy.example');
     expect(scriptUrl.pathname).toBe('/v1/maps/proxy/maps/api/js');
     expect(scriptUrl.searchParams.get('key')).toBe('runtime-key');
+    expect(scriptUrl.searchParams.get('loading')).toBe('async');
     expect(scriptUrl.searchParams.get('libraries')).toBe('marker,places,geocoding,geometry');
 
     vi.stubGlobal('google', {
@@ -74,6 +75,7 @@ describe('MapView', () => {
     script?.dispatchEvent(new Event('load'));
 
     await waitFor(() => expect(screen.getByTestId('google-maps-map')).toHaveAttribute('data-map-state', 'ready'));
+    expect(mapConstructor.mock.calls[0]?.[0]).toBe(screen.getByTestId('google-maps-surface'));
     expect(mapConstructor).toHaveBeenCalledWith(
       expect.any(HTMLElement),
       expect.objectContaining({
@@ -87,5 +89,33 @@ describe('MapView', () => {
       title: 'Local informado',
     });
     expect(onMapReady).toHaveBeenCalledWith(mapInstance);
+  });
+
+  it('mantém o fallback React fora do host que o SDK pode reescrever', async () => {
+    const mapInstance = {setCenter: vi.fn()};
+
+    class FakeMap {
+      constructor(element: HTMLElement) {
+        // Simula o comportamento de SDKs imperativos que limpam o host recebido.
+        while (element.firstChild) element.removeChild(element.firstChild);
+        return mapInstance;
+      }
+    }
+
+    vi.stubGlobal('google', {
+      maps: {
+        Map: FakeMap,
+        event: {clearInstanceListeners: vi.fn()},
+      },
+    });
+
+    render(<MapView/>);
+    const script = document.head.querySelector<HTMLScriptElement>('script[data-manus-google-maps="true"]');
+    script?.dispatchEvent(new Event('load'));
+
+    await waitFor(() => expect(screen.getByTestId('google-maps-map')).toHaveAttribute('data-map-state', 'ready'));
+    expect(screen.getByTestId('google-maps-surface')).toBeInTheDocument();
+    expect(screen.queryByText('Carregando mapa...')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });
