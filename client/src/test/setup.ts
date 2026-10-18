@@ -1,4 +1,18 @@
 import '@testing-library/jest-dom/vitest';
+import {afterAll, afterEach} from 'vitest';
+import {installReactActWarningGuard} from './react-act-warning-guard';
+
+const actWarningGuard = installReactActWarningGuard(console);
+
+// Registrados no setup, estes hooks rodam após a limpeza dos testes (ordem stack do Vitest).
+afterEach(() => actWarningGuard.assertNoWarnings());
+afterAll(() => {
+  try {
+    actWarningGuard.assertNoWarnings();
+  } finally {
+    actWarningGuard.restore();
+  }
+});
 
 if (!window.matchMedia) {
   Object.defineProperty(window, 'matchMedia', {
