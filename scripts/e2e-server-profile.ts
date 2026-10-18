@@ -40,7 +40,7 @@ export async function assertE2EServerProfile(baseURL: string, timeoutMs = 5000):
   const fail = (reason: string) => new Error(
     `[E2E] Perfil de servidor inválido em ${url.origin}: ${reason}. `
     + 'Esperado RAC Designer TETO em development com VITE_E2E=true. '
-    + 'Encerre manualmente o servidor incompatível nessa porta e execute novamente os E2E; '
+    + 'Escolha outra porta com E2E_PORT ou encerre manualmente o servidor incompatível e execute novamente os E2E; '
     + 'o Playwright iniciará o servidor correto.',
   );
 

@@ -297,12 +297,24 @@ geral do projeto e os comandos reais de trabalho.
     npm run test:e2e:ui
     ```
 
+   Para usar outra porta, defina `E2E_PORT` ao executar a suíte. O Playwright e o servidor usam o
+   mesmo valor; sem essa variável, a porta continua sendo `5200`.
+
+    ```bash
+    E2E_PORT=5307 pnpm test:e2e
+    ```
+
+   `E2E_PORT` aceita inteiros decimais de `1` a `65535`. Valores vazios ou inválidos interrompem a
+   execução antes de iniciar o servidor. Escolha uma porta livre para preservar servidores de
+   outras frentes; não há escolha automática de porta.
+
    Antes de iniciar os cenários, o runner verifica a identificação do aplicativo e exige o perfil
    `development` com `VITE_E2E=true`. Um servidor E2E compatível já aberto pode ser reutilizado
    localmente. Se a porta estiver ocupada por `dev:local`, `dev:isolated` ou outro servidor, a suíte
-   para com uma mensagem de perfil incompatível. Encerre manualmente esse servidor e execute os
-   testes novamente. O runner não encerra processos nem troca a porta automaticamente. O endpoint de
-   identificação é servido apenas durante o desenvolvimento e fica indisponível em produção.
+   para com uma mensagem de perfil incompatível. Defina outra porta com `E2E_PORT` ou encerre
+   manualmente esse servidor e execute os testes novamente. O runner não encerra processos nem
+   troca a porta automaticamente. O endpoint de identificação é servido apenas durante o
+   desenvolvimento e fica indisponível em produção.
 
 8. Regressão completa:
 

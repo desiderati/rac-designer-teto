@@ -1,7 +1,8 @@
 import {defineConfig, devices} from '@playwright/test';
 import {existsSync} from 'node:fs';
+import {resolveE2EPort} from './scripts/e2e-port.mjs';
 
-const PORT = 5200;
+const PORT = resolveE2EPort(process.env.E2E_PORT);
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const chromiumExecutablePath = existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined;
 

@@ -2,6 +2,25 @@ import {expect, test} from '@playwright/test';
 import {createServer, type RequestListener} from 'node:http';
 import type {AddressInfo} from 'node:net';
 import {assertE2EServerProfile, E2E_SERVER_PROFILE_PATH} from '../scripts/e2e-server-profile';
+import {resolveE2EPort} from '../scripts/e2e-port.mjs';
+
+test.describe('Porta do servidor E2E', () => {
+  test('mantém 5200 quando E2E_PORT não está definido', () => {
+    expect(resolveE2EPort()).toBe(5200);
+  });
+
+  test('aceita uma porta alternativa e os limites válidos', () => {
+    expect(resolveE2EPort('5307')).toBe(5307);
+    expect(resolveE2EPort('1')).toBe(1);
+    expect(resolveE2EPort('65535')).toBe(65535);
+  });
+
+  for (const value of ['', '0', '65536', '-1', '5307.5', 'abc', 'http://localhost:5307', '5e3', ' 5307 ']) {
+    test(`recusa E2E_PORT=${JSON.stringify(value)}`, () => {
+      expect(() => resolveE2EPort(value)).toThrow('[E2E] E2E_PORT deve ser um inteiro decimal entre 1 e 65535');
+    });
+  }
+});
 
 const validProfile = {application: 'rac-designer-teto', version: 1, mode: 'development', e2e: true};
 

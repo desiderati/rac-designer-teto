@@ -3,6 +3,7 @@ import {rm} from 'node:fs/promises';
 import {dirname, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {build} from 'esbuild';
+import {resolveE2EPort} from './e2e-port.mjs';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const cli = path => resolve(projectRoot, 'node_modules', path);
@@ -30,7 +31,7 @@ async function main() {
     case 'dev':
     case 'e2e-server': {
       const environment = {NODE_ENV: 'development'};
-      if (command !== 'dev') environment.PORT = '5200';
+      if (command !== 'dev') environment.PORT = String(resolveE2EPort(process.env.E2E_PORT));
       if (command === 'e2e-server') environment.VITE_E2E = 'true';
       return run(cli('tsx/dist/cli.mjs'), ['watch', 'server/_core/index.ts'], environment);
     }
