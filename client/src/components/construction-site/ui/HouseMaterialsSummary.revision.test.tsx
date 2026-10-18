@@ -12,6 +12,8 @@ it('A-014 resume tipo, tamanho e quantidades positivas sem alterar os pilotis ze
   render(<HouseMaterialsSummary familyName='Teste' house={house}/>);
   fireEvent.click(screen.getByRole('button', {name: 'Resumo da Casa de Teste'}));
   const summary = within(screen.getByRole('tooltip'));
+  expect(summary.getByRole('img', {name: 'Mini planta da casa, sem identificadores de pilotis'})).toBeVisible();
+  expect(summary.queryByText(/^[ABC][1-4]$/)).not.toBeInTheDocument();
   expect(summary.getByText('Tipo 6')).toBeVisible();
   expect(summary.getByText('Grande')).toBeVisible();
   expect(summary.getByText('Pilotis 1,5 m:').parentElement).toHaveTextContent('2');

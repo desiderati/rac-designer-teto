@@ -1,19 +1,20 @@
 import * as React from 'react';
 import {VIEWPORT} from '@/shared/config.ts';
 
-export function useIsMobile() {
+export function useIsMobile(breakpoint: number = VIEWPORT.mobileBreakpoint) {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined);
 
   React.useEffect(() => {
-    const mql = window.matchMedia(VIEWPORT.mobileMaxWidthQuery);
+    const query = breakpoint === VIEWPORT.mobileBreakpoint ? VIEWPORT.mobileMaxWidthQuery : `(max-width: ${breakpoint - 1}px)`;
+    const mql = window.matchMedia(query);
     const onChange = () => {
-      setIsMobile(window.innerWidth < VIEWPORT.mobileBreakpoint);
+      setIsMobile(window.innerWidth < breakpoint);
     };
 
     mql.addEventListener('change', onChange);
-    setIsMobile(window.innerWidth < VIEWPORT.mobileBreakpoint);
+    setIsMobile(window.innerWidth < breakpoint);
     return () => mql.removeEventListener('change', onChange);
-  }, []);
+  }, [breakpoint]);
 
   return !!isMobile;
 }

@@ -21,7 +21,7 @@ import type {ConstructionSiteState, PersistedHouseRecord} from '@/shared/types/c
 import type {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 import type {HouseFieldAnalysisDraft} from '@/shared/types/house-field-analysis.ts';
 import {DEFAULT_HOUSE_PILOTI, DEFAULT_HOUSE_PILOTI_HEIGHTS, type HouseSide, type HouseType} from '@/shared/types/house.ts';
-import {getAllPilotiIds} from '@/shared/types/piloti.ts';
+import {getAllPilotiIds, getPilotiName} from '@/shared/types/piloti.ts';
 import {toast} from '@/components/ui/sonner.tsx';
 import {hasDefinedPilotis} from '../lib/house-definition.ts';
 
@@ -233,7 +233,7 @@ export function HouseFieldAnalysisScreen({
           <ArrowLeft className='h-5 w-5' aria-hidden='true'/>
         </button>
         <div className='min-w-0 flex-1'>
-          <h1 className='break-words text-xl font-semibold text-slate-950'>{familyName}</h1>
+          <h1 className='break-words text-xl font-semibold text-slate-950'>{stage === 'ready' ? `Piloti ${getPilotiName(selectedPilotiId)}` : familyName}</h1>
         </div>
         {onOpenCanvas ? <button type='button' aria-label='Abrir Canvas da casa' disabled={isSaving || Boolean(saveError)} onClick={() => void onOpenCanvas()} className='grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500'><PanelsTopLeft className='h-5 w-5'/></button> : null}
       </div>

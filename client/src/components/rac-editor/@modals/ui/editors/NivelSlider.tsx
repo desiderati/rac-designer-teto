@@ -142,7 +142,7 @@ export function NivelSlider({
   const modeLabel = autoMode ? 'automático' : 'manual';
 
   return (
-    <div className={cn('space-y-4', disabled && 'opacity-60')}>
+    <div className='space-y-4'>
       <div className='text-center'>
         <div className='flex items-center justify-center gap-2'>
           {showModeButton &&
@@ -164,12 +164,13 @@ export function NivelSlider({
               auto
             </Button>
           }
-          <p className='text-sm font-medium'>Nível do Piloti</p>
+          <p className={cn('text-sm font-medium', disabled && 'opacity-60')}>Nível do Piloti</p>
         </div>
       </div>
 
-      <div className='flex items-center justify-center gap-3'>
+      <div className={cn('flex items-center justify-center gap-3', disabled && 'opacity-60')}>
         <Button
+          aria-label='Diminuir nível do piloti'
           variant='outline'
           size='icon'
           className='h-9 w-9 rounded-full disabled:pointer-events-auto disabled:cursor-not-allowed'
@@ -211,6 +212,7 @@ export function NivelSlider({
         </div>
 
         <Button
+          aria-label='Aumentar nível do piloti'
           variant='outline'
           size='icon'
           className='h-9 w-9 rounded-full disabled:pointer-events-auto disabled:cursor-not-allowed'
@@ -221,7 +223,7 @@ export function NivelSlider({
         </Button>
       </div>
 
-      <div className='space-y-3 px-2'>
+      <div className={cn('space-y-3 px-2', disabled && 'opacity-60')}>
         <Slider
           disabled={disabled}
           value={[nivel]}

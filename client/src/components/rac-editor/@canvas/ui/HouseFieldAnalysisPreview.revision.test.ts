@@ -10,6 +10,22 @@ import {createHouseTop} from '../lib/factory/house/house-top.strategy.ts';
 import {styleFieldAnalysisPilotis} from './HouseFieldAnalysisPreview.tsx';
 
 describe('A-008 projeção isolada da Análise de Campo', () => {
+  it('separa os IDs por linha e destaca as alturas sem sobrepor os círculos', () => {
+    const group = createHouseTop({width: 960, height: 600} as FabricCanvas);
+    const circles = styleFieldAnalysisPilotis(group);
+    const objects = group.getObjects() as CanvasObject[];
+    for (const circle of circles) {
+      const label = objects.find((object) => object.isPilotiNameLabel && object.pilotiId === circle.pilotiId)!;
+      const height = objects.find((object) => object.isPilotiText && object.pilotiId === circle.pilotiId)!;
+      if (circle.pilotiId!.endsWith('_2')) {
+        expect(label.top - label.height / 2).toBeGreaterThan(circle.top + Number(circle.radius));
+      } else {
+        expect(label.top + label.height / 2).toBeLessThan(circle.top - Number(circle.radius));
+      }
+      expect(height).toHaveProperty('fontWeight', 'bold');
+    }
+  });
+
   it('A-002/A-010 atualiza os pilotis de vistas existentes sem mover o grupo ou objetos externos', () => {
     const group = createHouseTop({width: 960, height: 600} as FabricCanvas);
     Object.assign(group, {myType: 'house', houseViewType: 'top', houseInstanceId: 'top'});

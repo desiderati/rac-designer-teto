@@ -131,7 +131,7 @@ export function PilotiEditor({
   if (!isOpen) return null;
 
   // ---- Shared content renderers (inline to avoid remount/focus-loss) ----
-  const canEditNivel = !autoAdjustPilotiHeightsFromNivel;
+  const canEditNivel = isCornerPiloti || !autoAdjustPilotiHeightsFromNivel;
   const inlineDestinations = pendingSide ? getInlineContraventamentoDestinations?.(pendingSide) ?? [] : [];
   const destination = inlineDestinations.includes(selectedDestination)
     ? selectedDestination : inlineDestinations[0] ?? '';
@@ -154,16 +154,16 @@ export function PilotiEditor({
   return (
     <FloatingEditor
       presentation={presentation}
-      header={
+      header={presentation === 'inline' ? undefined :
         <div className='flex items-center gap-3'>
-          {presentation !== 'inline' ? <PilotiGridIcon
+          <PilotiGridIcon
             selectedPiloti={pilotiName}
             masterPiloti={masterPilotiName}
-            className='w-16 h-12 flex-shrink-0'/> : null}
+            className='w-16 h-12 flex-shrink-0'/>
 
           <span className='font-bold text-2xl flex-1 text-center'>Piloti {pilotiName}</span>
 
-          {presentation !== 'inline' ? <div className='flex items-center gap-1 select-none'>
+          <div className='flex items-center gap-1 select-none'>
             <Button
               variant='outline'
               size='icon'
@@ -183,7 +183,7 @@ export function PilotiEditor({
               className='h-8 w-8 rounded-full bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'>
               <FontAwesomeIcon icon={faChevronRight} className='h-3 w-3'/>
             </Button>
-          </div> : null}
+          </div>
         </div>
       }
       cardContent={
@@ -208,7 +208,7 @@ export function PilotiEditor({
 
           <NivelSlider
             disabled={!canEditNivel}
-            autoFocusInput={isOpen && canEditNivel}
+            autoFocusInput={isOpen && canEditNivel && !autoAdjustPilotiHeightsFromNivel}
             focusKey={pilotiId}
             nivel={tempNivel}
             minNivel={0.20}

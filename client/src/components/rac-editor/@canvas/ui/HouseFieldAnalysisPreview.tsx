@@ -9,6 +9,21 @@ import {getPilotiName} from '@/shared/types/piloti.ts';
 import {createResizeObserverScheduler} from '@/shared/lib/resize-observer-scheduler.ts';
 
 interface Target {id: string; x: number; y: number; diameter: number}
+
+function layoutFieldAnalysisLabels(group: ReturnType<typeof createConfiguredHouseViewGroup>) {
+  const objects = group.getObjects() as CanvasObject[];
+  for (const circle of objects.filter((object) => object.isPilotiCircle && object instanceof Circle)) {
+    const direction = circle.pilotiId?.endsWith('_2') ? 1 : -1;
+    const radius = (circle as unknown as Circle).radius;
+    const name = objects.find((object) => object.isPilotiNameLabel && object.pilotiId === circle.pilotiId);
+    if (!name) continue;
+    name.set({top: circle.top + direction * (radius + name.height / 2 + 8)});
+    const nivel = objects.find((object) => object.isPilotiNivelText && object.pilotiId === circle.pilotiId);
+    if (nivel?.visible) nivel.set({top: name.top + direction * (name.height / 2 + nivel.height / 2 + 8)});
+  }
+  objects.forEach((object) => object.setCoords());
+}
+
 export function styleFieldAnalysisPilotis(group: ReturnType<typeof createConfiguredHouseViewGroup>, selectedPilotiId?: string) {
   const objects = group.getObjects() as CanvasObject[];
   const circles = objects.filter((object) => object.isPilotiCircle && object instanceof Circle);
@@ -21,14 +36,16 @@ export function styleFieldAnalysisPilotis(group: ReturnType<typeof createConfigu
     circle.set({radius: radius * 1.75, top: circle.top + dy,
       ...(circle.pilotiId === selectedPilotiId ? {stroke: '#3b82f6', strokeWidth: 4} : {})});
     objects.filter((object) => object.pilotiId === circle.pilotiId && object.isPilotiText)
-      .forEach((object) => object.set({top: object.top + dy}));
-    objects.filter((object) => object.pilotiId === circle.pilotiId && object.isPilotiNameLabel)
-      .forEach((object) => object.set({top: object.top + (row === 2 ? -2 * delta - 4 : row === 0 ? 2 * delta + 4 : delta + 4)}));
+      .forEach((object) => {
+        const text = object as CanvasObject & {fontSize: number};
+        text.set({top: text.top + dy, fontSize: text.fontSize * 1.35, fontWeight: 'bold'});
+      });
   }
   objects.filter((object) => object.isPilotiNameLabel).forEach((object) => {
     const text = object as CanvasObject & {fontSize: number};
     text.set({fontSize: text.fontSize * 1.2});
   });
+  layoutFieldAnalysisLabels(group);
   return circles;
 }
 
@@ -44,15 +61,23 @@ export function HouseFieldAnalysisPreview({draft, selectedPilotiId, onSelectPilo
     const element = document.createElement('canvas');
     container.prepend(element);
     const canvas = new Canvas(element, {width: 960, height: 600, selection: false, skipTargetFind: true,
-      renderOnAddRemove: false, backgroundColor: '#f8fafc'});
+      renderOnAddRemove: false, backgroundColor: '#fff'});
     const group = createConfiguredHouseViewGroup({canvas, viewType: 'top', instanceId: 'field-analysis-preview',
       pilotis: draft.house.pilotis, terrainType: draft.house.terrainType});
     refreshTopDoorMarkersInViews({houseType: draft.house.houseType, sideMappings: draft.house.sideMappings,
       preAssignedSides: draft.house.preAssignedSides, topViews: [{instanceId: 'field-analysis-preview', group}]});
     applyFieldAnalysisContraventamentos(group, draft.contraventamentos);
     const circles = styleFieldAnalysisPilotis(group, selectedPilotiId);
-    const labels = (group.getObjects() as CanvasObject[]).filter((object) => object.isPilotiNameLabel)
+    const objects = group.getObjects() as CanvasObject[];
+    const labels = objects.filter((object) => object.isPilotiNameLabel || object.isPilotiText)
       .map((label) => ({label, fontSize: Number((label as CanvasObject & {fontSize: number}).fontSize)}));
+    const visibleBounds = () => {
+      const bounds = objects.filter((object) => object.visible).map((object) => object.getBoundingRect());
+      const left = Math.min(...bounds.map((rect) => rect.left));
+      const top = Math.min(...bounds.map((rect) => rect.top));
+      return {left, top, width: Math.max(...bounds.map((rect) => rect.left + rect.width)) - left,
+        height: Math.max(...bounds.map((rect) => rect.top + rect.height)) - top};
+    };
     group.set({selectable: false, evented: false});
     canvas.add(group);
     let disposed = false;
@@ -61,9 +86,14 @@ export function HouseFieldAnalysisPreview({draft, selectedPilotiId, onSelectPilo
       const width = Math.max(1, container.clientWidth);
       const height = Math.min(400, Math.max(220, width * .62));
       canvas.setDimensions({width, height});
-      const bounds = group.getBoundingRect();
-      const scale = Math.min((width - 16) / bounds.width, (height - 16) / bounds.height);
-      labels.forEach(({label, fontSize}) => label.set({fontSize: Math.max(fontSize, 10 / scale)}));
+      let bounds = visibleBounds();
+      let scale = Math.min((width - 16) / bounds.width, (height - 16) / bounds.height);
+      for (let pass = 0; pass < 2; pass++) {
+        labels.forEach(({label, fontSize}) => label.set({fontSize: Math.max(fontSize, (label.isPilotiText ? 12 : 10) / scale)}));
+        layoutFieldAnalysisLabels(group);
+        bounds = visibleBounds();
+        scale = Math.min((width - 16) / bounds.width, (height - 16) / bounds.height);
+      }
       canvas.setViewportTransform([scale, 0, 0, scale,
         (width - bounds.width * scale) / 2 - bounds.left * scale,
         (height - bounds.height * scale) / 2 - bounds.top * scale]);

@@ -254,12 +254,25 @@ describe('PilotiEditor.tsx', () => {
       {wrapper: createWrapper({updatePiloti})},
     );
     expect(screen.getByRole('switch', {name: 'Definir como Mestre?'})).toBeEnabled();
-    expect(screen.getByLabelText('Nível do piloti em metros')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByLabelText('Nível do piloti em metros')).toHaveAttribute('aria-disabled', 'false');
     expect(screen.getByLabelText('Nível do piloti em metros')).not.toHaveFocus();
     fireEvent.click(screen.getByRole('switch', {name: 'Definir como Mestre?'}));
     expect(updatePiloti).toHaveBeenCalledWith('piloti_0_0', {
       height: 1, isMaster: true, nivel: 0.2,
     });
+  });
+
+  it.each(['piloti_0_0', 'piloti_3_0', 'piloti_0_2', 'piloti_3_2'])('A-009 edita e persiste o nível de %s sem desligar AUTO', (id) => {
+    const updatePiloti = vi.fn((id: string, patch: Partial<HousePiloti>) => ({...pilotis[id], ...patch}));
+    render(<PilotiEditor presentation='inline' isOpen onClose={vi.fn()} pilotiId={id}
+      currentHeight={1} currentNivel={0.2} pilotiIds={Object.keys(pilotis)} selectedPilotiHeights={[1, 1.5, 2]}
+      isMobile onHeightChange={vi.fn()}/>, {wrapper: createWrapper({updatePiloti})});
+    const nivel = screen.getByLabelText('Nível do piloti em metros');
+    nivel.textContent = '045';
+    fireEvent.input(nivel);
+    fireEvent.blur(nivel);
+    expect(updatePiloti).toHaveBeenCalledWith(id, expect.objectContaining({nivel: 0.45}));
+    expect(screen.getByRole('button', {name: /modo automático de altura dos pilotis/i})).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('alterna o modo global de nível pelo botão do editor', () => {

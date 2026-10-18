@@ -4,6 +4,7 @@ import type {PersistedHouseRecord, HouseExtraMaterials} from '@/shared/types/con
 import {getExtraMaterialSummary} from '@/shared/lib/house-extra-materials.ts';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip.tsx';
 import {HOUSE_SIZE_LABELS} from './lib/constants.ts';
+import {HousePlanMiniature} from './HousePlanMiniature.tsx';
 
 const MATERIAL_SECTIONS = [
   {title: 'Benfeitorias Casa', labels: ['Vigas p/ Escada', 'Tipo Escada']},
@@ -32,11 +33,13 @@ export function HouseMaterialsSummary({familyName, materials, guidedTourId, hous
           </button>
         </TooltipTrigger>
         <TooltipContent side='top' collisionPadding={12} className='max-h-[50dvh] w-64 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl bg-white p-4 text-slate-900 shadow-lg' onClick={(event) => event.stopPropagation()}>
-          <div className='space-y-3'><strong>Resumo da Casa</strong>{house ? <dl className='space-y-2 text-xs'>
+          <div className='space-y-3'><strong>Resumo da Casa</strong>{house ? <>
+            <HousePlanMiniature pilotis={house.drawingDocument.house?.pilotis ?? {}}/>
+            <dl className='space-y-2 text-xs'>
             <div><dt className='inline'>Tipo da casa: </dt><dd className='inline'>{house.houseType === 'tipo6' ? 'Tipo 6' : house.houseType === 'tipo3' ? 'Tipo 3' : 'Não definido'}</dd></div>
             <div><dt className='inline'>Tamanho da casa: </dt><dd className='inline'>{house.houseSize ? HOUSE_SIZE_LABELS[house.houseSize] : 'Não informado'}</dd></div>
             {Object.entries(pilotiCounts).sort(([a], [b]) => Number(a) - Number(b)).map(([height, count]) => <div key={height}><dt className='inline'>Pilotis {Number(height).toLocaleString('pt-BR')} m: </dt><dd className='inline'>{count}</dd></div>)}
-          </dl> : null}
+          </dl></> : null}
             {MATERIAL_SECTIONS.map((section, index) => {
               const sectionRows = rows.filter((row) => section.labels.some((label) => label === row.label));
               return <section key={section.title} aria-label={section.title}>

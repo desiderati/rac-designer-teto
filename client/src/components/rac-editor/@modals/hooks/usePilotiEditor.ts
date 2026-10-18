@@ -203,7 +203,7 @@ export function usePilotiEditor({
   // Sem clamp por altura durante o drag — o slider já limita ao máximo global.
   // A limitação pela altura do piloti só ocorre no commit (handleNivelCommit / commitDraftChanges).
   const handleNivelChange = (value: number) => {
-    if (autoAdjustPilotiHeightsFromNivelRef.current) return;
+    if (autoAdjustPilotiHeightsFromNivelRef.current && !isCornerPiloti) return;
     setSyncedTempNivel(
       clampNivel(
         value,
@@ -217,7 +217,7 @@ export function usePilotiEditor({
   };
 
   const handleNivelCommit = (value: number) => {
-    if (!pilotiId || autoAdjustPilotiHeightsFromNivelRef.current) return;
+    if (!pilotiId || (autoAdjustPilotiHeightsFromNivelRef.current && !isCornerPiloti)) return;
 
     const autoMode = autoAdjustPilotiHeightsFromNivelRef.current;
     const height = tempHeightRef.current;
@@ -247,7 +247,7 @@ export function usePilotiEditor({
   };
 
   const handleNivelIncrement = (delta: number) => {
-    if (autoAdjustPilotiHeightsFromNivelRef.current) return;
+    if (autoAdjustPilotiHeightsFromNivelRef.current && !isCornerPiloti) return;
     const newVal = Math.round((tempNivelRef.current + delta) * 100) / 100;
     const clamped = Math.max(
       PILOTI_DEFAULT_NIVEL,
@@ -341,8 +341,13 @@ export function usePilotiEditor({
 
       const autoMode = autoAdjustPilotiHeightsFromNivelRef.current;
       const height = tempHeightRef.current;
-      const nivelToApply = clampNivelByHeight(autoMode ? currentNivel : resolvedNivel, height);
-      const heightToApply = height;
+      const editableAutoNivel = autoMode && isCornerPiloti;
+      const nivelToApply = editableAutoNivel
+        ? clampNivel(resolvedNivel, PILOTI_DEFAULT_NIVEL, getMaxNivelForMode(autoMode, height))
+        : clampNivelByHeight(autoMode ? currentNivel : resolvedNivel, height);
+      const heightToApply = editableAutoNivel && nivelToApply !== currentNivel
+        ? getRecommendedHeight(nivelToApply, selectedHeightsRef.current)
+        : height;
       const hasChanges = heightToApply !== currentHeight
         || resolvedIsMaster !== currentIsMaster
         || nivelToApply !== currentNivel;

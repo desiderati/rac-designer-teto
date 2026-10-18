@@ -64,15 +64,15 @@ function Wrapper({
   );
 }
 
-function Harness() {
+function Harness({pilotiId = 'piloti_0_0'}: {pilotiId?: string}) {
   const editor = usePilotiEditor({
     isOpen: true,
     onClose: vi.fn(),
-    pilotiId: 'piloti_0_0',
+    pilotiId,
     currentHeight: 1,
-    currentIsMaster: true,
+    currentIsMaster: pilotiId === 'piloti_0_0',
     currentNivel: 0.2,
-    pilotiIds: ['piloti_0_0'],
+    pilotiIds: [pilotiId],
     onHeightChange: vi.fn(),
   });
 
@@ -92,12 +92,12 @@ describe('usePilotiEditor', () => {
     const updatePiloti = vi.fn((pilotiId: string, patch: Partial<HousePiloti>) => ({
       ...pilotis[pilotiId], ...patch,
     }));
-    render(<Wrapper updatePiloti={updatePiloti}><Harness/></Wrapper>);
+    render(<Wrapper updatePiloti={updatePiloti}><Harness pilotiId='piloti_1_0'/></Wrapper>);
     fireEvent.click(screen.getByRole('button', {name: 'alterar tamanho'}));
     fireEvent.click(screen.getByRole('button', {name: 'confirmar slider'}));
     fireEvent.click(screen.getByRole('button', {name: 'confirmar draft'}));
-    expect(updatePiloti).toHaveBeenLastCalledWith('piloti_0_0', {
-      height: 1.5, isMaster: true, nivel: 0.2,
+    expect(updatePiloti).toHaveBeenLastCalledWith('piloti_1_0', {
+      height: 1.5, isMaster: false, nivel: 0.2,
     });
     expect(updatePiloti.mock.calls.every(([, patch]) => patch.nivel === 0.2)).toBe(true);
   });
@@ -110,7 +110,7 @@ describe('usePilotiEditor', () => {
 
     render(
       <Wrapper updatePiloti={updatePiloti}>
-        <Harness/>
+        <Harness pilotiId='piloti_1_0'/>
       </Wrapper>,
     );
 
@@ -118,6 +118,14 @@ describe('usePilotiEditor', () => {
     fireEvent.click(screen.getByRole('button', {name: 'confirmar draft'}));
 
     expect(updatePiloti).not.toHaveBeenCalled();
+  });
+
+  it('A-009 confirma o nível de referência da quina em AUTO e recomenda uma altura suficiente', () => {
+    const updatePiloti = vi.fn((id: string, patch: Partial<HousePiloti>) => ({...pilotis[id], ...patch}));
+    render(<Wrapper updatePiloti={updatePiloti}><Harness/></Wrapper>);
+    fireEvent.click(screen.getByRole('button', {name: 'alterar draft'}));
+    fireEvent.click(screen.getByRole('button', {name: 'confirmar draft'}));
+    expect(updatePiloti).toHaveBeenLastCalledWith('piloti_0_0', {height: 2, nivel: 0.6, isMaster: true});
   });
 
   it('usa o modo manual vigente ao confirmar slider logo apos sair do automatico', () => {

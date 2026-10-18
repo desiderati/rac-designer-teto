@@ -59,7 +59,8 @@ describe('HouseFieldAnalysisScreen', () => {
 
   it('retoma a preparação com prévia, controles embutidos e retorno à lista', async () => {
     const {onBack, onSave} = renderScreen();
-    expect(screen.getByRole('heading', {level: 1, name: 'Família Souza'})).toBeVisible();
+    expect(screen.getByRole('heading', {level: 1, name: 'Piloti A1'})).toBeVisible();
+    expect(screen.getAllByText('Piloti A1')).toHaveLength(1);
     expect(screen.getByRole('region', {name: 'Análise de Campo da casa Família Souza'})).toBeVisible();
     expect(screen.queryByRole('heading', {name: 'Análise de Campo'})).not.toBeInTheDocument();
     expect(screen.queryByText('Casa de Família Souza')).not.toBeInTheDocument();
