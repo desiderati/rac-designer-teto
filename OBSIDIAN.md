@@ -26,6 +26,13 @@ claramente estabelecida.
 
 ## Navegação inicial
 
+- [Arquitetura atual do RAC Designer
+  TETO](docs/architecture-diagrams/TECH-001-arquitetura-atual.md), para módulos, camadas, protocolos
+  e persistência, com fontes Mermaid e imagens aprovadas
+
+- [Estratégia de Testes Frontend](docs/engineering-playbook/PLAY-104-frontend-testing.md), para
+  distinguir checagem de tipos, testes de comportamento e regressão completa
+
 - [docs/README.md](docs/README.md), para o índice versionado do diretório de documentação
 
 - [docs/product-requirements/README.md](docs/product-requirements/README.md), para o índice de PRDs

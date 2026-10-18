@@ -97,8 +97,9 @@ function MyComponent({ isActive }: { isActive: boolean }) {
 
 - TanStack Query está presente no projeto.
 
-- A aplicação registra `QueryClientProvider`, mas hoje não há uso ativo de `useQuery` ou
-  `useMutation` em `src`.
+- A aplicação registra `QueryClientProvider` e o provider tRPC em `client/src/main.tsx`. A
+  autenticação usa `trpc.auth.me.useQuery` e `trpc.auth.logout.useMutation` em
+  `client/src/_core/hooks/useAuth.ts`; a persistência usa o cliente tRPC no adapter remoto.
 
 - Use-o quando houver query ou mutation remota real.
 
@@ -110,8 +111,12 @@ function MyComponent({ isActive }: { isActive: boolean }) {
 ## Validação e formulários
 
 - React Hook Form está disponível principalmente via primitive base de formulário.
-- Zod está instalado, mas não é usado ativamente em `src` hoje.
+
+- Zod valida os contratos de entrada da API tRPC em `server/routers.ts`, incluindo documentos e
+  uploads. Sua presença não exige que todos os formulários do cliente adotem a mesma estratégia.
+
 - Use-os quando o escopo realmente envolver formulários ou contratos de entrada.
+
 - Não introduza esse aparato em ciclos que não pedem validação formal.
 
 ## Testes

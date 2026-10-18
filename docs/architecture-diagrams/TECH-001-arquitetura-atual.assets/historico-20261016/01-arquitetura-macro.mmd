@@ -4,23 +4,24 @@ flowchart LR
     CLIENT["Cliente tRPC + TanStack Query<br/>sincronização de documentos"]
     CACHE["PWA / Service Worker<br/>cache dos arquivos da interface"]
     LOCAL[("IndexedDB<br/>modo local / isolated / E2E")]
-    UI --> CLIENT
+    UI -->|"operações e resultados"| CLIENT
     UI -. "alternativa local" .-> LOCAL
     CACHE -. "carrega interface" .-> UI
   end
   subgraph app["SERVIDOR · Node.js + Express"]
     WEB["Arquivos estáticos + API<br/>/api/trpc · HTTP interno<br/>HTTPS público via gateway TLS"]
-    API["tRPC + Zod + SuperJSON<br/>auth · constructionSites<br/>storage + IA · system"]
+    API["tRPC + Zod + SuperJSON<br/>auth · constructionSites<br/>storage + IA · system<br/>handlers OAuth HTTP"]
     DATA["Persistência de documentos<br/>Drizzle ORM + mysql2<br/>controle otimista de versão"]
-    PROXY["Proxy de imagens<br/>/manus-storage/*"]
-    WEB --> API --> DATA
-    WEB --> PROXY
+    PROXY["Proxy de imagens<br/>/manus-storage/* autenticado<br/>/api/public-assets/:asset restrito"]
+    WEB -->|"despacha handlers"| API
+    API -->|"chama funções de persistência"| DATA
+    WEB -->|"GET de imagens"| PROXY
   end
   DB[("MySQL<br/>users<br/>construction_site_documents<br/>JSON + documentVersion")]
   AUTH["Manus OAuth<br/>identidade e login"]
   FORGE["Manus Forge<br/>URLs assinadas de storage<br/>IA: imagens e descrição de fotos"]
   S3[("S3 / objetos<br/>fotos e ilustrações")]
-  CLIENT <-->|"HTTP(S) · /api/trpc<br/>batch · JSON/SuperJSON · cookie HttpOnly"| WEB
+  CLIENT <-->|"HTTP(S) · /api/trpc<br/>batch · JSON/SuperJSON<br/>cookie HttpOnly / Bearer no preview"| WEB
   DATA <-->|"SQL · protocolo MySQL / TCP"| DB
   UI <-->|"redirecionamentos OAuth"| AUTH
   API <-->|"HTTP(S) · troca de código<br/>consulta de perfil"| AUTH

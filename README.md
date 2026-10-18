@@ -2,13 +2,15 @@
 
 ## 📋 Project Overview
 
-**RAC Designer TETO** é um editor visual profissional para design de plantas de casas desenvolvido para a ONG TETO. A
-aplicação permite que monitores, líderes de construção e voluntários criem plantas baixas e elevações de casas com
-ferramentas avançadas de desenho 2D e visualização 3D interativa.
+**RAC Designer TETO** é um editor visual profissional para design de plantas de casas desenvolvido
+para a ONG TETO. A aplicação permite que monitores, líderes de construção e voluntários criem
+plantas baixas e elevações de casas com ferramentas avançadas de desenho 2D e visualização 3D
+interativa.
 
 ## 🧭 Leitura Recomendada
 
-Este README concentra o contexto humano e operacional do repositório. Para qualquer trabalho técnico, siga esta ordem:
+Este README concentra o contexto humano e operacional do repositório. Para qualquer trabalho
+técnico, siga esta ordem:
 
 1. `AGENTS.md`
 2. `docs/README.md`
@@ -24,9 +26,13 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 
 ### Primary Goals
 
-1. **Accessibility & Usability** - Ferramentas devem ser intuitivas para usuários sem experiência técnica
+1. **Accessibility & Usability** - Ferramentas devem ser intuitivas para usuários sem experiência
+   técnica
+
 2. **Precision & Accuracy** - Medições e desenhos devem ser precisos para uso profissional
+
 3. **Performance** - Editor 2D e visualização 3D devem ser responsivos mesmo com plantas complexas
+
 4. **Mobile-First Responsiveness** - Suportar tablets e dispositivos móveis para trabalho em campo
 
 ### What to Prioritize
@@ -49,9 +55,13 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 ### Persona 1: Monitor Voluntário
 
 - **Objetivo:** Criar plantas precisas de casas para projetos da TETO
+
 - **Experiência:** Conhecimento técnico nos modelos de casa da TETO
+
 - **Necessidades:** Ferramentas de desenho precisas, exportação para PDF, medições exatas
-- **Frustração:** Interfaces complexas, demora na criação e alteração de RACs, falta de feedback visual
+
+- **Frustração:** Interfaces complexas, demora na criação e alteração de RACs, falta de feedback
+  visual
 
 ### Persona 2: Líder Voluntário
 
@@ -81,39 +91,76 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 
 ### Instalação e atualização da interface
 
-- O build de produção gera um manifesto PWA e um service worker para permitir adicionar o RAC Designer à tela inicial e abrir os arquivos da interface sem conexão após a primeira visita online.
-- Os ícones de instalação e da aba usam o [isotipo do TETO](https://colabore-fichas-production.s3.amazonaws.com/13/favicon/Isotipo_Azul_Claro.png), com versões dimensionadas para o manifesto e para a tela inicial do iPhone.
-- Quando uma nova versão fica disponível, a aplicação mostra um aviso e só recarrega após a ação do usuário. A recarga é bloqueada enquanto houver edição local ou sincronização remota pendente.
-- O cache inicial cobre os arquivos da interface; dados remotos, autenticação e sincronização ainda exigem conexão. Edição de dados offline fica para uma etapa própria.
+- O build de produção gera um manifesto PWA e um service worker para permitir adicionar o RAC
+  Designer à tela inicial e abrir os arquivos da interface sem conexão após a primeira visita
+  online.
+
+- Os ícones de instalação e da aba usam o [isotipo do
+  TETO](https://colabore-fichas-production.s3.amazonaws.com/13/favicon/Isotipo_Azul_Claro.png), com
+  versões dimensionadas para o manifesto e para a tela inicial do iPhone.
+
+- Quando uma nova versão fica disponível, a aplicação mostra um aviso e só recarrega após a ação do
+  usuário. A recarga é bloqueada enquanto houver edição local ou sincronização remota pendente.
+
+- O cache inicial cobre os arquivos da interface; dados remotos, autenticação e sincronização ainda
+  exigem conexão. Edição de dados offline fica para uma etapa própria.
 
 ## 🏗️ Arquitetura Atual
 
+Consulte a [Arquitetura atual do RAC Designer
+TETO](docs/architecture-diagrams/TECH-001-arquitetura-atual.md) para as três visões conectadas de
+módulos, camadas e persistência, com Mermaid e imagens.
+
 - `client/src/domain/house/` concentra agregado, casos de uso e contratos do domínio da casa
+
 - `client/src/domain/construction-site/` concentra o contrato de repositório de Construções TETO
-- `client/src/infra/` implementa persistência em memória, repositório local de Construções TETO, storage local e integrações técnicas
+
+- `client/src/infra/` implementa persistência em memória, repositório local de Construções TETO,
+  storage local e integrações técnicas
+
 - `client/src/components/guided-tour/` concentra o runtime reutilizável do tour guiado
-- `client/src/components/rac-editor/` é a feature principal e organiza o editor em slices internos como `@canvas/`,
-  `@menus/`, `@modals/`, `@viewer-3d/`, `ui/`, `hooks/`, `lib/`, `ports/` e `store/`
-- `client/src/components/rac-editor/@canvas/` concentra a borda visual 2D, incluindo hooks, `ports/`, adapters Fabric,
-  factories e helpers de projeção/renderização do canvas
-- `client/src/components/rac-editor/@menus/` concentra a superfície de menus do editor, incluindo `RacEditorMenus`,
-  `CanvasToolsMenu`, menus superiores, tipos e configs locais
-- `client/src/components/rac-editor/@modals/` concentra dialogs, selectors, editors flutuantes e hooks específicos de modais
-- `client/src/components/rac-editor/@viewer-3d/` concentra a visualização 3D, parsers, geometria, meshes e hooks do viewer
-- `client/src/components/rac-editor/ports/` concentra contratos internos do editor ligados à casa, vistas, pilotis, runtime e
-  leitura/escrita lógica
-- `client/src/components/rac-editor/store/` concentra stores reais e modelos serializáveis de interação da feature, hoje com
-  `EditorStateStore` e `EditorSelection`
-- `client/src/components/rac-editor/lib/editor-house-controller.ts` coordena hoje o estado compartilhado da casa, com bridge reativa em
-  `client/src/components/rac-editor/lib/house-store.ts`
+
+- `client/src/components/rac-editor/` é a feature principal e organiza o editor em slices internos
+  como `@canvas/`, `@menus/`, `@modals/`, `@viewer-3d/`, `ui/`, `hooks/`, `lib/`, `ports/` e
+  `store/`
+
+- `client/src/components/rac-editor/@canvas/` concentra a borda visual 2D, incluindo hooks,
+  `ports/`, adapters Fabric, factories e helpers de projeção/renderização do canvas
+
+- `client/src/components/rac-editor/@menus/` concentra a superfície de menus do editor, incluindo
+  `RacEditorMenus`, `CanvasToolsMenu`, menus superiores, tipos e configs locais
+
+- `client/src/components/rac-editor/@modals/` concentra dialogs, selectors, editors flutuantes e
+  hooks específicos de modais
+
+- `client/src/components/rac-editor/@viewer-3d/` concentra a visualização 3D, parsers, geometria,
+  meshes e hooks do viewer
+
+- `client/src/components/rac-editor/ports/` concentra contratos internos do editor ligados à casa,
+  vistas, pilotis, runtime e leitura/escrita lógica
+
+- `client/src/components/rac-editor/store/` concentra stores reais e modelos serializáveis de
+  interação da feature, hoje com `EditorStateStore` e `EditorSelection`
+
+- `client/src/components/rac-editor/lib/editor-house-controller.ts` coordena hoje o estado
+  compartilhado da casa, com bridge reativa em `client/src/components/rac-editor/lib/house-store.ts`
+
 - `client/src/shared/config.ts` concentra constantes operacionais compartilhadas
-- `client/src/shared/types/` concentra contratos serializáveis compartilhados, incluindo casa, Construção TETO e documento RAC
+
+- `client/src/shared/types/` concentra contratos serializáveis compartilhados, incluindo casa,
+  Construção TETO e documento RAC
+
 - O projeto usa alias `@/` para imports absolutos
-- O projeto não adota uma camada de store genérica na raiz; o estado compartilhado do editor permanece concentrado na
-  própria feature
+
+- O projeto não adota uma camada de store genérica na raiz; o estado compartilhado do editor
+  permanece concentrado na própria feature
+
 - O TypeScript roda hoje em modo não estrito, mas o código deve continuar explícito e defensivo
-- O playbook em `docs/engineering-playbook/` continua sendo a fonte canônica para arquitetura, convenções e critérios de
-  refatoração, com qualquer direção futura marcada explicitamente como transição
+
+- O playbook em `docs/engineering-playbook/` continua sendo a fonte canônica para arquitetura,
+  convenções e critérios de refatoração, com qualquer direção futura marcada explicitamente como
+  transição
+
 - A taxonomia atual do playbook separa núcleo comum em `PLAY-001` a `PLAY-006` e módulos frontend em
   `PLAY-101` a `PLAY-105`
 
@@ -156,9 +203,9 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 └── README.md                 # Este documento
 ```
 
-As convenções detalhadas de nomenclatura, componentes, hooks, estado, testes, segurança e acessibilidade vivem no
-playbook em `docs/engineering-playbook/`. Este README mantém apenas o mapa geral do projeto e os comandos reais de
-trabalho.
+As convenções detalhadas de nomenclatura, componentes, hooks, estado, testes, segurança e
+acessibilidade vivem no playbook em `docs/engineering-playbook/`. Este README mantém apenas o mapa
+geral do projeto e os comandos reais de trabalho.
 
 ---
 
@@ -174,8 +221,12 @@ trabalho.
 ### During Development
 
 1. Seguir as convenções daqui e do playbook
-2. Verificar impacto em regras de negócio e documentação durável quando houver mudança comportamental
+
+2. Verificar impacto em regras de negócio e documentação durável quando houver mudança
+   comportamental
+
 3. Testar os fluxos afetados
+
 4. Verificar responsividade em mobile/tablet quando a interface for tocada
 
 ### Comandos principais (estado atual)
@@ -268,46 +319,64 @@ trabalho.
 
 ## 🧪 Testes e Validação
 
-- Smoke tests coexistem com unit/integration tests em arquivos `*.smoke.test.ts` e `*.smoke.test.tsx`
+O [playbook de testes frontend](docs/engineering-playbook/PLAY-104-frontend-testing.md) distingue
+checagem estática de tipos e execução dos cenários E2E.
+
+- Smoke tests coexistem com unit/integration tests em arquivos `*.smoke.test.ts` e
+  `*.smoke.test.tsx`
+
 - A suíte E2E vive em `e2e/` e gera relatórios em `playwright-report/`
+
 - `npm run test:regression` executa, nesta ordem: `check`, `check:e2e`, `test`, `test:server`,
   `build` e `test:e2e`. As checagens TypeScript da aplicação e dos E2E são executadas antes dos
   testes; qualquer falha interrompe a sequência. Use-o para validar mudanças de maior alcance.
 
 ## ⚙️ Configurações Importantes
 
-| Arquivo                | Propósito                                            |
-|------------------------|------------------------------------------------------|
+| Arquivo                       | Propósito                                            |
+|-------------------------------|------------------------------------------------------|
 | `client/src/shared/config.ts` | Constantes operacionais compartilhadas do editor     |
-| `vite.config.ts`       | Build, dev server e otimizações do Vite              |
-| `tailwind.config.ts`   | Tema e configuração do Tailwind                      |
-| `components.json`      | Configuração e aliases do shadcn/ui                  |
-| `playwright.config.ts` | Configuração da suíte E2E                            |
-| `.editorconfig`        | Convenções editoriais e de formatação do repositório |
+| `vite.config.ts`              | Build, dev server e otimizações do Vite              |
+| `tailwind.config.ts`          | Tema e configuração do Tailwind                      |
+| `components.json`             | Configuração e aliases do shadcn/ui                  |
+| `playwright.config.ts`        | Configuração da suíte E2E                            |
+| `.editorconfig`               | Convenções editoriais e de formatação do repositório |
 
 ---
 
 ## 📚 Regras de Negócio
 
 - O índice canônico está em `docs/business-rules/README.md`
-- Hoje o repositório documenta regras específicas para canvas, toolbar, vistas por tipo de casa, piloti,
-  contraventamento e viewer 3D
-- Mudanças comportamentais no editor devem ser confrontadas com esses documentos antes da implementação
+
+- Hoje o repositório documenta regras específicas para canvas, toolbar, vistas por tipo de casa,
+  piloti, contraventamento e viewer 3D
+
+- Mudanças comportamentais no editor devem ser confrontadas com esses documentos antes da
+  implementação
 
 ---
 
 ## 📚 Documentação Canônica e Recursos
 
 - **Guardrails operacionais:** `AGENTS.md`
+
 - **Índice documental do projeto:** `docs/README.md`
+
 - **Regras de negócio:** `docs/business-rules/README.md`
+
 - **PRDs e sidecars:** `docs/product-requirements/README.md`
-- **Engineering Playbook:** `docs/engineering-playbook/README.md` (núcleo comum `PLAY-001` a `PLAY-006` e frente
-  frontend `PLAY-101` a `PLAY-105`)
+
+- **Engineering Playbook:** `docs/engineering-playbook/README.md` (núcleo comum `PLAY-001` a
+  `PLAY-006` e frente frontend `PLAY-101` a `PLAY-105`)
+
 - **Code Scaffolds aprovados:** `docs/code-scaffolds/README.md`
+
 - **Prompts duráveis de refatoração:** `.agents/prompts/refactoring-*.prompt.md`
+
 - **Execuções e regressões de refatoração:** `.agents/refactorings/`
+
 - **Heurísticas repo-locais:** `.agents/refactorings/heuristics/`
+
 - **Contribuição, Git e CI:** `CONTRIBUTING.md`
 
 ---

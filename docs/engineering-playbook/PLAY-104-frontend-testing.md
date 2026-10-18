@@ -30,6 +30,27 @@ aplicação e verificar o resultado visível, em vez de acoplar a suíte a detal
 
 - Topo: testes E2E com Playwright para fluxos mais críticos do produto.
 
+## Checagem de tipos e execução dos E2E
+
+A checagem TypeScript principal usa [tsconfig.json](../../tsconfig.json): inclui cliente, servidor e
+contratos compartilhados, mas exclui `e2e/`. Seu sucesso, portanto, não comprova que os testes
+Playwright estão tipados corretamente.
+
+A checagem dedicada usa [tsconfig.e2e.json](../../tsconfig.e2e.json), que herda as opções da
+aplicação e inclui `e2e/**/*.ts` e `playwright.config.ts`. A biblioteca `ES2022` disponibiliza as
+declarações usadas pelos testes, como `Object.hasOwn`, sem mudar o `target: ES2020` herdado. Ambas
+as checagens usam `noEmit`; não executam cenários, asserções ou interações no navegador.
+
+Ao alterar testes, helpers ou configuração Playwright, execute a checagem dedicada e os cenários
+afetados. Quando a alteração também tocar código da aplicação, confira os dois escopos de tipos.
+Registre separadamente o resultado estático e o resultado dos testes no navegador: um não substitui
+o outro. Corrija os contratos de tipos sem enfraquecer asserções para obter aprovação.
+
+Para mudanças de maior alcance, use a regressão completa. Os comandos, a ordem das etapas e o perfil
+do servidor E2E estão no [README do projeto](../../README.md); os scripts efetivos estão em
+[package.json](../../package.json). Consulte esses pontos em vez de manter uma segunda lista de
+comandos neste guia.
+
 ## O que verificar em testes de integração
 
 1. Se o componente renderiza corretamente com as props fornecidas.

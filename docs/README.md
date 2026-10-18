@@ -59,6 +59,9 @@ transitórios devem declarar explicitamente seu ciclo de vida.
     - PRDs canônicos do projeto, com basename `PRD-{id_number}-{slug}.prd`, sidecar `*.prd.assets/` e JSON derivado
       opcional.
 
+8. [Arquitetura atual do RAC Designer TETO](architecture-diagrams/TECH-001-arquitetura-atual.md)
+    - Visões macro, camadas e persistência conferidas com o código, com Mermaid canônico e PNGs.
+
 ## Princípios deste diretório
 
 1. Linguagem clara e orientada a comportamento de produto.

@@ -1,0 +1,73 @@
+{
+  "revisao_fontes": "2026-10-17",
+  "geracao_imagens": "2026-10-16",
+  "base": "Inspeção de arquivos locais; não comprova implantação.",
+  "arquivos": [
+    {
+      "arquivo": "01-arquitetura-macro.mmd",
+      "sha256": "b31fe8f428715d00a9e0869de481bb94544842d38a8c0eee4f0c1e0f2ba60a15",
+      "snapshot_anterior": "historico-20261016/01-arquitetura-macro.mmd",
+      "sha256_anterior": "eb6bad0785cc6b8a630f4330ab10142bf1d73edef73d5b6d97b4ba8799a90da8",
+      "alteracao": "Somente rótulo da rota privada; nós, conexões e estilos preservados."
+    },
+    {
+      "arquivo": "02-camadas-e-modulos.mmd",
+      "sha256": "80fd8df34a56f1ee47f360b245783a09247767eab0116550ab8be279a6bf555e",
+      "snapshot_anterior": "historico-20261016/02-camadas-e-modulos.mmd",
+      "sha256_anterior": "80fd8df34a56f1ee47f360b245783a09247767eab0116550ab8be279a6bf555e",
+      "alteracao": "Cópia integral sem alterações."
+    },
+    {
+      "arquivo": "03-dados-e-persistencia.mmd",
+      "sha256": "623120cc3686b7dc0ae7ed30eee992b2a7dd79238cb13f9ce703f90c33e3b02c",
+      "snapshot_anterior": "historico-20261016/03-dados-e-persistencia.mmd",
+      "sha256_anterior": "9e53125250a88d45a73e32c172d701f8b9fcb4b2db750d6e4622ebc2d5b05bb8",
+      "alteracao": "Somente rótulo da rota privada; nós, conexões e estilos preservados."
+    },
+    {
+      "arquivo": "macro.png",
+      "sha256": "e9136dbd3bae9b4e6f12ebf3398672e351a6a472b079cd5aef9ffeae2b3603bb",
+      "alteracao": "PNG aprovado preservado byte a byte; derivado dos snapshots de 16/10/2026."
+    },
+    {
+      "arquivo": "camadas.png",
+      "sha256": "cd3f6344c3178195e103a49dda4a68e403f9e4fd2c942fe0924a14ba8b4b8758",
+      "alteracao": "PNG aprovado preservado byte a byte; derivado dos snapshots de 16/10/2026."
+    },
+    {
+      "arquivo": "dados.png",
+      "sha256": "42d66c8e584f03f9ada18efbfca7231830770dd96fb2ea350e8ce2744609191d",
+      "alteracao": "PNG aprovado preservado byte a byte; derivado dos snapshots de 16/10/2026."
+    }
+  ],
+  "fontes_sha256": {
+    "package.json": "84257163f8e4d4834899ef0ab78d85c7b2dba1cb4ae6965bbb82321ad540c9e4",
+    "server/_core/index.ts": "41928f7700b89833c99c47c62d32fee7bc34d67c882e23e85bcf24d85a2affc7",
+    "server/routers.ts": "03bde1467129a24cff7cc6e121082c916840a1e97b4eacb273feaa85c32eac08",
+    "client/src/lib/trpc-client.ts": "474e9e9ab220c01a23791cc88d148851089e23117343e59973886a72183fa23e",
+    "server/_core/oauth.ts": "66307737a80e17f1280c6d9d6deda8f0d4507df65fc3f6e5c871c81894856e66",
+    "server/_core/cookies.ts": "2eaf7c4e1eb6fa7f5cca8e290b3b1e75bc1e50b3923e9021895804631efd50f1",
+    "server/db.ts": "e2096c7f26d300bb74cebe304dcd8d2038b47bea33d19b43665d1dc90caeadfc",
+    "drizzle/schema.ts": "fd4f588699fc6a314213a68077fc2991080fd7dd0fa59e28865e62b99f59fe69",
+    "server/storage.ts": "5b22b8466464148e93c552dcb85095d932ee3f58019479c0fa03eeb6006226c4",
+    "server/_core/storageProxy.ts": "c66125fcd3bac8f0369030fb7977a954262a5e8507860502d2bacdd022d9641e",
+    "server/_core/imageGeneration.ts": "cfceb0008c89c4a7df0297f99f73cbfa81629109b5bedf1033f5653d9d8bc212",
+    "server/_core/llm.ts": "e6648dceda97d0aa495133743bf1c6ffcb2090b1d0aaffac4aa37d464f17879a",
+    "client/src/bootstrap/useRemoteConstructionSiteSessionStorage.ts": "d82173a9df2c8ba58e3bc95de207f97a3cf50b9227076a8e3715e2099500ab21",
+    "client/src/shared/local-runtime.ts": "9ffef86a7042bdccb74a2a082930deea7a9354d8179578f05087e5f4f70d64ab",
+    "client/src/infra/persistence/remote-construction-site-repository.adapter.ts": "4de557505e02c42b4469c7847ee4ce5b7fc0a681f466256b9e285968969c3ea3",
+    "client/src/bootstrap/editor-bootstrap.ts": "31cf08475b3261115cb7f5e5c3bc468dbaebcb226310a72733fb03eba76dec46",
+    "client/src/components/rac-editor/lib/editor-house-controller.ts": "0a8aed5f00b0954d05d6ce4e93538836ffcddad11a185fade1ce99e865e8db2c",
+    "client/src/components/rac-editor/@viewer-3d/hooks/useHouse3DViewerModel.ts": "29a03a53ec13e2724f7b2bd08b001c0b66a07bae6be7becfea568bb8701b2238",
+    "client/src/components/rac-editor/lib/rac-pdf-zip-export.ts": "47622f1cb85a73a380307a9b07636257c4dc5cb83e49c57566d0bc23c9bbefd6",
+    "vite.config.ts": "b86087a0c874a045f3bf44dd5ab41e83aa010d10910daab75b4631429a05a47b",
+    "client/src/_core/session-headers.ts": "f0e71b0a6136c6530d5581a8b24f99c8cdb5cb799bcf5d505b53d5b06644c622",
+    "server/_core/sdk.ts": "68e55d0ba8e003fab49e8c749a39288e133b83a10dcd7cb301d00cf300f6ca4b",
+    "client/src/bootstrap/editor-house-ports.ts": "3050619b1418750a3c051e7c620d902a0c439a1d4b0a74a785994dfcff5c0e55",
+    "client/src/components/rac-editor/@canvas/lib/canvas-house-3d-projection-port.ts": "3a72f7a552fede2c85a6e40c05974089b541aa95bae6ac995c4da21dc13906b5",
+    "client/src/components/construction-site/ui/HouseFieldAnalysisScreen.tsx": "36fd7af36b53da31d84102b91d699cd5ffd26dd28cefad37723f5ecc0bc46ab8",
+    "client/src/shared/types/house-field-analysis.ts": "9a4b2c9f7e3e44bf501b5778d4311e49ffe947c76c78d2af5d8289e398d811d0",
+    "client/src/shared/types/construction-site.ts": "9543dbd53590a87f61ea12f3aa2240bb1ba8aba2263d0e091df0308c18692cff",
+    "client/src/components/rac-editor/store/editor-settings-storage.ts": "f2476eadad618b2b8111534d6f646f163021fa99387e77551ac5cc051677b8bb"
+  }
+}

@@ -1,14 +1,14 @@
 flowchart TB
   subgraph presentation["1 · APRESENTAÇÃO"]
     SHELL["App + React Router<br/>UI Tailwind / shadcn / Radix<br/>tour guiado · avisos PWA"]
-    SITE["Construções TETO<br/>comunidades · famílias · monitores<br/>casas · avaliação do terreno"]
+    SITE["Construções TETO<br/>comunidades · famílias · monitores<br/>casas · terreno · Análise de Campo"]
     RAC["Editor RAC<br/>menus · modais · ferramentas"]
     C2["Canvas 2D<br/>Fabric.js<br/>plantas e elevações"]
     V3["Viewer 3D<br/>Three.js + React Three Fiber<br/>geometria e meshes"]
-    SHELL --> SITE
-    SHELL --> RAC
-    RAC --> C2
-    RAC --> V3
+    SHELL -->|"compõe"| SITE
+    SHELL -->|"compõe"| RAC
+    RAC -->|"compõe"| C2
+    RAC -->|"compõe"| V3
   end
   subgraph application["2 · COORDENAÇÃO E ESTADO"]
     PORT["Bootstrap + contextos + ports<br/>composição e injeção de adapters"]
@@ -29,14 +29,15 @@ flowchart TB
   SITE --> PORT
   RAC --> PORT
   C2 <-->|"ports / projeções"| CTRL
-  V3 -. "snapshots / dados da casa" .-> CTRL
+  V3 -. "consulta House3DProjectionPort" .-> PORT
+  PORT -. "compõe adapter de projeção do canvas" .-> C2
   PORT --> CTRL
   CTRL <--> STATE
   CTRL --> HOUSE
   CTRL <--> SYNC
   SYNC --> CONTRACT
   HOUSE --> CONTRACT
-  CTRL --> OUT
+  RAC -->|"aciona exportação"| OUT
   CONTRACT -. "implementado por" .-> MEMORY
   CONTRACT -. "implementado por" .-> REMOTE
   CONTRACT -. "implementado por" .-> IDB

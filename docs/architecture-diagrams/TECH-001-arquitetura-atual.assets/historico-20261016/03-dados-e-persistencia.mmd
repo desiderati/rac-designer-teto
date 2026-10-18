@@ -1,25 +1,26 @@
 flowchart LR
-  STATE["Construção TETO em memória<br/>comunidades · famílias · monitores<br/>casas · terreno · desenho RAC"]
+  STATE["Construção TETO em memória<br/>comunidades · famílias · monitores<br/>casas · terreno · desenho RAC<br/>Análise de Campo preparada / inserida"]
   ADAPTER["Adapter remoto<br/>externaliza imagens embutidas<br/>envia estado + versão esperada"]
   UPLOAD["storage.uploadImage<br/>JSON com Base64 → bytes"]
   OBJECTS[("Storage S3<br/>bytes de fotos e ilustrações")]
   SAVE["constructionSites.save<br/>validação Zod + segurança do documento"]
-  SQL["Drizzle / mysql2<br/>gravação com controle de versão"]
+  SQL["Drizzle / mysql2 · servidor<br/>documentos com controle de versão<br/>upsert de usuários"]
   DOC[("construction_site_documents<br/>id · scopeKey · externalCode · status<br/>document: JSON · documentVersion<br/>createdAt · updatedAt")]
-  CONTENT["Conteúdo de document<br/>constructionSite · communities<br/>families · monitors · houses<br/>drawingDocument: house + canvas<br/>fotos: referências de storage"]
+  CONTENT["Conteúdo de document<br/>constructionSite · communities<br/>families · monitors · houses<br/>drawingDocument: house + canvas<br/>fieldAnalysis: status + contraventamentos<br/>fotos: referências de storage"]
   USERS[("users<br/>openId · perfil · role<br/>datas de criação e login")]
-  LOGIN["Callback OAuth<br/>cria / atualiza usuário"]
+  LOGIN["Callback OAuth / SDK de sessão<br/>cria / atualiza usuário"]
   CONFLICT["Conflito de versão<br/>UI permite tratar versões<br/>sem sobrescrita silenciosa"]
-  STATE --> ADAPTER
-  ADAPTER -->|"1 · se houver Data URL"| UPLOAD
+  STATE -->|"snapshot no navegador"| ADAPTER
+  ADAPTER -->|"1 · tRPC / Base64 se houver Data URL"| UPLOAD
   UPLOAD -->|"PUT assinado"| OBJECTS
   UPLOAD -->|"retorna /manus-storage/key"| ADAPTER
   ADAPTER -->|"2 · JSON/SuperJSON via tRPC"| SAVE
-  SAVE --> SQL
+  SAVE -->|"chamada interna TypeScript"| SQL
   SQL -->|"versão válida"| DOC
-  SQL -->|"versão divergente"| CONFLICT
+  SQL -->|"CONFLICT via tRPC até a UI"| CONFLICT
   DOC -. "estrutura JSON interna" .-> CONTENT
-  LOGIN --> USERS
+  LOGIN -->|"upsertUser"| SQL
+  SQL -->|"SQL · perfil e último login"| USERS
   classDef flow fill:#e7f6ee,stroke:#15803d,color:#123424;
   classDef db fill:#f0eaff,stroke:#7c3aed,color:#382259;
   classDef note fill:#fff0dd,stroke:#c77911,color:#55370e;
