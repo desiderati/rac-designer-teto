@@ -1,4 +1,4 @@
-import React, {ReactNode} from 'react';
+import React, {ReactNode, useLayoutEffect, useRef} from 'react';
 import {Button} from '@/components/ui/button.tsx';
 import {ActionDock} from '@/components/ui/ActionDock.tsx';
 import {
@@ -9,6 +9,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer.tsx';
 import {useFloatingEditor} from '@/components/rac-editor/@modals/hooks/useFloatingEditor.ts';
+import {useFloatingEditorViewport} from '@/components/rac-editor/@modals/hooks/useFloatingEditorViewport.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface FloatingEditorProps {
@@ -43,6 +44,20 @@ export function FloatingEditor({
   onCancel,
 }: FloatingEditorProps) {
 
+  const viewport = useFloatingEditorViewport(isOpen && isMobile && presentation === 'floating');
+  const contentRef = useRef<HTMLDivElement>(null);
+  const isDrawer = isMobile && presentation === 'floating';
+  // Com o teclado em paisagem, reservar o rodapé pode deixar menos espaço que um campo.
+  const scrollWholeEditor = isDrawer && viewport.height < 160;
+
+  useLayoutEffect(() => {
+    if (!isOpen || !isMobile) return;
+    const focused = document.activeElement;
+    if (focused instanceof HTMLElement && focused.matches('input, textarea, select') && contentRef.current?.contains(focused)) {
+      focused.scrollIntoView?.({block: 'nearest'});
+    }
+  }, [isOpen, isMobile, viewport.height, viewport.bottom]);
+
   const {settingsPort} = useEditorPorts();
   const {openEditorsAtFixedPosition} = settingsPort.getSettings();
   const fallbackDesktopPos = openEditorsAtFixedPosition
@@ -58,11 +73,18 @@ export function FloatingEditor({
   });
 
   const editorBody =
-    <div className='flex flex-col gap-4'>
-      {header ? <div className={presentation === 'inline' ? '' : 'cursor-move'} onMouseDown={presentation === 'inline' ? undefined : handleDragStart}>{header}</div> : null}
+    <div
+      className={isDrawer
+        ? `flex min-h-0 flex-1 flex-col gap-4${scrollWholeEditor ? ' overflow-y-auto overscroll-contain' : ''}`
+        : 'flex flex-col gap-4'}
+      data-vaul-no-drag={isDrawer ? '' : undefined}
+    >
+      <div ref={contentRef} className={isDrawer && !scrollWholeEditor ? 'flex min-h-0 flex-col gap-4 overflow-y-auto overscroll-contain' : 'flex shrink-0 flex-col gap-4'} data-vaul-no-drag>
+        {header ? <div className={presentation === 'inline' ? '' : 'cursor-move'} onMouseDown={presentation === 'inline' ? undefined : handleDragStart}>{header}</div> : null}
 
-      <div className='bg-white rounded-xl p-4 space-y-4' data-no-drag>
-        {cardContent}
+        <div className='shrink-0 bg-white rounded-xl p-4 space-y-4' data-no-drag>
+          {cardContent}
+        </div>
       </div>
 
       {presentation !== 'inline' ? <ActionDock
@@ -70,6 +92,7 @@ export function FloatingEditor({
         surface={isMobile ? 'drawer' : 'dialog'}
         spacing='flush'
         mobileDocked
+        className={scrollWholeEditor ? 'static mx-0 mt-0 w-full shrink-0' : isMobile ? 'mt-0 shrink-0' : undefined}
       >
         <div className='flex w-full gap-[16px]' data-no-drag>
           <Button
@@ -98,8 +121,11 @@ export function FloatingEditor({
 
   if (isMobile) {
     return (
-      <Drawer open={isOpen} onOpenChange={(open) => !open && onCancel()}>
-        <DrawerContent>
+      <Drawer open={isOpen} repositionInputs={false} onOpenChange={(open) => !open && onCancel()}>
+        <DrawerContent
+          className='mt-0 overflow-hidden'
+          style={{maxHeight: Math.max(0, viewport.height - 8), bottom: viewport.bottom}}
+        >
           <DrawerHeader className='sr-only'>
             <DrawerTitle>{ariaLabel}</DrawerTitle>
             <DrawerDescription>
@@ -107,7 +133,7 @@ export function FloatingEditor({
             </DrawerDescription>
           </DrawerHeader>
           <div
-            className='px-4 pb-4'
+            className='flex min-h-0 flex-1 flex-col px-4 pb-4'
             data-guided-tour-id={dataGuidedTourId}
           >
             {editorBody}

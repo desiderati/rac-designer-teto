@@ -149,7 +149,7 @@ export function GenericObjectEditor({
             onKeyDown={handleKeyDown}
             className='text-center placeholder:text-muted-foreground/50'
             placeholder={getPlaceholder()}
-            autoFocus/>}
+            autoFocus={!isMobile}/>}
 
           {editorType !== 'freehand' && <Separator/>}
 

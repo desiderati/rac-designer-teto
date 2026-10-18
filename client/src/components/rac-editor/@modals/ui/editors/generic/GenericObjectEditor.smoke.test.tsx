@@ -12,6 +12,18 @@ vi.mock('@/components/rac-editor/@modals/ui/editors/FloatingEditor.tsx', () => (
 describe('limite dos rótulos de elementos', () => {
   const longText = 'A'.repeat(65);
 
+  it('abre a edição mobile sem focar o texto opcional e disparar o teclado', () => {
+    render(<GenericObjectEditor editorType='fence' currentValue='' currentColor='#333333'
+      isOpen isMobile onApply={vi.fn()} onClose={vi.fn()}/>);
+    expect(screen.getByPlaceholderText('Texto opcional')).not.toHaveFocus();
+  });
+
+  it('preserva o foco inicial do texto no desktop', () => {
+    render(<GenericObjectEditor editorType='fence' currentValue='' currentColor='#333333'
+      isOpen isMobile={false} onApply={vi.fn()} onClose={vi.fn()}/>);
+    expect(screen.getByPlaceholderText('Texto opcional')).toHaveFocus();
+  });
+
   it('mantém apenas paleta e ações no desenho livre, sem cabeçalho ou separador', () => {
     const onClose = vi.fn();
     const {container} = render(<GenericObjectEditor editorType='freehand' currentValue='' currentColor='#333333'
