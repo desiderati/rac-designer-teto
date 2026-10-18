@@ -75,6 +75,37 @@ test("should allow user to log in", async ({page}) => {
 });
 ```
 
+### Primeira abertura diretamente no mobile
+
+Configure o viewport mobile antes do primeiro carregamento da aplicação. Abrir em desktop e reduzir
+a tela depois verifica a adaptação de uma aplicação já inicializada, mas não comprova a primeira
+abertura diretamente no mobile.
+
+Quando o cenário exigir dados persistidos, prepare o IndexedDB na mesma origem sem montar React nem
+inicializar o Canvas desktop. O helper `setupMobileFirstRacEditorPage`, em
+[construction-site.helpers.ts](../../e2e/helpers/construction-site.helpers.ts), usa uma página HTML
+mínima para essa preparação antes de navegar para a aplicação.
+
+O cenário “Primeira abertura diretamente no mobile”, em
+[construction-management-mobile.spec.ts](../../e2e/construction-management-mobile.spec.ts), começa
+em 360 × 844 px: verifica a listagem antes do Canvas, acessa a casa pelos controles mobile e só
+então gira para 740 × 420 px, conferindo o Canvas e os dois menus radiais inicialmente fechados.
+
+### Scrollbars nativas e acesso aos itens
+
+O Chromium iniciado pelo Playwright recebe `--hide-scrollbars` por padrão. Em regressões de
+scrollbar ou overflow, remova esse argumento para não mascarar barras que podem consumir espaço e
+recortar os controles:
+
+```ts
+test.use({launchOptions: {ignoreDefaultArgs: ['--hide-scrollbars']}});
+```
+
+Use como referência [menu-scrollbar.spec.ts](../../e2e/menu-scrollbar.spec.ts), que reproduz barras
+nativas de 16 px e restringe a largura disponível de submenus desktop. Além da ausência visual das
+barras, confira a altura útil, os limites dos botões e o acesso ao último item por foco de teclado e
+rolagem horizontal. Ocultar a barra visual deve preservar o acesso aos itens fora da área visível.
+
 ## Smoke tests co-localizados
 
 Para lógica crítica em domain ou lib, crie arquivos `*.smoke.test.ts` co-localizados. Eles servem
