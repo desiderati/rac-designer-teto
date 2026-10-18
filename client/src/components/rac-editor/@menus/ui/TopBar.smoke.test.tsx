@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {fireEvent, render, screen, within} from '@testing-library/react';
+import {fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {TopBar} from './TopBar.tsx';
 import type {MenuActionMap} from '@/components/rac-editor/@menus/lib/menu-types.ts';
@@ -175,18 +175,22 @@ describe('TopBar.tsx', () => {
 
   it('substitui recarga por redefinição confirmada no menu abaixo de reiniciar', async () => {
     configureRemoteSync('synced');
+    const user = userEvent.setup();
     const actions = createActions();
     renderTopBar({actions});
 
     expect(screen.queryByRole('button', {name: /Recarregar desenho/i})).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', {name: 'Abrir menu da conta'}));
+    await user.click(screen.getByRole('button', {name: 'Abrir menu da conta'}));
     const reloadButton = screen.getByRole('button', {name: 'Redefinir Casa'});
     const restart = screen.getByRole('button', {name: 'Reiniciar Desenho'});
     expect(restart.compareDocumentPosition(reloadButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    fireEvent.click(reloadButton);
+    await user.click(reloadButton);
     expect(actions.redefineHouse).not.toHaveBeenCalled();
-    fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', {name: 'Redefinir Casa'}));
-    await vi.waitFor(() => expect(actions.redefineHouse).toHaveBeenCalledOnce());
+    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', {name: 'Redefinir Casa'}));
+    await waitFor(() => {
+      expect(actions.redefineHouse).toHaveBeenCalledOnce();
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    });
   });
 
   it('permite tentar novamente diretamente pelo ícone quando ocorre uma falha', async () => {

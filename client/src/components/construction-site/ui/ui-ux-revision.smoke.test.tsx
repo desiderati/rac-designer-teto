@@ -1,4 +1,4 @@
-import {fireEvent, render, screen, waitFor, within} from '@testing-library/react';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {createConstructionSiteSession} from '@/components/rac-editor/lib/construction-site-session.ts';
 import {HouseConfigurationScreen} from './HouseConfigurationScreen.tsx';
@@ -113,7 +113,9 @@ describe('Revisão UI/UX dos formulários e listagens', () => {
     const onSave = vi.fn();
     const user = userEvent.setup();
     render(<HouseExtraMaterialsScreen constructionSite={site} house={house} onSave={onSave}/>);
-    screen.getByRole('tab', {name: 'Casa'}).focus();
+    await act(async () => {
+      screen.getByRole('tab', {name: 'Casa'}).focus();
+    });
     await user.keyboard('{ArrowRight}');
     expect(screen.getByRole('tab', {name: 'Telhado'})).toHaveFocus();
     await user.click(screen.getByRole('button', {name: 'Salvar Materiais Extras'}));

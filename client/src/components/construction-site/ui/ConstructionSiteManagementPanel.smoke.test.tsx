@@ -1,6 +1,6 @@
 import {definedPilotis} from '@/test/defined-pilotis.ts';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {fireEvent, render, screen, waitFor, within} from '@testing-library/react';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {ConstructionSiteManagementPanel} from '@/components/construction-site/ui/ConstructionSiteManagementPanel.tsx';
 import {getPhotoOrientation} from '@/components/construction-site/lib/photo-orientation.ts';
@@ -2139,8 +2139,9 @@ function renderPanel(input: PanelTestInput = {}) {
 }
 
 async function submitForm(testId: string): Promise<void> {
-  fireEvent.submit(screen.getByTestId(testId));
-  await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  await act(async () => {
+    fireEvent.submit(screen.getByTestId(testId));
+  });
 }
 
 
