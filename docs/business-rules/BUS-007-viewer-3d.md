@@ -28,6 +28,24 @@ e apresentação.
 2. Tipo de casa e orientação de lados devem ser interpretados corretamente.
 3. Contraventamentos e escadas devem acompanhar dados reais das vistas do projeto.
 
+## Orientação durante o ciclo do desenho
+
+1. Nos tipos 3 e 6, a orientação das faces no 3D deve respeitar os lados definidos na configuração
+   da casa, inclusive quando somente a planta estiver no canvas.
+
+2. Inserir, remover ou reinserir elevações não pode inverter as faces da porta e das janelas.
+   Remover a elevação que contém a porta mantém a orientação definida para a casa e a escada na face
+   da porta.
+
+3. Salvar e reabrir deve preservar essa orientação e os dados dos pilotis. A posição ou
+   transformação de uma vista no canvas não redefine o lado semântico da casa no 3D.
+
+4. A verificação deve conferir porta, janelas e escada em relação à planta e aos pilotis, além da
+   câmera. Um enquadramento plausível, sozinho, não comprova que as faces estão corretas.
+
+A estabilidade da porta e dos marcadores na planta segue [BUS-003 — Vistas por tipo de
+casa](BUS-003-vistas-por-tipo.md).
+
 ## Regras de renderização
 
 1. Sem tipo de casa definido
@@ -114,3 +132,15 @@ e apresentação.
 
 1. O 3D é visualização do projeto, não uma versão alternativa das regras.
 2. Ao reabrir o viewer, o estado deve permanecer coerente com o projeto atual.
+
+## Referências de regressão
+
+- [Matriz do ciclo e
+  orientação](../../client/src/components/rac-editor/@canvas/ui/adapters/house-orientation-lifecycle.smoke.test.ts):
+  geometria, lados e reabertura do documento para os tipos 3 e 6.
+
+- [E2E do ciclo e viewer 3D](../../e2e/house-lifecycle-3d.spec.ts): inserção, remoção, persistência
+  local e conferência do viewer pela interface.
+
+- [PLAY-104 — Estratégia de testes](../engineering-playbook/PLAY-104-frontend-testing.md): divisão
+  da cobertura e limites da evidência automatizada.

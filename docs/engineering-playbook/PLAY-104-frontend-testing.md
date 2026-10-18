@@ -58,6 +58,28 @@ comandos neste guia.
 3. Se a interação do usuário chama as funções corretas e atualiza a UI como esperado.
 4. Se as mensagens de erro aparecem quando deveriam.
 
+## Sincronização das interações React
+
+Aguarde as interações assíncronas de `userEvent` e a consequência observável na interface, usando
+`findBy*` ou `waitFor` da Testing Library. A chamada de um mock não comprova que a interface
+terminou sua atualização: em uma confirmação, confira também o fechamento do diálogo.
+
+Quando uma atualização React for disparada diretamente fora desses helpers, como submissão com
+`fireEvent.submit` ou foco programático, envolva a operação em `await act(async () => { ... })`. Não
+substitua essa sincronização por `setTimeout(0)` nem suprima avisos de `act`: o teste pode passar
+com atualizações ainda pendentes.
+
+Referências existentes:
+
+- [ConstructionSiteManagementPanel.smoke.test.tsx](../../client/src/components/construction-site/ui/ConstructionSiteManagementPanel.smoke.test.tsx):
+  submissão assíncrona e espera pelo fechamento dos diálogos.
+
+- [ui-ux-revision.smoke.test.tsx](../../client/src/components/construction-site/ui/ui-ux-revision.smoke.test.tsx):
+  foco programático e navegação das abas.
+
+- [TopBar.smoke.test.tsx](../../client/src/components/rac-editor/@menus/ui/TopBar.smoke.test.tsx):
+  interação aguardada e atualização observável após redefinir a casa.
+
 ## Seletores da Testing Library
 
 Use esta ordem de preferência:
@@ -95,6 +117,37 @@ test("should allow user to log in", async ({page}) => {
   await expect(page.getByText("Bem-vindo")).toBeVisible();
 });
 ```
+
+### Ciclo da casa, persistência e orientação 3D
+
+Para os tipos 3 e 6, cubra a sequência completa: planta isolada, inserção das elevações, remoção da
+fachada com porta, remoção das demais elevações e reinserção da fachada. Confira a geometria da
+planta, salve e reabra o desenho e confira novamente a planta e o viewer 3D em cada etapa. As regras
+funcionais estão em [BUS-003](../business-rules/BUS-003-vistas-por-tipo.md) e
+[BUS-007](../business-rules/BUS-007-viewer-3d.md).
+
+As camadas existentes se complementam:
+
+- [house-orientation-lifecycle.smoke.test.ts](../../client/src/components/rac-editor/@canvas/ui/adapters/house-orientation-lifecycle.smoke.test.ts)
+  verifica cada inserção e remoção, transformações de grupo, posição relativa da porta e dos
+  marcadores, pilotis e orientação da projeção 3D. Cada estado passa por serialização e duas
+  reaberturas com novas instâncias Fabric; a conferência anterior ao refresh evita mascarar falhas
+  de persistência.
+
+- [house-lifecycle-3d.spec.ts](../../e2e/house-lifecycle-3d.spec.ts) percorre os controles reais no
+  navegador, move e remove elevações, aguarda o salvamento automático, recarrega a aplicação e abre
+  o viewer. Cobre os lados superior/inferior no tipo 6 e esquerdo/direito no tipo 3.
+
+O helper [house-lifecycle.helpers.ts](../../e2e/helpers/house-lifecycle.helpers.ts) aguarda o
+documento efetivamente persistido no IndexedDB antes do reload e compara identificadores e
+transformações após reabrir. No viewer, verifica porta, janelas, escada, pilotis e câmera na cena
+WebGL já montada, sem construir uma cena alternativa. Essa inspeção usa detalhes internos de Fabric
+e React Three Fiber; revise o helper quando essas dependências mudarem, preservando as ações pela
+interface.
+
+Os screenshots anexados pelo E2E são evidências para inspeção, não comparações automáticas com uma
+imagem de referência. O cenário desktop com persistência local não comprova sincronização remota,
+cobertura mobile ou aceite visual humano.
 
 ### Primeira abertura diretamente no mobile
 

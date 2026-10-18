@@ -77,6 +77,20 @@ remoção.
 2. Contagem de vistas deve permanecer correta após qualquer operação.
 3. Rótulos e comportamento devem continuar coerentes com o tipo de casa ativo.
 
+## Estabilidade durante o ciclo do desenho
+
+1. Nos tipos 3 e 6, inserir, remover ou reinserir elevações não pode deslocar a porta nem os
+   marcadores de vista em relação ao corpo da planta.
+
+2. A porta mantém o lado escolhido e a posição ao longo desse lado. Seu centro permanece sobre a
+   borda do corpo da planta; etiquetas e marcadores externos não redefinem essa borda.
+
+3. A planta mostra somente os marcadores correspondentes às elevações ativas. Remover uma elevação
+   retira seu marcador; reinseri-la restaura o marcador no lado correspondente.
+
+4. Salvar e reabrir preserva essas relações, os 12 pilotis e as transformações das vistas. A
+   reabertura não pode depender de inserir outra elevação para corrigir a geometria.
+
 ## Regras de identificação no canvas
 
 1. Cada vista elevada mantém referência interna pela ordem de inserção no canvas.
@@ -86,7 +100,8 @@ remoção.
 
 3. A planta exibe o marcador triangular correspondente a cada vista elevada inserida.
 
-4. A porta aparece na planta no lado escolhido na configuração inicial da casa, mesmo antes de inserir a vista elevada correspondente. Inserir ou remover essa vista não oculta a porta.
+4. A porta aparece na planta no lado escolhido na configuração inicial da casa, mesmo antes de
+   inserir a vista elevada correspondente. Inserir ou remover essa vista não oculta a porta.
 
 5. O marcador triangular fica pareado com o lado da planta associado à vista.
 
@@ -103,3 +118,15 @@ remoção.
     - Inferior: abaixo da base.
     - Esquerdo: à esquerda da base.
     - Direito: à direita da base.
+
+## Referências de regressão
+
+- [Matriz do ciclo e
+  orientação](../../client/src/components/rac-editor/@canvas/ui/adapters/house-orientation-lifecycle.smoke.test.ts):
+  geometria, lados e reabertura do documento para os tipos 3 e 6.
+
+- [E2E do ciclo e viewer 3D](../../e2e/house-lifecycle-3d.spec.ts): inserção, remoção, persistência
+  local e conferência do viewer pela interface.
+
+- [PLAY-104 — Estratégia de testes](../engineering-playbook/PLAY-104-frontend-testing.md): divisão
+  da cobertura e limites da evidência automatizada.
