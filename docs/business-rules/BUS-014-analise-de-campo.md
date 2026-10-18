@@ -14,19 +14,26 @@ lang: pt-BR
 ## Entrada e disponibilidade
 
 - Abaixo de 768 px, o aplicativo abre na listagem de construções antes de montar o Canvas.
-- A partir de 768 px, permanece a entrada atual no editor. O mínimo suportado continua em 420 px.
+
+- A partir de 768 px, permanece a entrada atual no editor. O mínimo suportado é de 360 px.
+
 - O acesso explícito ao Canvas conserva os bloqueios de disponibilidade existentes.
+
 - Na lista mobile de casas, Análise de Campo fica disponível para casa editável ainda não inserida.
-  Casa construída ou arquivada e construção concluída ou arquivada exibem o motivo do bloqueio.
-  Uma casa já inserida mantém a ação desabilitada sem texto auxiliar no card.
+  Casa construída ou arquivada e construção concluída ou arquivada exibem o motivo do bloqueio. Uma
+  casa já inserida mantém a ação desabilitada sem texto auxiliar no card.
 
 ## Status da casa na listagem
 
 - **Inicial**: a casa ainda não possui tipo/configuração definidos.
+
 - **Definida**: possui configuração, inclusive preparação concluída na Análise de Campo.
+
 - **Impressa**: possui configuração e RAC exportada, conforme o histórico existente.
-- **Indefinida**: a casa já foi definida, mas sua configuração foi removida do Canvas. A Análise
-  de Campo volta a ficar disponível, respeitando os bloqueios da casa e da construção.
+
+- **Indefinida**: a casa já foi definida, mas sua configuração foi removida do Canvas. A Análise de
+  Campo volta a ficar disponível, respeitando os bloqueios da casa e da construção.
+
 - **Construída** e **Arquivada** preservam os bloqueios atuais e têm precedência na apresentação.
 
 Os filtros, a ordenação e os badges usam esses mesmos estados. O metadado opcional
@@ -38,15 +45,20 @@ interno `draft` é compatível com o transporte existente e não é exibido como
 
 1. A primeira abertura reutiliza as modais da inclusão: alturas disponíveis, quando habilitadas;
    tipo; orientação; níveis dos cantos, quando habilitados.
+
 2. O setup permanece em rascunho até concluir todas as etapas aplicáveis. Cancelar antes disso não
    grava uma preparação parcial. Preferências desativadas usam os defaults do fluxo de inclusão.
+
 3. Depois do setup, a tela mostra a planta ilustrativa e os controles existentes de pilotis abaixo.
-   A planta não permite seleção, arraste, zoom ou edição e não cria vistas no documento real.
-   O cabeçalho mostra somente o nome da família, sem subtítulo ou instruções intermediárias.
+   A planta não permite seleção, arraste, zoom ou edição e não cria vistas no documento real. O
+   cabeçalho mostra somente o nome da família, sem subtítulo ou instruções intermediárias.
+
 4. Uma preparação concluída abre diretamente nessa tela. Os ajustes efetivamente confirmados são
    salvos por construção e casa; a casa ativa e o documento de outra casa são preservados.
+
 5. Mestre, níveis, alturas e contraventamentos mantêm as regras do editor. Para adicionar um
    contraventamento, o destino é escolhido nos controles, entre os pilotis válidos.
+
 6. Os salvamentos confirmados são agrupados em janelas de 10 segundos para exibir um único toast,
    com a duração padrão de sucesso. A gravação não espera essa janela. Falhas preservam a
    configuração em tela e oferecem nova tentativa. Voltar preserva os ajustes salvos.

@@ -80,6 +80,28 @@ Referências existentes:
 - [TopBar.smoke.test.tsx](../../client/src/components/rac-editor/@menus/ui/TopBar.smoke.test.tsx):
   interação aguardada e atualização observável após redefinir a casa.
 
+### Verificação automática de avisos `act(...)`
+
+O [setup do Vitest](../../client/src/test/setup.ts) instala a [guarda de avisos
+React](../../client/src/test/react-act-warning-guard.ts) em `console.error` e `console.warn`. Ela
+encaminha os argumentos originais ao console e coleta as mensagens que correspondem às assinaturas
+de avisos `act(...)`. A verificação ocorre nos hooks `afterEach` e `afterAll`, após a limpeza dos
+testes, e faz a execução falhar quando encontra esses avisos.
+
+A mensagem de falha inclui os avisos detectados. Corrija a sincronização da interação e aguarde o
+resultado observável, preservando as asserções de comportamento e a saída original do console.
+Mensagens de outras categorias continuam visíveis e não provocam falha por essa guarda.
+
+Os [testes de contrato](../../client/src/test/react-act-warning-guard.smoke.test.ts) executam
+fixtures em processos Vitest separados, derivados da configuração real do projeto. Eles comprovam
+que avisos reais e avisos emitidos durante a limpeza produzem código de saída `1`, enquanto
+atualizações aguardadas e mensagens não relacionadas produzem código `0`. Também conferem a
+preservação das mensagens, dos argumentos originais e a restauração do console.
+
+Ao alterar a guarda ou atualizar o React, revise as assinaturas reconhecidas e execute esses
+contratos. As fixtures contêm avisos intencionais e permanecem fora da descoberta normal da suíte;
+os testes de contrato são responsáveis por executá-las e conferir as falhas esperadas.
+
 ## Seletores da Testing Library
 
 Use esta ordem de preferência:
