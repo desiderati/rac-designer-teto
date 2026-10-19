@@ -45,6 +45,21 @@ Nele, a pessoa consegue:
     - Mostra a posição atual da janela visível no desenho completo.
     - Permite reposicionar a visualização com interação direta.
 
+## Enquadramento em telas baixas
+
+O enquadramento (Fit to View) deve considerar a largura e a altura efetivamente disponíveis no
+contêiner, depois dos controles da interface. A página deve ficar centralizada e inteiramente
+visível quando couber nos limites de zoom suportados. Uma altura mínima de layout maior que a tela
+não pode ser usada como área visível para esse cálculo.
+
+- O mínimo de zoom acompanha a área disponível. A implementação mantém 25% como mínimo em janelas
+  normais e permite redução até 10% quando necessária em telas baixas.
+
+- O zoom abaixo de 25% deve ser preservado ao salvar e reabrir o estado da câmera.
+
+- Navegar, aproximar e enquadrar alteram a câmera; não deslocam objetos nem modificam o documento do
+  desenho.
+
 ## Regras de seleção e edição
 
 1. Seleção
@@ -123,7 +138,10 @@ Nele, a pessoa consegue:
 
 1. Toques
     - Um toque e arraste: deslocamento.
-    - Dois toques: zoom por gesto.
+    - Dois dedos em contato: zoom e deslocamento combinados, mantendo o ponto do desenho sob
+      o centro do gesto, respeitados os limites da câmera.
+    - O arraste por toque continua disponível em paisagem, inclusive acima de 767 px de largura;
+      a largura isolada não deve desabilitar uma interação que veio de evento touch.
     - A barra lateral pode ser recolhida por gesto horizontal para liberar área de desenho.
     - Fora do modo de contraventamento, piloti abre edição por pressionar e manter pressionado; toque simples não deve
       abrir edição de piloti.
@@ -139,3 +157,13 @@ Nele, a pessoa consegue:
 
 2. Repetição controlada
     - Dicas não devem aparecer indefinidamente para não atrapalhar o fluxo.
+
+## Fontes e validação
+
+- [Estado e cálculo da
+  viewport](../../client/src/components/rac-editor/@canvas/hooks/useCanvasViewport.ts).
+
+- [Interações de ponteiro e
+  toque](../../client/src/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasPointerInteractions.ts).
+
+- [Regressão de navegação mobile](../../e2e/canvas-mobile-navigation.spec.ts).

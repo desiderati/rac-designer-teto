@@ -1,6 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {readConstructionSiteDocument} from './helpers/construction-site-storage.helpers';
-import {createHouse, getCanvasPosition, getCanvasObjectsSummary, setCanvasPositionByDebug, setupRacEditorPage, showCanvasTopBar, startConsoleErrorCapture, expectNoConsoleErrors} from './helpers/rac-editor.helpers';
+import {createHouse, expectCanvasObjectsPersisted, getCanvasPosition, setCanvasPositionByDebug, setupRacEditorPage, showCanvasTopBar, startConsoleErrorCapture, expectNoConsoleErrors} from './helpers/rac-editor.helpers';
 
 test.use({viewport: {width: 915, height: 320}, isMobile: true, hasTouch: true});
 
@@ -9,8 +9,7 @@ test.beforeEach(async ({page}) => {
   await page.setViewportSize({width: 1280, height: 900});
   await setupRacEditorPage(page);
   await createHouse(page, 'tipo6');
-  await expect.poll(async () => (await getCanvasObjectsSummary(page)).length).toBeGreaterThan(0);
-  await expect.poll(async () => (await readConstructionSiteDocument(page))!.constructionSites[0].houses[0].drawingDocument.canvas.objects.length).toBeGreaterThan(0);
+  await expectCanvasObjectsPersisted(page, ['house']);
   await page.setViewportSize({width: 915, height: 320});
   for (let i = 0; i < 20 && (await getCanvasPosition(page))!.zoom < 1.2; i++) {
     await page.getByTestId('rac-canvas-container').dispatchEvent('wheel', {ctrlKey: true, deltaY: -100});

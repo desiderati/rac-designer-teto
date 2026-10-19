@@ -109,6 +109,18 @@ claramente estabelecida.
 
 - apontar para `README.md` quando ele for um complemento útil para leitores humanos
 
+## Contratos e diagnóstico
+
+- [Contrato de referências de fotos e salvamento](docs/TECH-002-contrato-fotos-privadas.md), para
+  compatibilidade entre upload, validação e persistência e visibilidade dos erros da casa
+
+- [UI-006 - Editores flutuantes e teclado no
+  mobile](docs/ui-definitions/UI-006-editores-flutuantes-e-teclado-mobile.md), para foco, viewport
+  visual e acesso aos campos e ações em telas baixas
+
+- [Diagnóstico da publicação Manus](docs/OPS-001-diagnostico-publicacao-manus.md), para localizar
+  bloqueios e separar resultado do workflow, código servido e aceite no aparelho
+
 ## Regras de curadoria
 
 - manter links para documentos versionados

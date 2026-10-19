@@ -31,3 +31,7 @@ especialmente em telas operacionais, tabelas, cards, formulários e exportaçõe
 
 - [UI-005 — Menus laterais do Canvas](UI-005-menus-laterais-canvas.md)
     - Consolida desktop e mobile dos dois menus, rótulos, navegação radial, geometria e responsabilidades compartilhadas.
+
+
+- [UI-006 - Editores flutuantes e teclado no mobile](UI-006-editores-flutuantes-e-teclado-mobile.md)
+    - Define foco, viewport visual, rolagem e acesso às ações com teclado em tela baixa.

@@ -1,7 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {setupSeededRacEditorPage} from './helpers/construction-site.helpers';
 import {readConstructionSiteDocument} from './helpers/construction-site-storage.helpers';
-import {getCanvasObjectsSummary, getCanvasPosition, setCanvasPositionByDebug, triggerElementsAction} from './helpers/rac-editor.helpers';
+import {expectCanvasObjectsPersisted, getCanvasPosition, setCanvasPositionByDebug, triggerElementsAction} from './helpers/rac-editor.helpers';
 
 test.use({viewport: {width: 680, height: 320}, isMobile: true, hasTouch: true});
 
@@ -12,8 +12,7 @@ async function fenceText(page: Page) {
 }
 
 async function openFence(page: Page) {
-  await expect.poll(async () => (await readConstructionSiteDocument(page))?.constructionSites[0].houses[0]
-    .drawingDocument.canvas.objects.some(object => object.kind === 'fence')).toBe(true);
+  await expectCanvasObjectsPersisted(page, ['fence']);
   const doc = (await readConstructionSiteDocument(page))!;
   const fence = doc.constructionSites[0].houses[0].drawingDocument.canvas.objects.find(object => object.kind === 'fence')!;
   const zoom = (await getCanvasPosition(page))!.zoom;
@@ -31,7 +30,7 @@ test.beforeEach(async ({page}) => {
   await page.setViewportSize({width: 1280, height: 900});
   await setupSeededRacEditorPage(page, {insertInitialViews: true});
   await triggerElementsAction(page, 'Cerca');
-  await expect.poll(async () => (await getCanvasObjectsSummary(page)).some(object => object.myType === 'fence')).toBe(true);
+  await expectCanvasObjectsPersisted(page, ['fence']);
   await page.setViewportSize({width: 680, height: 320});
   await expect(page.getByRole('button', {name: 'Ferramentas do Canvas', exact: true})).toBeVisible();
   await openFence(page);
@@ -61,7 +60,7 @@ test('permite editar e confirmar em celular horizontal com altura reduzida', asy
   await page.getByRole('button', {name: 'Abrir casas da construção CC2603 Andamento', exact: true}).tap();
   await page.getByTestId('house-mobile-card').filter({hasText: 'Família E2E'}).tap();
   await page.getByRole('button', {name: 'Abrir Canvas da casa', exact: true}).tap();
-  await expect.poll(async () => (await getCanvasObjectsSummary(page)).some(object => object.myType === 'fence')).toBe(true);
+  await expectCanvasObjectsPersisted(page, ['fence']);
   await openFence(page);
   await expect(input).toHaveValue('Divisa lateral');
   await page.screenshot({path: testInfo.outputPath('cerca-texto-mobile.png')});

@@ -4,7 +4,7 @@ import type {AppSettings} from '../../client/src/shared/types/settings';
 import {CanvasGroup, CanvasObjectSummary, CanvasPosition} from '../../client/src/components/rac-editor/@canvas/lib';
 import type {HouseRuntimeSnapshot} from '../../client/src/components/rac-editor/lib/house-runtime-snapshot';
 import {RacEditorUiState} from '../../client/src/components/rac-editor/lib/rac-editor';
-import {seedConstructionSiteDocument} from './construction-site-storage.helpers';
+import {readConstructionSiteDocument, seedConstructionSiteDocument} from './construction-site-storage.helpers';
 
 interface ActiveCanvasObjectSummary {
   type: string | null;
@@ -377,6 +377,54 @@ export async function getCanvasObjectsSummary(page: Page): Promise<CanvasObjectS
     const debug = (window as unknown as { __racDebug?: RacEditorDebugApi }).__racDebug;
     return debug?.getCanvasObjectsSummary?.() ?? [];
   });
+}
+
+/** Verificação optativa: aguarda objetos de topo no runtime e no documento da casa ativa. */
+export async function expectCanvasObjectsPersisted(
+  page: Page,
+  expectedKinds: readonly string[],
+  options: {timeout?: number} = {},
+): Promise<void> {
+  if (expectedKinds.length === 0) throw new Error('Informe ao menos um tipo de objeto esperado.');
+  if (expectedKinds.some(kind => kind.trim().length === 0)) {
+    throw new Error('Os tipos esperados não podem ser vazios.');
+  }
+
+  const expectedCounts = new Map<string, number>();
+  for (const kind of expectedKinds) expectedCounts.set(kind, (expectedCounts.get(kind) ?? 0) + 1);
+
+  const missingKinds = (actualKinds: Array<string | null>) => {
+    const counts = new Map<string | null, number>();
+    for (const kind of actualKinds) counts.set(kind, (counts.get(kind) ?? 0) + 1);
+    return [...expectedCounts]
+      .filter(([kind, count]) => (counts.get(kind) ?? 0) < count)
+      .map(([kind, count]) => ({tipo: kind, esperado: count, encontrado: counts.get(kind) ?? 0}));
+  };
+
+  await expect.poll(async () => {
+    const [runtime, document] = await Promise.all([
+      page.evaluate(() => {
+        const debug = (window as unknown as {__racDebug?: RacEditorDebugApi}).__racDebug;
+        return {
+          houseId: debug?.getHouse?.()?.id ?? null,
+          objects: debug?.getCanvasObjectsSummary?.() ?? [],
+        };
+      }),
+      readConstructionSiteDocument(page),
+    ]);
+    const house = runtime.houseId
+      ? document?.constructionSites.flatMap(site => site.houses).find(house => house.id === runtime.houseId)
+      : undefined;
+
+    return {
+      casaPersistidaEncontrada: Boolean(house),
+      canvas: missingKinds(runtime.objects.map(object => object.myType)),
+      documentoPersistido: missingKinds(house?.drawingDocument.canvas.objects.map(object => object.kind) ?? []),
+    };
+  }, {
+    message: `Objetos esperados no Canvas e no documento persistido: ${expectedKinds.join(', ')}`,
+    timeout: options.timeout,
+  }).toEqual({casaPersistidaEncontrada: true, canvas: [], documentoPersistido: []});
 }
 
 export async function getActiveCanvasObjectSummaryByDebug(page: Page): Promise<ActiveCanvasObjectSummary | null> {

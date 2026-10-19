@@ -62,6 +62,12 @@ transitórios devem declarar explicitamente seu ciclo de vida.
 8. [Arquitetura atual do RAC Designer TETO](architecture-diagrams/TECH-001-arquitetura-atual.md)
     - Visões macro, camadas e persistência conferidas com o código, com Mermaid canônico e PNGs.
 
+9. [Contrato de referências de fotos e salvamento](TECH-002-contrato-fotos-privadas.md)
+    - Contrato entre upload, validação, normalização e feedback do formulário da casa.
+
+10. [Diagnóstico da publicação Manus](OPS-001-diagnostico-publicacao-manus.md)
+    - Conferência de commits, workflow, checkpoint e código servido, incluindo bloqueios de mídia.
+
 ## Princípios deste diretório
 
 1. Linguagem clara e orientada a comportamento de produto.

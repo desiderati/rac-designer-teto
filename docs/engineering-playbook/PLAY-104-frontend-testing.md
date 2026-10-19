@@ -187,6 +187,74 @@ O cenário “Primeira abertura diretamente no mobile”, em
 em 360 × 844 px: verifica a listagem antes do Canvas, acessa a casa pelos controles mobile e só
 então gira para 740 × 420 px, conferindo o Canvas e os dois menus radiais inicialmente fechados.
 
+### Gestos e enquadramento em celular horizontal
+
+Use uma casa com objetos realmente presentes no Canvas e no documento persistido. A câmera enquadrar
+uma página vazia não comprova que o desenho foi preservado. Em tela baixa, confira os limites do
+contêiner, a posição e o tamanho da página após zoom alto e Fit to View.
+
+Cubra arraste com um dedo em largura acima de 767 px, translação com dois dedos e pinça combinada.
+Aguarde o estado observável da câmera antes de calcular a próxima expectativa. Compare o documento
+antes e depois da navegação para comprovar que os objetos não foram deslocados. Inclua a
+persistência de zoom abaixo de 25% e controles de desktop, wheel e minimapa.
+
+[canvas-mobile-navigation.spec.ts](../../e2e/canvas-mobile-navigation.spec.ts) usa eventos touch
+nativos via CDP em Chromium emulado e verifica a página centralizada dentro da área disponível. A
+fixture desse arquivo cria a casa em desktop e depois gira para paisagem: ela complementa o cenário
+de primeira abertura mobile acima, sem substituí-lo. Os controles unitários estão em
+[useCanvasViewport.smoke.test.ts](../../client/src/components/rac-editor/@canvas/hooks/useCanvasViewport.smoke.test.ts)
+e nas [interações de
+ponteiro](../../client/src/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasPointerInteractions.smoke.test.ts).
+
+### Editores, teclado virtual e rotação
+
+Abra o item por toque e confira separadamente: ausência de foco automático no mobile, intenção de
+digitar, acesso ao campo, Confirmar, Cancelar e preservação do rascunho ao girar. Uma captura do
+painel não substitui o toque efetivo no campo e nas ações. Preserve também um controle de foco
+desktop.
+
+Teste altura baixa e uma viewport visual menor sem redimensionar a janela. Simule os eventos de
+resize e scroll de VisualViewport, incluindo offset vertical. Isso exercita o contrato do hook, mas
+não o teclado Android real. Em altura extrema, confira que a área reservada às ações não impede
+alcançar o campo.
+
+[optional-text-mobile.spec.ts](../../e2e/optional-text-mobile.spec.ts) cobre 680 × 180 px, 120 px de
+altura e VisualViewport simulada. Confirmar é verificado também após recarga e navegação de retorno
+ao Canvas; Cancelar descarta o rascunho. No cenário de rotação, respeite o aviso de orientação
+existente e confira o texto após retornar à paisagem, sem interpretar um diálogo oculto pelo aviso
+como perda de dados. O comportamento está definido na
+[UI-006](../ui-definitions/UI-006-editores-flutuantes-e-teclado-mobile.md).
+
+### Upload, validação e persistência da casa
+
+Use resposta sintética com o mesmo formato da rota privada retornada pelo servidor. Confira a cadeia
+completa: upload, aceitação pelo resolver, chamada de salvar, retorno à listagem e foto preservada
+após recarga. Cubra também rota legada, referências inválidas, erro com seção recolhida, salvamento
+sem foto e rejeição assíncrona com preenchimento preservado.
+
+[house-save-regression.spec.ts](../../e2e/house-save-regression.spec.ts) cobre criação e edição em
+390 e 1280 px com leitura do armazenamento e recarga. A [regressão do
+formulário](../../client/src/components/construction-site/ui/HouseConfigurationScreen.regression.test.tsx)
+confere os erros e a recuperação após falha; os [testes de
+foto](../../client/src/shared/lib/photo-data-url.smoke.test.ts) exercitam o contrato compartilhado.
+Fixtures não devem incorporar fotos pessoais dos relatos.
+
+### Aceite no Android real e limites da evidência
+
+Registre separadamente: testes locais, presença do código no site e aceite no aparelho. O
+procedimento para conferir a versão servida está no [diagnóstico de publicação
+Manus](../OPS-001-diagnostico-publicacao-manus.md).
+
+No aparelho real, atualize a página e registre navegador, orientação e versão observada. Acesse a
+casa pelos controles mobile; no Canvas, use paisagem conforme a proteção de orientação vigente. Com
+uma casa de teste, aumente bastante o zoom, arraste e enquadre a página inteira. Depois abra um item
+com texto opcional, toque no campo, digite, alcance Confirmar, reabra e confira o texto. Confira
+Cancelar separadamente e gire o aparelho, retornando à paisagem para conferir o rascunho. Use dados
+de teste para não alterar o desenho operacional de uma família.
+
+Emulação de toque e VisualViewport simulada não fecham esse aceite. Identifique explicitamente
+quando o aparelho ou teclado real ainda não foi validado.
+
 ### Scrollbars nativas e acesso aos itens
 
 O Chromium iniciado pelo Playwright recebe `--hide-scrollbars` por padrão. Em regressões de
