@@ -1,18 +1,17 @@
 import {createRef} from 'react';
 import type {ComponentProps} from 'react';
-import {render} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {RacEditorCanvas} from './RacEditorCanvas.tsx';
 import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasHandle.ts';
 
-const mocks = vi.hoisted(() => ({
-  initializeCanvas: vi.fn(),
-}));
+const mocks = vi.hoisted(() => {
+  const initializeCanvas = vi.fn();
+  return {initializeCanvas, ports: {houseRuntimePort: {initializeCanvas}}};
+});
 
 vi.mock('@/bootstrap/editor-bootstrap.ts', () => ({
-  useEditorPorts: () => ({
-    houseRuntimePort: {initializeCanvas: mocks.initializeCanvas},
-  }),
+  useEditorPorts: () => mocks.ports,
 }));
 
 vi.mock('@/components/rac-editor/@canvas/ui/Canvas.tsx', async () => {
@@ -25,7 +24,7 @@ vi.mock('@/components/rac-editor/@canvas/ui/Canvas.tsx', async () => {
           includesGroup: () => false,
           requestRenderAll: () => {},
         }),
-      }));
+      }), []);
       return null;
     }),
   };
@@ -58,7 +57,14 @@ describe('RacEditorCanvas', () => {
       onCanvasDocumentChange: vi.fn(),
     } satisfies ComponentProps<typeof RacEditorCanvas>;
 
-    const firstMount = render(<RacEditorCanvas {...props}/>);
+    const firstMount = render(<RacEditorCanvas {...props} loading/>);
+    const overlay = screen.getByTestId('house-canvas-loading');
+    expect(overlay).toContainElement(screen.getByRole('status'));
+    expect(screen.getByRole('status')).toHaveTextContent('Carregando o Canvas...');
+    expect(overlay.parentElement).toHaveAttribute('aria-busy', 'true');
+    firstMount.rerender(<RacEditorCanvas {...props} loading={false}/>);
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(overlay.parentElement).toBeNull();
     expect(mocks.initializeCanvas).toHaveBeenCalledTimes(1);
     const firstRuntime = mocks.initializeCanvas.mock.calls[0]?.[0];
 

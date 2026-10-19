@@ -22,6 +22,7 @@ import {isIsolatedLocalMode, isLocalEditorMode} from '@/shared/local-runtime.ts'
 import {LegacyDataBlockedState, RemoteLegacyDataDialog} from './RemoteLegacyDataDialog.tsx';
 import {RemotePendingSessions} from './RemotePendingSessions.tsx';
 import {VIEWPORT} from '@/shared/config.ts';
+import {CanvasLoadingState} from './CanvasLoadingState.tsx';
 
 const PRODUCT_SCREENSHOT_URL = '/landing/rac-editor-landing-screenshot-harmonized_95473d21.png';
 const HOUSE_ILLUSTRATION_URL = '/api/public-assets/teto-house-linework-transparent-cropped_770579e2_2577c3cb.png';
@@ -98,7 +99,7 @@ export function RacEditor() {
       </StorageImageUploadProvider>,
     );
   }
-  if (loading) return withViewportWarning(<RacEditorLoadingState/>);
+  if (loading) return withViewportWarning(<CanvasLoadingState/>);
   if (!isAuthenticated) return withViewportWarning(<RacEditorAuthenticationState error={error} oauthErrorMessage={oauthErrorMessage} onRetryLogin={retryLogin}/>);
 
   return withViewportWarning(
@@ -170,7 +171,7 @@ function RemoteRacEditor({onLogout, ownerId}: {onLogout: () => Promise<void>; ow
     });
   }, [storageState]);
 
-  if (storageState.status === 'loading') return <RacEditorLoadingState/>;
+  if (storageState.status === 'loading') return <CanvasLoadingState/>;
   if (storageState.status === 'pending_sessions') return <RemotePendingSessions {...storageState}/>;
 
   if (storageState.status === 'legacy_confirmation') {
@@ -190,7 +191,7 @@ function RemoteRacEditor({onLogout, ownerId}: {onLogout: () => Promise<void>; ow
             }
           }}
         />
-        <RacEditorLoadingState/>
+        <CanvasLoadingState/>
       </>
     );
   }
@@ -358,24 +359,6 @@ function LandingRevealSection({
     >
       {children}
     </section>
-  );
-}
-
-function RacEditorLoadingState() {
-  return (
-    <div className='grid h-full place-items-center px-6 text-center' style={CANVAS_WORKSPACE_STYLE}>
-      <div
-        aria-live='polite'
-        className='flex flex-col items-center gap-3 rounded-lg bg-white/80 px-6 py-5 text-slate-700 shadow-sm ring-1 ring-slate-200/80'
-        role='status'
-      >
-        <span
-          aria-hidden='true'
-          className='h-10 w-10 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700'
-        />
-        <p className='m-0 text-sm font-medium text-slate-700'>Carregando o Canvas...</p>
-      </div>
-    </div>
   );
 }
 
