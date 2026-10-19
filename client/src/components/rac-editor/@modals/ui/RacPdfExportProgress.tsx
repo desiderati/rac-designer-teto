@@ -18,10 +18,12 @@ export function RacPdfExportProgress({
   archive = false,
   houseLabel,
   resultMessage,
+  onCancel,
 }: {
   archive?: boolean;
   houseLabel?: string;
   resultMessage?: string;
+  onCancel?: () => void;
   statuses: Record<RacPdfExportStepId, RacPdfExportStepStatus>;
 }) {
   const failed = RAC_PDF_EXPORT_STEPS.some(({id}) => statuses[id] === 'error');
@@ -32,6 +34,8 @@ export function RacPdfExportProgress({
   if (resultMessage) detail = resultMessage;
   return (
     <ToastMessage title={archive ? 'Geração dos PDFs da construção' : 'Geração do PDF'} detail={detail}>
+      {onCancel ? <button type='button' data-close-button aria-label={archive ? 'Cancelar geração dos PDFs' : 'Cancelar geração do PDF'}
+        onClick={onCancel}><X className='h-4 w-4' aria-hidden='true'/></button> : null}
       <ol className='rac-toast-task-list' aria-label='Etapas da geração do PDF'>
         {RAC_PDF_EXPORT_STEPS.map(({id, label}) => {
         const status = statuses[id];

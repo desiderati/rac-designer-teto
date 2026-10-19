@@ -6,7 +6,7 @@ import {
   buildRacPdfHouseExport,
   buildRacPdfZipExport,
 } from '@/components/rac-editor/lib/rac-pdf-zip-export.ts';
-import {clearRacPdfCache, getRacPdfFingerprint} from '@/components/rac-editor/lib/rac-pdf-cache.ts';
+import {clearRacPdfCache, getCachedRacPdf, getRacPdfFingerprint} from '@/components/rac-editor/lib/rac-pdf-cache.ts';
 import {writeCanvasViewportStorage} from '@/components/rac-editor/@canvas/lib/canvas-viewport-storage.ts';
 
 const zipExportMocks = vi.hoisted(() => ({
@@ -28,17 +28,38 @@ describe('rac-pdf-zip-export.ts', () => {
     vi.unstubAllGlobals();
   });
 
+  it.each(['house', 'zip'] as const)('aborta %s durante captura 3D sem gerar ou armazenar resposta tardia', async (kind) => {
+    const site = createConstructionSite();
+    const controller = new AbortController();
+    let finish!: (value: string) => void;
+    const capture3D = vi.fn(() => new Promise<string>(resolve => {finish = resolve;}));
+    const args = {constructionSite: site, signal: controller.signal, jsPDF: vi.fn() as never,
+      renderCanvasImageDataUrl: async () => 'data:image/png;base64,canvas', renderHouse3DImageDataUrl: capture3D};
+    const pending = kind === 'house' ? buildRacPdfHouseExport({...args, houseId: 'house_1'})
+      : buildRacPdfZipExport({...args, JSZip});
+    await vi.waitFor(() => expect(capture3D).toHaveBeenCalledOnce());
+    controller.abort();
+    await expect(pending).rejects.toMatchObject({name: 'AbortError'});
+    finish('data:image/png;base64,tardia');
+    await Promise.resolve();
+    expect(zipExportMocks.createRacPdfReportDocument).not.toHaveBeenCalled();
+    const fingerprint = getRacPdfFingerprint(site, 'house_1')!;
+    expect(getCachedRacPdf(site, 'house_1', fingerprint)).toBeNull();
+  });
+
   it('gera PDF individual para uma casa não arquivada específica', async () => {
     const output = vi.fn(() => new ArrayBuffer(4));
     zipExportMocks.createRacPdfReportDocument.mockReturnValue({output});
     const constructionSite = createConstructionSite();
     const renderCanvasImageDataUrl = vi.fn(async () => 'data:image/png;base64,canvas');
+    const onProgress = vi.fn();
 
     const result = await buildRacPdfHouseExport({
       constructionSite,
       houseId: 'house_3',
       jsPDF: vi.fn() as never,
       renderCanvasImageDataUrl,
+      onProgress,
       renderHouse3DImageDataUrl: async () => 'data:image/png;base64,3d-house_3',
     });
 
@@ -47,6 +68,7 @@ describe('rac-pdf-zip-export.ts', () => {
     expect(result.blob.type).toBe('application/pdf');
     expect(renderCanvasImageDataUrl).toHaveBeenCalledWith(constructionSite.houses[2]);
     expect(output).toHaveBeenCalledWith('arraybuffer');
+    expect(onProgress.mock.calls.map(call => call[0])).toEqual(['capture-canvas', 'capture-3d', 'prepare-photos', 'build-report-model', 'render-pdf', 'create-preview']);
   });
 
   it('bloqueia PDF individual de casa arquivada', async () => {

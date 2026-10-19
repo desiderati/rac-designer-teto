@@ -1,8 +1,9 @@
 import {withPreparedHouseRacView} from '@/components/rac-editor/lib/prepared-house-rac.ts';
 import {preparePdfHouseIllustration} from '@/components/rac-editor/lib/pdf-house-illustration.ts';
 import {getHouse3DViewerPreferencesStorageKey, readHouse3DViewerPreferences} from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
-import {createElement, type RefObject, useCallback, useEffect, useRef, useState} from 'react';
-import {RacPdfExportProgress, RAC_PDF_EXPORT_STEPS, createInitialRacPdfExportStatuses, type RacPdfExportStepId} from '@/components/rac-editor/@modals/ui/RacPdfExportProgress.tsx';
+import {type RefObject, useCallback, useEffect, useRef, useState} from 'react';
+import {createRacPdfExportTask, type RacPdfExportTask} from '@/components/rac-editor/lib/rac-pdf-export-task.ts';
+import {waitForPdfExport} from '@/components/rac-editor/lib/rac-pdf-export-cancellation.ts';
 import {toast} from '@/components/ui/sonner.tsx';
 import {jsPDF} from 'jspdf';
 import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasDocumentHandle.ts';
@@ -66,17 +67,22 @@ export function useConstructionSiteManagementController({
     houseIllustrationPort,
   } = useEditorPorts();
 
-  const renderPersistedHouseIllustration = useCallback(async (house: PersistedHouseRecord) => {
-    const screenshot = await renderPersistedHouse3D(house);
+  const renderPersistedHouseIllustration = useCallback(async (house: PersistedHouseRecord, signal?: AbortSignal) => {
+    const screenshot = await waitForPdfExport(renderPersistedHouse3D(house), signal);
     if (!screenshot) return null;
     const wallColor = house.drawingDocument.viewer3D?.wallColor
       ?? readHouse3DViewerPreferences(getHouse3DViewerPreferencesStorageKey(house.id)).wallColor;
-    return preparePdfHouseIllustration(screenshot, wallColor, houseIllustrationPort);
+    return preparePdfHouseIllustration(screenshot, wallColor, houseIllustrationPort, signal);
   }, [houseIllustrationPort]);
 
   const emitHouseStoreChange = useHouseStoreEmitter();
   const [version, setVersion] = useState(0);
-  const zipExportInFlight = useRef(false);
+  const houseExportTask = useRef<RacPdfExportTask | null>(null);
+  const zipExportTask = useRef<RacPdfExportTask | null>(null);
+  useEffect(() => () => {
+    houseExportTask.current?.cancel(false);
+    zipExportTask.current?.cancel(false);
+  }, []);
   const {
     documentSaveStatus,
     runCanvasDocumentTransaction,
@@ -191,10 +197,13 @@ export function useConstructionSiteManagementController({
   const exportHouseRacPdf = useCallback(async (
     constructionSiteId: string,
     houseId: string,
-    onPrepared?: (result: RacPdfHouseExportResult) => void | Promise<void>,
+    onPrepared?: (result: RacPdfHouseExportResult, signal?: AbortSignal) => void | Promise<void>,
   ) => {
+    if (houseExportTask.current) return;
+    const task = createRacPdfExportTask();
+    houseExportTask.current = task;
     try {
-      await flushActiveHouseDocumentSave({force: true});
+      await task.wait(flushActiveHouseDocumentSave({force: true}));
 
       const snapshots = constructionSiteManagementPort.getConstructionSiteSnapshots();
       const targetConstructionSite = snapshots.find((snapshot) => snapshot.constructionSite.id === constructionSiteId)
@@ -202,11 +211,13 @@ export function useConstructionSiteManagementController({
 
       if (!targetConstructionSite) {
         toast.error('Nenhuma construção encontrada para imprimir a RAC.');
+        task.dismiss();
         return;
       }
 
       if (targetConstructionSite.constructionSite.status !== 'in_progress') {
         toast.error('A impressão de RAC só está disponível para construções em andamento.');
+        task.dismiss();
         return;
       }
 
@@ -214,62 +225,55 @@ export function useConstructionSiteManagementController({
         .find((house) => house.id === houseId && house.status !== 'archived');
       if (!targetHouse) {
         toast.error('A impressão de RAC só está disponível para casas não arquivadas.');
+        task.dismiss();
         return;
       }
 
       const checklist = buildRacPdfExportChecklist(targetConstructionSite, houseId);
       if (checklist.hasBlockingItems) {
         toast.error(`Checklist da RAC possui pendências obrigatórias: ${formatRacPdfExportChecklistSummary(checklist)}.`);
+        task.dismiss();
         return;
       }
 
-      const checklistSummary = formatRacPdfExportChecklistSummary(checklist);
-      if (checklistSummary !== 'Checklist sem pendências.') {
-        toast.warning(`Checklist da RAC: ${checklistSummary}`);
-      }
-
-      const result = await buildRacPdfHouseExport({
+      const result = await task.wait(buildRacPdfHouseExport({
+        signal: task.signal,
+        onProgress: task.update,
         constructionSite: targetConstructionSite,
         houseId,
         jsPDF,
         renderCanvasImageDataUrl: renderHouseDrawingCanvasImageDataUrl,
         renderHouse3DImageDataUrl: renderPersistedHouseIllustration,
-      });
+      }));
 
       if (onPrepared) {
-        await onPrepared(result);
+        await task.wait(Promise.resolve(onPrepared(result, task.signal)));
+        task.finish('success');
         return;
       }
 
+      task.check();
       downloadBlob(result.blob, result.fileName);
       constructionSiteManagementPort.markHouseRacPrinted(result.exportedHouseId);
-      toast.success('PDF da RAC gerado.');
+      task.finish('success', 'PDF da RAC gerado.');
     } catch (error) {
+      if (task.signal.aborted) return;
       console.error('[useConstructionSiteManagementController] Failed to export house RAC PDF:', error);
       requestChunkRecovery(error);
-      toast.error(error instanceof Error && error.message.trim()
+      task.finish('error', error instanceof Error && error.message.trim()
         ? error.message
         : 'Falha ao imprimir RAC.');
+    } finally {
+      if (houseExportTask.current === task) houseExportTask.current = null;
     }
   }, [constructionSiteManagementPort, flushActiveHouseDocumentSave, renderPersistedHouseIllustration]);
 
   const exportConstructionRacsZip = useCallback(async (constructionSiteId?: string) => {
-    if (zipExportInFlight.current) return;
-    zipExportInFlight.current = true;
-    const id = `construction-racs-${Date.now()}`;
-    let statuses = createInitialRacPdfExportStatuses();
-    let phase: RacPdfExportStepId = 'capture-canvas';
-    let dismissed = false;
-    const options = {id, onDismiss: () => {dismissed = true;}};
-    const updateProgress = (step: RacPdfExportStepId, _houseId = '', index = 0, total = 0) => {
-      phase = step;
-      const active = RAC_PDF_EXPORT_STEPS.findIndex(entry => entry.id === step);
-      statuses = Object.fromEntries(RAC_PDF_EXPORT_STEPS.map(({id}, position) => [id, position < active ? 'success' : position === active ? 'active' : 'pending'])) as typeof statuses;
-      if (!dismissed) toast.loading(() => createElement(RacPdfExportProgress, {statuses, archive: true, houseLabel: total ? `Casa ${index} de ${total}` : undefined}), options);
-    };
-    updateProgress('capture-canvas');
+    if (zipExportTask.current) return;
+    const task = createRacPdfExportTask(true);
+    zipExportTask.current = task;
     try {
-      await flushActiveHouseDocumentSave({force: true});
+      await task.wait(flushActiveHouseDocumentSave({force: true}));
 
       const snapshots = constructionSiteManagementPort.getConstructionSiteSnapshots();
       const targetConstructionSite = snapshots.find((snapshot) => snapshot.constructionSite.id === constructionSiteId)
@@ -283,17 +287,19 @@ export function useConstructionSiteManagementController({
         throw new Error('A exportação em ZIP só está disponível para construções em andamento.');
       }
 
-      const {default: JSZip} = await import('jszip');
+      const {default: JSZip} = await task.wait(import('jszip'));
 
-      const result = await buildRacPdfZipExport({
-        onProgress: updateProgress,
+      const result = await task.wait(buildRacPdfZipExport({
+        signal: task.signal,
+        onProgress: task.update,
         constructionSite: targetConstructionSite,
         JSZip,
         jsPDF,
         renderCanvasImageDataUrl: renderHouseDrawingCanvasImageDataUrl,
         renderHouse3DImageDataUrl: renderPersistedHouseIllustration,
-      });
+      }));
 
+      task.check();
       downloadBlob(result.blob, result.fileName);
       result.exportedHouseIds.forEach((houseId) => {
         constructionSiteManagementPort.markHouseRacPrinted(houseId);
@@ -302,20 +308,15 @@ export function useConstructionSiteManagementController({
       const failureMessage = result.failures.length > 0
         ? ` ${result.failures.length} falha(s) foram relatadas no ZIP.`
         : '';
-      statuses = Object.fromEntries(RAC_PDF_EXPORT_STEPS.map(({id}) => [id, 'success'])) as typeof statuses;
-      if (!dismissed) {
-        const content = () => createElement(RacPdfExportProgress, {statuses, archive: true, resultMessage: `ZIP de RACs gerado com ${result.exportedHouseIds.length} PDF(s).${failureMessage}`});
-        if (result.failures.length) toast.warning(content, options);
-        else toast.success(content, options);
-      }
+      task.finish(result.failures.length ? 'warning' : 'success', `ZIP de RACs gerado com ${result.exportedHouseIds.length} PDF(s).${failureMessage}`);
     } catch (error) {
+      if (task.signal.aborted) return;
       console.error('[useConstructionSiteManagementController] Failed to export RAC ZIP:', error);
       requestChunkRecovery(error);
-      statuses = {...statuses, [phase]: 'error'};
       const resultMessage = error instanceof Error && error.message.trim() ? error.message : 'Falha ao exportar RACs em ZIP.';
-      if (!dismissed) toast.error(() => createElement(RacPdfExportProgress, {statuses, archive: true, resultMessage}), options);
+      task.finish('error', resultMessage);
     } finally {
-      zipExportInFlight.current = false;
+      if (zipExportTask.current === task) zipExportTask.current = null;
     }
   }, [constructionSiteManagementPort, flushActiveHouseDocumentSave, renderPersistedHouseIllustration]);
 

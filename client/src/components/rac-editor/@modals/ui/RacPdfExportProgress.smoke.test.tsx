@@ -1,5 +1,5 @@
-import {render, screen, within} from '@testing-library/react';
-import {describe, expect, it} from 'vitest';
+import {fireEvent, render, screen, within} from '@testing-library/react';
+import {describe, expect, it, vi} from 'vitest';
 import {
   RAC_PDF_EXPORT_STEPS,
   RacPdfExportProgress,
@@ -7,6 +7,14 @@ import {
 } from './RacPdfExportProgress.tsx';
 
 describe('RacPdfExportProgress', () => {
+  it('permite cancelar pelo X durante o carregamento', () => {
+    const onCancel = vi.fn();
+    render(<RacPdfExportProgress statuses={createInitialRacPdfExportStatuses()} onCancel={onCancel}/>);
+    const cancel = screen.getByRole('button', {name: 'Cancelar geração do PDF'});
+    expect(cancel).toBeEnabled();
+    fireEvent.click(cancel);
+    expect(onCancel).toHaveBeenCalledOnce();
+  });
   it('mostra as seis etapas e mantém as concluídas após falha posterior', () => {
     const statuses = createInitialRacPdfExportStatuses();
     statuses['capture-canvas'] = 'success';

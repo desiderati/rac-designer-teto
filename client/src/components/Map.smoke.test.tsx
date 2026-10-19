@@ -68,6 +68,7 @@ describe('MapView', () => {
 
     vi.stubGlobal('google', {
       maps: {
+        ControlPosition: {LEFT_CENTER: 4},
         Map: FakeMap,
         marker: {AdvancedMarkerElement: FakeAdvancedMarkerElement},
       },
@@ -82,10 +83,12 @@ describe('MapView', () => {
         center: {lat: -25.4284, lng: -49.2733},
         zoom: 17,
         controlSize: 40,
-        fullscreenControl: true,
+        cameraControl: false,
+        fullscreenControl: false,
         mapTypeControl: true,
-        streetViewControl: true,
+        streetViewControl: false,
         zoomControl: true,
+        zoomControlOptions: {position: 4},
       }),
     );
     expect(markerConstructor).toHaveBeenCalledWith({
@@ -96,7 +99,7 @@ describe('MapView', () => {
     expect(onMapReady).toHaveBeenCalledWith(mapInstance);
   });
 
-  it('reduz os controles no mobile e restaura os controles ao voltar para desktop', async () => {
+  it('mantém zoom à esquerda e atalhos removidos ao alternar entre mobile e desktop', async () => {
     const mapConstructor = vi.fn();
     const setOptions = vi.fn();
     const mapInstance = {setCenter: vi.fn(), setOptions};
@@ -120,6 +123,7 @@ describe('MapView', () => {
 
     vi.stubGlobal('google', {
       maps: {
+        ControlPosition: {LEFT_CENTER: 4},
         Map: FakeMap,
         event: {clearInstanceListeners: vi.fn()},
       },
@@ -134,20 +138,24 @@ describe('MapView', () => {
       expect.any(HTMLElement),
       expect.objectContaining({
         controlSize: 32,
+        cameraControl: false,
         fullscreenControl: false,
         mapTypeControl: false,
         streetViewControl: false,
         zoomControl: true,
+        zoomControlOptions: {position: 4},
       }),
     );
 
     mediaQuery.matches = false;
     mediaChangeHandler?.({matches: false} as MediaQueryListEvent);
     expect(setOptions).toHaveBeenCalledWith({
-      fullscreenControl: true,
+      cameraControl: false,
+      fullscreenControl: false,
       mapTypeControl: true,
-      streetViewControl: true,
+      streetViewControl: false,
       zoomControl: true,
+      zoomControlOptions: {position: 4},
     });
   });
 
@@ -164,6 +172,7 @@ describe('MapView', () => {
 
     vi.stubGlobal('google', {
       maps: {
+        ControlPosition: {LEFT_CENTER: 4},
         Map: FakeMap,
         event: {clearInstanceListeners: vi.fn()},
       },

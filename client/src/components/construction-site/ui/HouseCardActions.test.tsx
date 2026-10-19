@@ -37,6 +37,16 @@ function showCard(props = fixture()) {
 }
 
 describe('Card aprovado da listagem de casas', () => {
+  it('renderiza o resumo da casa arquivada fora do card esmaecido', async () => {
+    const props = fixture();
+    props.house.status = 'archived';
+    showCard(props);
+    fireEvent.click(screen.getByRole('button', {name: 'Resumo da Casa de Aline'}));
+    const summary = await screen.findByRole('tooltip');
+    expect(screen.getByTestId('house-mobile-card').contains(summary)).toBe(false);
+    expect(summary).toHaveTextContent('Resumo da Casa');
+    expect(props.onOpenHouse).not.toHaveBeenCalled();
+  });
   it('preserva a grade A1–C4, a ordem das ações e data/hora juntas', () => {
     const props = showCard();
     const band = screen.getByRole('group', {name: 'Ações da casa'});

@@ -24,10 +24,10 @@ export async function generateHouseIllustrationFromDataUrl(
   const result = await racTrpcClient.storage.generateHouseIllustration.mutate({
     base64,
     wallColor: options.wallColor,
-  });
+  }, {signal: options.signal});
 
   return {
-    dataUrl: result.dataUrl ?? (result.url ? await imageUrlToDataUrl(result.url) : null),
+    dataUrl: result.dataUrl ?? (result.url ? await imageUrlToDataUrl(result.url, options.signal) : null),
     storageUrl: result.url ?? null,
   };
 }
@@ -43,7 +43,7 @@ export async function persistHouseImageDataUrl(dataUrl: string, fileName: string
   return result.url ?? null;
 }
 
-export async function imageUrlToDataUrl(url: string): Promise<string | null> {
+export async function imageUrlToDataUrl(url: string, signal?: AbortSignal): Promise<string | null> {
   if (url.startsWith('data:')) return url;
   if (isProtectedImageSource(url)) {
     try {
@@ -53,7 +53,7 @@ export async function imageUrlToDataUrl(url: string): Promise<string | null> {
     }
   }
 
-  const response = await fetch(toAbsoluteUrl(url), {credentials: 'include'});
+  const response = await fetch(toAbsoluteUrl(url), {credentials: 'include', signal});
   if (!response.ok) return null;
 
   const blob = await response.blob();

@@ -10,6 +10,8 @@ export interface HouseIllustrationPort {
 export interface HouseIllustrationOptions {
   /** Cor-base configurada no viewer 3D, em hexadecimal. */
   wallColor?: string;
+  /** Interrompe a espera e a solicitação HTTP quando o consumidor cancela. */
+  signal?: AbortSignal;
 }
 
 export interface HouseIllustrationResult {

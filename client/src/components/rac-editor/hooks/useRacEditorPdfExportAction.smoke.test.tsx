@@ -1,4 +1,4 @@
-import {act, renderHook} from '@testing-library/react';
+import {act, renderHook, waitFor} from '@testing-library/react';
 import type {ReactNode} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {
@@ -46,6 +46,8 @@ vi.mock('jspdf', () => ({
 
 vi.mock('@/components/ui/sonner.tsx', () => ({
   toast: {
+    dismiss: vi.fn(),
+    info: vi.fn(),
     loading: pdfMocks.toastLoading,
     success: pdfMocks.toastSuccess,
     error: pdfMocks.toastError,
@@ -54,6 +56,29 @@ vi.mock('@/components/ui/sonner.tsx', () => ({
 }));
 
 describe('useRacEditorPdfExportAction.ts', () => {
+  it('aborta a solicitação de ilustração e não usa fallback cru nem abre prévia após cancelar', async () => {
+    let finish!: (value: {dataUrl: string}) => void;
+    const generateFromDataUrl = vi.fn(() => new Promise<{dataUrl: string}>(resolve => {finish = resolve;}));
+    const {result} = renderHook(() => useRacEditorPdfExportAction({
+      canvasRef: {current: {createDocumentPort: () => ({exportSafeImageDataUrl: async () => 'data:image/png;base64,canvas'})}} as never,
+      house3DPdfSnapshotRef: {current: {captureImageDataUrl: async () => 'data:image/png;base64,3d'}} as never,
+    }), {wrapper: createWrapper({constructionSiteManagementPort: {
+      getConstructionSiteSnapshot: () => createConstructionSiteSnapshot(),
+    } as never, houseIllustrationPort: {generateFromDataUrl} as never})});
+    await act(async () => {await result.current.handleSavePDF();});
+    let pending!: Promise<void>;
+    await act(async () => {pending = result.current.handleConfirmPdfExport();});
+    await waitFor(() => expect(generateFromDataUrl).toHaveBeenCalledOnce());
+    const signal = (generateFromDataUrl.mock.calls[0] as unknown as [string, {signal: AbortSignal}])[1].signal;
+    await act(async () => {pdfMocks.toastLoading.mock.calls.at(-1)![0]().props.onCancel(); await pending;});
+    expect(signal.aborted).toBe(true);
+    expect(result.current.isPdfExporting).toBe(false);
+    await act(async () => {finish({dataUrl: 'data:image/png;base64,tardia'}); await Promise.resolve();});
+    expect(result.current.isPdfPreviewOpen).toBe(false);
+    expect(pdfMocks.createRacPdfReportDocument).not.toHaveBeenCalled();
+    expect(pdfMocks.toastError).not.toHaveBeenCalled();
+    expect(pdfMocks.toastSuccess).not.toHaveBeenCalled();
+  });
   beforeEach(() => {
     clearRacPdfCache();
     vi.stubGlobal('URL', {
@@ -126,7 +151,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
     expect(onBeforeExportPdf).toHaveBeenCalledTimes(1);
     expect(generateHouseIllustration).toHaveBeenCalledWith(
       'data:image/png;base64,3d',
-      {wallColor: '#c4967a'},
+      {wallColor: '#c4967a', signal: expect.any(AbortSignal)},
     );
     expect(pdfMocks.buildRacPdfReportModel).toHaveBeenCalledWith(expect.objectContaining({
       house3DImageDataUrl: 'data:image/png;base64,illustrated-pdf',
@@ -187,7 +212,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
     }));
   });
 
-  it('fechar o progresso não cancela o PDF nem reabre o aviso após a captura', async () => {
+  it('o X cancela a captura pendente e ignora seu resultado tardio sem abrir prévia', async () => {
     pdfMocks.buildRacPdfReportModel.mockReturnValue({fileName: 'rac.pdf'});
     pdfMocks.createRacPdfReportDocument.mockReturnValue({output: pdfMocks.outputPdf, getNumberOfPages: () => 1});
     let finishCapture!: (image: {imageDataUrl: string; hasOmittedRasterSources: boolean}) => void;
@@ -207,13 +232,17 @@ describe('useRacEditorPdfExportAction.ts', () => {
     });
     const options = pdfMocks.toastLoading.mock.calls[0][1];
     expect(options.id).toEqual(expect.stringMatching(/^rac-pdf-export-/));
-    act(() => { options.onDismiss({id: options.id}); });
+    const progress = pdfMocks.toastLoading.mock.calls[0][0]();
+    await act(async () => {progress.props.onCancel(); await preparation;});
+    expect(result.current.isPdfExporting).toBe(false);
+    expect(result.current.isPdfPreviewOpen).toBe(false);
 
     await act(async () => {
       finishCapture({imageDataUrl: 'data:image/png;base64,canvas', hasOmittedRasterSources: false});
       await preparation;
     });
-    expect(result.current.isPdfPreviewOpen).toBe(true);
+    expect(result.current.isPdfPreviewOpen).toBe(false);
+    expect(pdfMocks.createRacPdfReportDocument).not.toHaveBeenCalled();
     expect(pdfMocks.toastSuccess).not.toHaveBeenCalled();
     expect(pdfMocks.toastError).not.toHaveBeenCalled();
   });
@@ -295,7 +324,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
     await act(async () => { await result.current.handleConfirmPdfExport(); });
     expect(result.current.isPdfPreviewOpen).toBe(true);
     expect(result.current.pdfPreviewError).toContain('Falha ao preparar');
-    expect(pdfMocks.toastError).toHaveBeenCalledWith(expect.any(Function), {id: expect.any(String), onDismiss: expect.any(Function)});
+    expect(pdfMocks.toastError).toHaveBeenCalledWith(expect.any(Function), {id: expect.any(String), closeButton: true, dismissible: true});
     expect(pdfMocks.createRacPdfReportDocument).not.toHaveBeenCalled();
     hasTop = false;
     await act(async () => { await result.current.handleRetryPdfPreview(); });
@@ -412,7 +441,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
     expect(result.current.isPdfPreviewOpen).toBe(true);
     expect(result.current.pdfPreviewError).toContain('Você pode tentar novamente');
     expect(pdfMocks.toastError).toHaveBeenCalledWith(expect.any(Function), expect.objectContaining({
-      id: expect.any(String), onDismiss: expect.any(Function),
+      id: expect.any(String), closeButton: true, dismissible: true,
     }));
   });
 

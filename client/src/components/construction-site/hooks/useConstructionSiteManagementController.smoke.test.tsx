@@ -31,6 +31,8 @@ const controllerMocks = vi.hoisted(() => ({
   JSZip: vi.fn(),
   jsPDF: vi.fn(),
   toast: {
+    dismiss: vi.fn(),
+    info: vi.fn(),
     loading: vi.fn(),
     success: vi.fn(),
     warning: vi.fn(),
@@ -68,6 +70,44 @@ type ConstructionSiteManagementPortMock = EditorPorts['constructionSiteManagemen
 };
 
 describe('useConstructionSiteManagementController.ts', () => {
+  it.each(['house', 'zip'] as const)('cancela %s imediatamente, ignora resultado tardio e permite nova tentativa', async (kind) => {
+    const constructionSite = createConstructionSiteSnapshot();
+    makeHousePrintable(constructionSite, 'house_draft');
+    const port = createConstructionSiteManagementPort({
+      getConstructionSiteSnapshots: vi.fn(() => [constructionSite]),
+    });
+    const exporter = kind === 'house' ? controllerMocks.buildRacPdfHouseExport : controllerMocks.buildRacPdfZipExport;
+    let finish!: (value: unknown) => void;
+    exporter.mockReturnValueOnce(new Promise(resolve => {finish = resolve;}));
+    const onPrepared = vi.fn();
+    const {result} = renderHook(() => useConstructionSiteManagementController({}),
+      {wrapper: createWrapper(createEditorPorts({constructionSiteManagementPort: port}))});
+    let pending!: Promise<void>;
+    await act(async () => {
+      pending = kind === 'house' ? result.current.actions.exportHouseRacPdf('construction_site_1', 'house_draft', onPrepared)
+        : result.current.actions.exportConstructionRacsZip('construction_site_1');
+    });
+    await waitFor(() => expect(exporter).toHaveBeenCalled());
+    const call = exporter.mock.calls.at(-1)![0];
+    const progress = controllerMocks.toast.loading.mock.calls.at(-1)![0]();
+    await act(async () => {progress.props.onCancel(); await pending;});
+    expect(call.signal.aborted).toBe(true);
+    const exported = kind === 'house'
+      ? {fileName: 'rac.pdf', blob: new Blob(['pdf']), exportedHouseId: 'house_draft'}
+      : {fileName: 'racs.zip', blob: new Blob(['zip']), exportedHouseIds: ['house_draft'], failures: []};
+    await act(async () => {finish(exported); await Promise.resolve();});
+    expect(controllerMocks.downloadBlob).not.toHaveBeenCalled();
+    expect(onPrepared).not.toHaveBeenCalled();
+    expect(port.markHouseRacPrinted).not.toHaveBeenCalled();
+    expect(controllerMocks.toast.error).not.toHaveBeenCalled();
+    exporter.mockResolvedValueOnce(exported);
+    await act(async () => {
+      if (kind === 'house') await result.current.actions.exportHouseRacPdf('construction_site_1', 'house_draft');
+      else await result.current.actions.exportConstructionRacsZip('construction_site_1');
+    });
+    expect(controllerMocks.downloadBlob).toHaveBeenCalledOnce();
+    expect(port.markHouseRacPrinted).toHaveBeenCalledWith('house_draft');
+  });
   it('conclui autosave pendente, suspende sobrescrita e reidrata após a análise de outra casa', async () => {
     const document = createDrawingDocument('house_a', 'Família A', {schemaVersion: 1, objects: []});
     const loadCanvasDocument = vi.fn(async () => true);
@@ -655,6 +695,7 @@ describe('useConstructionSiteManagementController.ts', () => {
     });
 
     expect(controllerMocks.buildRacPdfZipExport).toHaveBeenCalledWith({
+      signal: expect.any(AbortSignal),
       onProgress: expect.any(Function),
       constructionSite,
       JSZip: controllerMocks.JSZip,
@@ -699,6 +740,8 @@ describe('useConstructionSiteManagementController.ts', () => {
     });
 
     expect(controllerMocks.buildRacPdfHouseExport).toHaveBeenCalledWith({
+      signal: expect.any(AbortSignal),
+      onProgress: expect.any(Function),
       constructionSite,
       houseId: 'house_draft',
       jsPDF: controllerMocks.jsPDF,
@@ -707,7 +750,9 @@ describe('useConstructionSiteManagementController.ts', () => {
     });
     expect(controllerMocks.downloadBlob).toHaveBeenCalledWith(blob, 'RAC-CC2603-FAMILIA-RASCUNHO.pdf');
     expect(constructionSiteManagementPort.markHouseRacPrinted).toHaveBeenCalledWith('house_draft');
-    expect(controllerMocks.toast.success).toHaveBeenCalledWith('PDF da RAC gerado.');
+    expect(controllerMocks.toast.warning).not.toHaveBeenCalled();
+    expect(controllerMocks.toast.loading).toHaveBeenCalled();
+    expect(controllerMocks.toast.success.mock.calls[0][0]().props.resultMessage).toBe('PDF da RAC gerado.');
   });
 
   it('não exporta RAC em PDF para casa arquivada pela listagem', async () => {

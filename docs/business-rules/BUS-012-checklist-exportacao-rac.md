@@ -22,6 +22,20 @@ Definir quais verificações o editor apresenta antes da exportação padrão de
 3. Cancelar o checklist não deve gerar PDF nem alterar status da casa.
 4. A casa só muda para `Impressa` depois que o PDF é salvo com sucesso.
 
+## Progresso e cancelamento
+
+1. Ao confirmar, o checklist fecha e a geração exibe um toast com as etapas de captura 2D,
+   captura/ilustração 3D, fotos, dados, composição e preparação da prévia. O mesmo feedback vale
+   para Canvas e listagem; o ZIP informa também a casa em processamento.
+2. Alertas recomendados permanecem no checklist, sem um segundo toast repetindo as mesmas pendências.
+3. Durante a geração, o X do progresso cancela a operação. O cliente interrompe a espera e a
+   solicitação HTTP de ilustração; respostas tardias não podem gerar prévia, download, cache ou
+   mudança de status posteriores ao cancelamento.
+4. O cancelamento libera uma nova tentativa e não deve ser apresentado como falha. A conclusão
+   ou falha encerra o modo cancelável; depois disso o X apenas fecha a notificação.
+5. Cancelar no cliente não confirma que um provedor remoto já em processamento interrompeu
+   seu trabalho. Etapas síncronas locais só podem responder quando devolvem controle ao navegador.
+
 ## Itens Obrigatórios
 
 Itens obrigatórios bloqueiam a geração do PDF:

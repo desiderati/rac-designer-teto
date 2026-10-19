@@ -8,6 +8,7 @@ import {prepareRacPdfReportPhotos} from '@/components/rac-editor/lib/rac-pdf-rep
 import {createRacPdfReportDocument} from '@/components/rac-editor/lib/rac-pdf-report-renderer.ts';
 import {cacheRacPdf, getCachedRacPdf, getRacPdfFingerprint} from '@/components/rac-editor/lib/rac-pdf-cache.ts';
 import {buildRacPdfExportChecklist} from '@/components/rac-editor/lib/rac-pdf-export-checklist.ts';
+import {throwIfPdfExportAborted, waitForPdfExport} from './rac-pdf-export-cancellation.ts';
 
 type JsPdfConstructor = new (options: {
   orientation: 'landscape';
@@ -40,9 +41,10 @@ export type RacPdfZipCanvasRenderer = (house: PersistedHouseRecord) => Promise<s
   imageDataUrl: string;
   hasOmittedRasterSources: boolean;
 }>;
-export type RacPdfHouse3DRenderer = (house: PersistedHouseRecord) => Promise<string | null>;
+export type RacPdfHouse3DRenderer = (house: PersistedHouseRecord, signal?: AbortSignal) => Promise<string | null>;
 
 interface BuildRacPdfZipExportArgs {
+  signal?: AbortSignal;
   constructionSite: ConstructionSiteState;
   JSZip: new () => JSZip;
   jsPDF: JsPdfConstructor;
@@ -53,6 +55,7 @@ interface BuildRacPdfZipExportArgs {
 }
 
 interface BuildRacPdfHouseExportArgs {
+  signal?: AbortSignal;
   constructionSite: ConstructionSiteState;
   houseId: string;
   jsPDF: JsPdfConstructor;
@@ -74,6 +77,8 @@ function assertHouseReadyForPdf(constructionSite: ConstructionSiteState, houseId
 }
 
 export async function buildRacPdfHouseExport({
+  signal,
+  onProgress,
   constructionSite,
   houseId,
   jsPDF,
@@ -81,6 +86,9 @@ export async function buildRacPdfHouseExport({
   renderCanvasImageDataUrl,
   renderHouse3DImageDataUrl,
 }: BuildRacPdfHouseExportArgs): Promise<RacPdfHouseExportResult> {
+  throwIfPdfExportAborted(signal);
+  const progress = (step: RacPdfExportStepId) => onProgress?.(step, houseId, 1, 1);
+  progress('capture-canvas');
   const house = constructionSite.houses.find((entry) => entry.id === houseId && entry.status !== 'archived');
   if (!house) {
     throw new Error('Casa não arquivada não encontrada para exportar.');
@@ -90,15 +98,19 @@ export async function buildRacPdfHouseExport({
   const fingerprint = getRacPdfFingerprint(constructionSite, house.id);
   const cached = fingerprint && getCachedRacPdf(constructionSite, house.id, fingerprint);
   if (cached) {
+    progress('create-preview');
     return {fileName: cached.fileName, blob: cached.blob, exportedHouseId: house.id, pageCount: cached.pageCount};
   }
 
-  const canvasCapture = await renderCanvasImageDataUrl(house);
+  const canvasCapture = await waitForPdfExport(renderCanvasImageDataUrl(house), signal);
   const canvasImageDataUrl = typeof canvasCapture === 'string' ? canvasCapture : canvasCapture.imageDataUrl;
   const hasOmittedRasterSources = typeof canvasCapture !== 'string' && canvasCapture.hasOmittedRasterSources;
-  const house3DImageDataUrl = await renderHouse3DImageDataUrl(house);
+  progress('capture-3d');
+  const house3DImageDataUrl = await waitForPdfExport(renderHouse3DImageDataUrl(house, signal), signal);
   if (!house3DImageDataUrl) throw new Error('Não foi possível capturar a visualização 3D da casa.');
-  const photos = await prepareRacPdfReportPhotos(constructionSite, house.id);
+  progress('prepare-photos');
+  const photos = await waitForPdfExport(prepareRacPdfReportPhotos(constructionSite, house.id), signal);
+  progress('build-report-model');
   const report = buildRacPdfReportModel({
     constructionSite,
     houseId: house.id,
@@ -114,6 +126,7 @@ export async function buildRacPdfHouseExport({
     throw new Error('Não foi possível montar o modelo do PDF.');
   }
 
+  progress('render-pdf');
   const pdf = createRacPdfReportDocument({
     report,
     jsPDF,
@@ -129,6 +142,8 @@ export async function buildRacPdfHouseExport({
     exportedHouseId: house.id,
     pageCount,
   };
+  throwIfPdfExportAborted(signal);
+  progress('create-preview');
   if (fingerprint && !photos.hasUnresolvedPhotoSources && !hasOmittedRasterSources) {
     cacheRacPdf(constructionSite, house.id, {...result, fingerprint});
   }
@@ -136,6 +151,7 @@ export async function buildRacPdfHouseExport({
 }
 
 export async function buildRacPdfZipExport({
+  signal,
   onProgress,
   constructionSite,
   JSZip,
@@ -144,6 +160,7 @@ export async function buildRacPdfZipExport({
   renderCanvasImageDataUrl,
   renderHouse3DImageDataUrl,
 }: BuildRacPdfZipExportArgs): Promise<RacPdfZipExportResult> {
+  throwIfPdfExportAborted(signal);
   const houses = constructionSite.houses.filter((house) => house.status !== 'archived');
   if (houses.length === 0) {
     throw new Error('Nenhuma casa não arquivada disponível para exportar.');
@@ -155,6 +172,7 @@ export async function buildRacPdfZipExport({
   const usedFileNames = new Set<string>();
 
   for (const [index, house] of houses.entries()) {
+    throwIfPdfExportAborted(signal);
     const progress = (step: RacPdfExportStepId) => onProgress?.(step, house.id, index + 1, houses.length);
     progress('capture-canvas');
     try {
@@ -167,14 +185,14 @@ export async function buildRacPdfZipExport({
         continue;
       }
 
-      const canvasCapture = await renderCanvasImageDataUrl(house);
+      const canvasCapture = await waitForPdfExport(renderCanvasImageDataUrl(house), signal);
       const canvasImageDataUrl = typeof canvasCapture === 'string' ? canvasCapture : canvasCapture.imageDataUrl;
       const hasOmittedRasterSources = typeof canvasCapture !== 'string' && canvasCapture.hasOmittedRasterSources;
       progress('capture-3d');
-      const house3DImageDataUrl = await renderHouse3DImageDataUrl(house);
+      const house3DImageDataUrl = await waitForPdfExport(renderHouse3DImageDataUrl(house, signal), signal);
       if (!house3DImageDataUrl) throw new Error('Não foi possível capturar a visualização 3D da casa.');
       progress('prepare-photos');
-      const photos = await prepareRacPdfReportPhotos(constructionSite, house.id);
+      const photos = await waitForPdfExport(prepareRacPdfReportPhotos(constructionSite, house.id), signal);
       progress('build-report-model');
       const report = buildRacPdfReportModel({
         constructionSite,
@@ -208,6 +226,7 @@ export async function buildRacPdfZipExport({
       zip.file(toUniqueZipFileName(report.fileName, usedFileNames), pdfData);
       exportedHouseIds.push(house.id);
     } catch (error) {
+      throwIfPdfExportAborted(signal);
       failures.push({
         houseId: house.id,
         houseLabel: getHouseLabel(constructionSite, house),
@@ -225,7 +244,7 @@ export async function buildRacPdfZipExport({
   }
 
   onProgress?.('create-preview', '', houses.length, houses.length);
-  const blob = await zip.generateAsync({type: 'blob'});
+  const blob = await waitForPdfExport(zip.generateAsync({type: 'blob'}), signal);
   return {
     fileName: buildZipFileName(constructionSite),
     blob,

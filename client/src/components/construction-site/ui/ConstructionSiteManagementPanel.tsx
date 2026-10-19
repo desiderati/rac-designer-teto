@@ -5,6 +5,7 @@ import {GRIDDED_WORKSPACE_STYLE} from '@/shared/ui/workspace-style.ts';
 import type {ConstructionSiteState, ConstructionSiteSummary} from '@/shared/types/construction-site.ts';
 import {HEADER_ACTION_BUTTON_CLASS} from '@/components/construction-site/ui/lib/constants.ts';
 import {RacPdfExportChecklistModal} from '@/components/rac-editor/@modals/ui/RacPdfExportChecklistModal.tsx';
+import {waitForPdfExport} from '@/components/rac-editor/lib/rac-pdf-export-cancellation.ts';
 import {RacPdfPreviewModal} from '@/components/rac-editor/@modals/ui/RacPdfPreviewModal.tsx';
 import {downloadBlob, type RacPdfHouseExportResult} from '@/components/rac-editor/lib/rac-pdf-zip-export.ts';
 import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
@@ -287,22 +288,23 @@ export function ConstructionSiteManagementPanel({
       return;
     }
 
-    setExportingRacPdfHouseId(pendingHouseRacPdfExport.houseId);
+    const pending = pendingHouseRacPdfExport;
+    setPendingHouseRacPdfExport(null);
+    setExportingRacPdfHouseId(pending.houseId);
     try {
       await actions.exportHouseRacPdf(
-        pendingHouseRacPdfExport.constructionSiteId,
-        pendingHouseRacPdfExport.houseId,
-        async (result) => {
-          const url = await blobToPdfDataUrl(result.blob);
+        pending.constructionSiteId,
+        pending.houseId,
+        async (result, signal) => {
+          const url = await waitForPdfExport(blobToPdfDataUrl(result.blob), signal);
           setHouseRacPdfPreview({
             result,
             url,
-            constructionSiteId: pendingHouseRacPdfExport.constructionSiteId,
-            houseId: pendingHouseRacPdfExport.houseId,
+            constructionSiteId: pending.constructionSiteId,
+            houseId: pending.houseId,
           });
         },
       );
-      setPendingHouseRacPdfExport(null);
     } finally {
       setExportingRacPdfHouseId(null);
     }
@@ -316,8 +318,8 @@ export function ConstructionSiteManagementPanel({
       await actions.exportHouseRacPdf(
         houseRacPdfPreview.constructionSiteId,
         houseRacPdfPreview.houseId,
-        async (result) => {
-          const url = await blobToPdfDataUrl(result.blob);
+        async (result, signal) => {
+          const url = await waitForPdfExport(blobToPdfDataUrl(result.blob), signal);
           setHouseRacPdfPreview((current) => current
             ? {...current, result, url}
             : current);

@@ -72,7 +72,7 @@ export interface ConstructionSiteManagementActions {
   exportHouseRacPdf(
     constructionSiteId: string,
     houseId: string,
-    onPrepared?: (result: RacPdfHouseExportResult) => void | Promise<void>,
+    onPrepared?: (result: RacPdfHouseExportResult, signal?: AbortSignal) => void | Promise<void>,
   ): Promise<void>;
   exportConstructionRacsZip(constructionSiteId?: string): Promise<void>;
   markHouseRacPrinted(houseId: string): Promise<void>;

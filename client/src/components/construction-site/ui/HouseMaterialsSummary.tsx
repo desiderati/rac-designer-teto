@@ -2,7 +2,7 @@ import {type ReactNode, useState} from 'react';
 import {ClipboardList} from 'lucide-react';
 import type {PersistedHouseRecord, HouseExtraMaterials} from '@/shared/types/construction-site.ts';
 import {getExtraMaterialSummary} from '@/shared/lib/house-extra-materials.ts';
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip.tsx';
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, TooltipPortal} from '@/components/ui/tooltip.tsx';
 import {HousePlanMiniature} from './HousePlanMiniature.tsx';
 
 const MATERIAL_SECTIONS = [
@@ -27,24 +27,26 @@ export function HouseMaterialsSummary({familyName, materials, guidedTourId, hous
             {children}
           </button>
         </TooltipTrigger>
-        <TooltipContent side='top' collisionPadding={12} className='max-h-[50dvh] w-64 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl bg-white p-4 text-slate-900 shadow-lg' onClick={(event) => event.stopPropagation()}>
-          <div className='space-y-3'><strong>Resumo da Casa</strong>{house ?
-            <HousePlanMiniature pilotis={house.drawingDocument.house?.pilotis ?? {}} house={house.drawingDocument.house}/>
-            : null}
-            {MATERIAL_SECTIONS.map((section, index) => {
-              const sectionRows = rows.filter((row) => section.labels.some((label) => label === row.label));
-              return <section key={section.title} aria-label={section.title}>
-                {index > 0 ? <div data-testid='materials-summary-divider' aria-hidden='true' className='mx-2 mb-3 h-px bg-slate-200'/> : null}
-                {sectionRows.length ? <dl className='space-y-1.5'>
-                  {sectionRows.map((row) => <div key={row.label} className={row.label === 'Outros / Justificativas' ? 'space-y-1.5 pt-1 text-xs' : 'flex gap-4 text-xs'}>
-                    <dt className='flex-1 text-slate-600'>{row.label}</dt>
-                    <dd className={row.label === 'Outros / Justificativas' ? 'whitespace-pre-wrap break-words text-left font-medium' : 'max-w-[60%] break-words text-right font-medium'}>{row.value}</dd>
-                  </div>)}
-                </dl> : <p className='mt-1 text-xs text-slate-500'>Não informado.</p>}
-              </section>;
-            })}
-          </div>
-        </TooltipContent>
+        <TooltipPortal>
+          <TooltipContent side='top' collisionPadding={12} className='max-h-[50dvh] w-64 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl bg-white p-4 text-slate-900 shadow-lg' onClick={(event) => event.stopPropagation()}>
+            <div className='space-y-3'><strong>Resumo da Casa</strong>{house ?
+              <HousePlanMiniature pilotis={house.drawingDocument.house?.pilotis ?? {}} house={house.drawingDocument.house}/>
+              : null}
+              {MATERIAL_SECTIONS.map((section, index) => {
+                const sectionRows = rows.filter((row) => section.labels.some((label) => label === row.label));
+                return <section key={section.title} aria-label={section.title}>
+                  {index > 0 ? <div data-testid='materials-summary-divider' aria-hidden='true' className='mx-2 mb-3 h-px bg-slate-200'/> : null}
+                  {sectionRows.length ? <dl className='space-y-1.5'>
+                    {sectionRows.map((row) => <div key={row.label} className={row.label === 'Outros / Justificativas' ? 'space-y-1.5 pt-1 text-xs' : 'flex gap-4 text-xs'}>
+                      <dt className='flex-1 text-slate-600'>{row.label}</dt>
+                      <dd className={row.label === 'Outros / Justificativas' ? 'whitespace-pre-wrap break-words text-left font-medium' : 'max-w-[60%] break-words text-right font-medium'}>{row.value}</dd>
+                    </div>)}
+                  </dl> : <p className='mt-1 text-xs text-slate-500'>Não informado.</p>}
+                </section>;
+              })}
+            </div>
+          </TooltipContent>
+        </TooltipPortal>
       </Tooltip>
     </TooltipProvider>
   );

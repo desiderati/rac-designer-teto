@@ -816,6 +816,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(await screen.findByRole('heading', {name: 'Checklist da RAC'})).toBeVisible();
     fireEvent.click(screen.getByRole('button', {name: 'Gerar PDF'}));
 
+    await waitFor(() => expect(screen.queryByRole('heading', {name: 'Checklist da RAC'})).not.toBeInTheDocument());
     await waitFor(() => expect(actions.exportHouseRacPdf)
       .toHaveBeenCalledWith('construction_site_1', 'house_1', expect.any(Function)));
     expect(actions.activateHouse).not.toHaveBeenCalled();

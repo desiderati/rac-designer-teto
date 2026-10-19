@@ -94,15 +94,14 @@ function getCompactMapControls(): boolean {
 }
 
 function getMapControlsOptions(compact: boolean): Pick<google.maps.MapOptions,
-  "controlSize" | "fullscreenControl" | "mapTypeControl" | "streetViewControl" | "zoomControl"> {
+  'cameraControl' | 'fullscreenControl' | 'mapTypeControl' | 'streetViewControl' | 'zoomControl' | 'zoomControlOptions'> {
   return {
-    // O Maps aceita controlSize somente na criação; por isso ele é definido
-    // também no objeto inicial e não é alterado no listener de resize.
-    controlSize: compact ? 32 : 40,
-    fullscreenControl: !compact,
+    cameraControl: false,
+    fullscreenControl: false,
     mapTypeControl: !compact,
-    streetViewControl: !compact,
+    streetViewControl: false,
     zoomControl: true,
+    zoomControlOptions: {position: google.maps.ControlPosition.LEFT_CENTER},
   };
 }
 
@@ -240,6 +239,8 @@ function MapViewContent({
       const mapInstance = new googleApi.maps.Map(mapHost.current, {
         zoom: initialZoom,
         center: initialCenter,
+        // O Maps aceita controlSize somente na criação, não no resize.
+        controlSize: compactControls ? 32 : 40,
         ...getMapControlsOptions(compactControls),
         mapId: "DEMO_MAP_ID",
       });
@@ -249,12 +250,7 @@ function MapViewContent({
       if (typeof window.matchMedia === "function") {
         const mediaQuery = window.matchMedia(COMPACT_MAP_CONTROLS_QUERY);
         const updateControls = () => {
-          mapInstance.setOptions({
-            fullscreenControl: !mediaQuery.matches,
-            mapTypeControl: !mediaQuery.matches,
-            streetViewControl: !mediaQuery.matches,
-            zoomControl: true,
-          });
+          mapInstance.setOptions(getMapControlsOptions(mediaQuery.matches));
         };
         mediaQuery.addEventListener?.("change", updateControls);
         responsiveControlsCleanup.current = () => mediaQuery.removeEventListener?.("change", updateControls);
