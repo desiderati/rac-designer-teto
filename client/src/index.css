@@ -230,6 +230,8 @@
     }
     .rac-toast-decision.rac-toast-decision { min-height: 44px; }
     .toaster [data-sonner-toast] {
+        /* Reservar o alvo de fechamento de 44px e suas margens sem criar scroll em avisos curtos. */
+        min-height: 48px;
         max-height: min(28dvh, 12rem);
         overflow-y: auto;
     }

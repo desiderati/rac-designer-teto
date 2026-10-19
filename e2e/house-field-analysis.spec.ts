@@ -177,7 +177,7 @@ async function expectNoSetupModals(page: Page) {
 async function expectAnalysisReady(page: Page) {
   const analysis = page.getByRole('region', {name: 'Análise de Campo da casa Família E2E', exact: true});
   await expect(analysis).toHaveAttribute('aria-busy', 'false');
-  await expect(analysis.getByRole('heading', {name: 'Família E2E', exact: true})).toBeVisible();
+  await expect(analysis.getByRole('heading', {name: /^Piloti [ABC][1-4]$/, level: 1})).toBeVisible();
   await expect(analysis.getByRole('button', {name: /^Selecionar piloti /})).toHaveCount(12);
   await expect(page.getByLabel('Prévia ilustrativa da casa').locator('canvas.lower-canvas')).toBeVisible();
   await expectNoSetupModals(page);

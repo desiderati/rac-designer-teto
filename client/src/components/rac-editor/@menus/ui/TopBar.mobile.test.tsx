@@ -54,7 +54,7 @@ describe('Barra superior do Canvas mobile', () => {
 
   it('não monta o puxador nem os controles durante o aviso de girar o celular', () => {
     Object.assign(viewport, {portrait: true, landscape: false});
-    render(<><CanvasOrientationNotice/><Fixture/></>);
+    render(<><CanvasOrientationNotice onBackToConstructions={vi.fn()}/><Fixture/></>);
     expect(screen.getByRole('dialog', {name: 'Gire seu celular'})).toBeVisible();
     expect(screen.queryByLabelText('Mostrar barra superior')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Abrir menu principal')).not.toBeInTheDocument();

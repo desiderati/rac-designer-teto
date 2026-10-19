@@ -63,7 +63,7 @@ export function RacEditorLayout({
         <ConstructionSiteManagementPanel {...workspace.panel} onBackToCanvas={workspace.onClose}/>
       ) : (
         <>
-          <CanvasOrientationNotice/>
+          <CanvasOrientationNotice onBackToConstructions={menus.actions.openConstructionSites}/>
           <RacEditorMenus {...menus}/>
           <RacEditorCanvas {...canvas}/>
           <RacEditorHouseTypeSelector {...houseTypeSelector}/>

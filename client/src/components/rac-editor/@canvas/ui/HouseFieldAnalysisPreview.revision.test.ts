@@ -17,10 +17,12 @@ describe('A-008 projeção isolada da Análise de Campo', () => {
     for (const circle of circles) {
       const label = objects.find((object) => object.isPilotiNameLabel && object.pilotiId === circle.pilotiId)!;
       const height = objects.find((object) => object.isPilotiText && object.pilotiId === circle.pilotiId)!;
-      if (circle.pilotiId!.endsWith('_2')) {
-        expect(label.top - label.height / 2).toBeGreaterThan(circle.top + Number(circle.radius));
-      } else {
-        expect(label.top + label.height / 2).toBeLessThan(circle.top - Number(circle.radius));
+      expect(label.top + label.height / 2).toBeLessThan(circle.top - Number(circle.radius));
+      const nivel = objects.find((object) => object.isPilotiNivelText && object.pilotiId === circle.pilotiId)!;
+      if (nivel.visible) {
+        const gap = nivel.top - nivel.height / 2 - circle.top - Number(circle.radius);
+        expect(gap).toBeGreaterThan(0);
+        expect(gap).toBeLessThanOrEqual(4);
       }
       expect(height).toHaveProperty('fontWeight', 'bold');
     }

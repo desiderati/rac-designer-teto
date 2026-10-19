@@ -13,13 +13,11 @@ interface Target {id: string; x: number; y: number; diameter: number}
 function layoutFieldAnalysisLabels(group: ReturnType<typeof createConfiguredHouseViewGroup>) {
   const objects = group.getObjects() as CanvasObject[];
   for (const circle of objects.filter((object) => object.isPilotiCircle && object instanceof Circle)) {
-    const direction = circle.pilotiId?.endsWith('_2') ? 1 : -1;
     const radius = (circle as unknown as Circle).radius;
     const name = objects.find((object) => object.isPilotiNameLabel && object.pilotiId === circle.pilotiId);
-    if (!name) continue;
-    name.set({top: circle.top + direction * (radius + name.height / 2 + 8)});
+    if (name) name.set({top: circle.top - radius - name.height / 2 - 8});
     const nivel = objects.find((object) => object.isPilotiNivelText && object.pilotiId === circle.pilotiId);
-    if (nivel?.visible) nivel.set({top: name.top + direction * (name.height / 2 + nivel.height / 2 + 8)});
+    if (nivel?.visible) nivel.set({top: circle.top + radius + nivel.height / 2 + 4});
   }
   objects.forEach((object) => object.setCoords());
 }
