@@ -31,8 +31,10 @@ lang: pt-BR
 
 - **Impressa**: possui configuração e RAC exportada, conforme o histórico existente.
 
-- **Indefinida**: a casa já foi definida, mas sua configuração foi removida do Canvas. A Análise de
-  Campo volta a ficar disponível, respeitando os bloqueios da casa e da construção.
+- **Indefinida**: a casa não possui mais tipo definido, mas conserva evidência de definição,
+  preparação ou impressão anterior. A Análise de Campo volta a ficar disponível, respeitando os
+  bloqueios da casa e da construção. Esse estado não decorre da exclusão isolada da planta, que
+  preserva a configuração da casa.
 
 - **Construída** e **Arquivada** preservam os bloqueios atuais e têm precedência na apresentação.
 
@@ -40,6 +42,12 @@ Os filtros, a ordenação e os badges usam esses mesmos estados. O metadado opci
 `hasHouseBeenDefined` preserva a distinção entre Inicial e Indefinida após recarregar. Os registros
 legados continuam aceitos sem migração; o histórico de impressão permanece preservado. O estado
 interno `draft` é compatível com o transporte existente e não é exibido como Rascunho na listagem.
+
+A [classificação de apresentação](../../client/src/components/construction-site/lib/house-status.ts)
+usa o tipo e os metadados da casa, não apenas a presença da planta no Canvas. Remover e reinserir a
+planta segue a [regra de vistas](BUS-003-vistas-por-tipo.md): conserva mestre, alturas, níveis e
+orientação, sem repetir o setup inicial. `Redefinir Casa` é a ação explícita que limpa essa
+definição e a preparação da Análise de Campo para começar uma nova configuração.
 
 ## Configuração e retomada
 

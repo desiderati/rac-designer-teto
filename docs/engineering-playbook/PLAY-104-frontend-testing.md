@@ -171,6 +171,31 @@ Os screenshots anexados pelo E2E são evidências para inspeção, não compara�
 imagem de referência. O cenário desktop com persistência local não comprova sincronização remota,
 cobertura mobile ou aceite visual humano.
 
+### Persistência com seleção múltipla
+
+No Fabric, os objetos de uma `ActiveSelection` mantêm coordenadas relativas à seleção temporária. Um
+serializador próprio deve exportar a transformação absoluta de cada objeto selecionado, mantendo os
+filhos de grupos no sistema local do grupo. Salvar apenas `left` e `top` da seleção pode deslocar o
+desenho ao reabrir; alterar o zoom ou reenquadrar a página não recupera a transformação perdida.
+
+A exportação deve preservar a seleção e a geometria do editor em uso. O adapter documental aplica a
+matriz completa a um objeto temporário, sem desfazer a seleção nem modificar os objetos vivos.
+Preserve também a leitura segura de referências de imagens: esse caminho não deve depender de
+serialização nativa da imagem ou de acesso aos seus pixels.
+
+A [regressão de seleção e
+reabertura](../../client/src/components/rac-editor/@canvas/ui/adapters/canvas-selection-roundtrip.smoke.test.ts)
+usa `Canvas` e `ActiveSelection` reais. Cobre ausência de seleção, seleção múltipla, rotação com
+escala desigual, espelhamento, inclinação, objeto fora da seleção e coordenadas internas dos
+pilotis. Compara as matrizes absolutas após três ciclos de salvar e reabrir, com uma viewport
+transformada, e confere que exportações repetidas preservam a seleção e o desenho de origem. Outro
+controle impede a chamada de `toObject` em uma imagem selecionada.
+
+Ao alterar a [serialização
+documental](../../client/src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.ts),
+mantenha esses controles. A prova local do round trip não comprova sincronização remota nem
+recuperação de posições de documentos anteriormente gravados com a transformação incorreta.
+
 ### Primeira abertura diretamente no mobile
 
 Configure o viewport mobile antes do primeiro carregamento da aplicação. Abrir em desktop e reduzir

@@ -64,6 +64,23 @@ remoção.
 3. A planta segue regra especial:
     - Só pode ser removida se não houver outras vistas ativas.
 
+4. Remover a planta retira sua representação do Canvas e libera a vaga da vista. Preserva o tipo da
+   casa, a orientação e os dados dos pilotis, incluindo mestre, alturas e níveis.
+
+5. Se a casa já estiver definida, reinserir a planta usa diretamente a configuração existente, sem
+   repetir a escolha do tipo, a orientação ou a definição inicial de níveis. A ausência da vista no
+   Canvas não autoriza apagar a configuração nem reaplicar seus valores iniciais.
+
+## Redefinir Casa
+
+`Redefinir Casa` é uma ação separada da exclusão da planta. Ela remove as vistas vinculadas à casa,
+limpa sua definição estrutural e a preparação da Análise de Campo e reabre o fluxo inicial de
+definição. Os demais objetos do terreno permanecem no Canvas. Os bloqueios de edição da casa e da
+construção continuam valendo.
+
+O fluxo inicial respeita as preferências de configuração vigentes. Para retirar somente a planta e
+reutilizar os pilotis e níveis já definidos, use a remoção da vista e sua reinserção.
+
 ## Regras do fluxo inicial
 
 1. Escolha de tipo de casa inicia configuração das primeiras vistas.
@@ -120,6 +137,20 @@ remoção.
     - Direito: à direita da base.
 
 ## Referências de regressão
+
+- [Exclusão de objetos e
+  vistas](../../client/src/components/rac-editor/@canvas/hooks/useCanvasActions.ts) e [remoção no
+  agregado](../../client/src/domain/house/house.aggregate.ts): retiram a vista sem limpar a
+  definição estrutural.
+
+- [Inserção de
+  vistas](../../client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.ts) e
+  [decisão de inserção](../../client/src/domain/house/use-cases/house-views-layout.use-case.ts):
+  reutilizam os dados atuais e inserem a planta diretamente quando há vaga.
+
+- [Ação Redefinir Casa](../../client/src/components/rac-editor/hooks/useRacEditorController.ts) e
+  [sessão da construção](../../client/src/components/rac-editor/lib/construction-site-session.ts):
+  limpam a definição antes de reabrir o fluxo inicial.
 
 - [Matriz do ciclo e
   orientação](../../client/src/components/rac-editor/@canvas/ui/adapters/house-orientation-lifecycle.smoke.test.ts):
