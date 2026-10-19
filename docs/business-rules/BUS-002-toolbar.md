@@ -140,6 +140,15 @@ As regras abaixo determinam os comandos e seus efeitos, independentemente da apr
     - No mobile, o botão de zoom deve exibir o percentual visível no lugar da lupa.
     - O submenu de modos permanece ancorado ao botão de zoom, sem se deslocar para acompanhar viewports abaixo da
       largura mínima do editor.
+    - No mobile, Panning é o modo inicial. Em paisagem, manter um dedo sobre um item por 500 ms
+      seleciona e destaca esse item antes do arraste, sem trocar a ferramenta escolhida. O arraste
+      dessa sequência ou de um toque posterior sobre o mesmo item selecionado move somente o item,
+      respeitando os bloqueios de casas construídas. Um gesto em outra área volta a navegar em Pan.
+    - Mover o dedo antes de completar a espera cancela a seleção e mantém o pan. Acrescentar um
+      segundo dedo cancela a espera e dá prioridade à pinça; o dedo restante não inicia outro arraste.
+    - Ao escolher Seleção em mobile paisagem, um toque seleciona o item e um arraste na área vazia
+      permite seleção múltipla por retângulo. Um dedo não desloca a viewport nesse modo; pinça
+      continua disponível. Panning volta a deslocar a viewport quando escolhido explicitamente.
 
 ## Regras de segurança
 

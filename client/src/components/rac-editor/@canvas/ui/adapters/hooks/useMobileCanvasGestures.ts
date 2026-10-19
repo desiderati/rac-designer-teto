@@ -2,7 +2,7 @@ import {useCallback, useEffect, useRef, type RefObject} from 'react';
 import type {Canvas, FabricObject, TPointerEvent} from 'fabric';
 import type {CanvasToolMode} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 import type {CanvasZoomGesture} from '@/components/rac-editor/@canvas/hooks/useCanvasViewport.ts';
-import {INTERACTION_THRESHOLDS, ZOOM_LIMITS} from '@/shared/config.ts';
+import {INTERACTION_THRESHOLDS, TIMINGS, ZOOM_LIMITS} from '@/shared/config.ts';
 import {CANVAS_WIDTH, CANVAS_HEIGHT} from '@/shared/constants.ts';
 
 interface MobileCanvasGesturesArgs {
@@ -34,6 +34,7 @@ export function useMobileCanvasGestures(args: MobileCanvasGesturesArgs) {
     let nativeCanvas: Canvas | undefined;
     let nativeEndEvent: TouchEvent | undefined;
     let held: ReturnType<typeof setTimeout> | undefined;
+    let heldSelection: FabricObject | undefined;
     let drag: FabricObject | undefined;
     let moved = false;
     let start = {x: 0, y: 0};
@@ -73,6 +74,11 @@ export function useMobileCanvasGestures(args: MobileCanvasGesturesArgs) {
       if (event.touches.length >= 2) {
         stop(event);
         finishObject();
+        heldSelection = undefined;
+        if (current.canvasToolMode === 'pan') {
+          canvas?.discardActiveObject();
+          canvas?.requestRenderAll();
+        }
         const a = point(event.touches[0]), b = point(event.touches[1]);
         pinch = {distance: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), zoom: current.zoom,
           center: {x: (a.x + b.x) / 2, y: (a.y + b.y) / 2}};
@@ -82,28 +88,37 @@ export function useMobileCanvasGestures(args: MobileCanvasGesturesArgs) {
       if (!canvas || waitingForRelease) {stop(event); return;}
       start = last = point(event.touches[0]);
       pan = {x: current.viewportX, y: current.viewportY};
+      if (current.canvasToolMode === 'select') {
+        // Inclui a área vazia: o Fabric usa esse gesto para seleção múltipla
+        // por retângulo. Seleção nunca transforma um dedo em pan da viewport.
+        nativeCanvas = canvas;
+        nativeEndEvent = event;
+        return;
+      }
       // skipTargetFind pertence à ferramenta Pan; a busca temporária não libera edição.
       const skip = canvas.skipTargetFind;
       canvas.skipTargetFind = false;
       const target = canvas.findTarget(event as TPointerEvent);
       canvas.skipTargetFind = skip;
-      if (current.canvasToolMode === 'select' && target?.selectable) {
-        // Deixar o Fabric receber a sequência preserva arrasto, resize, rotação e
-        // edição de texto. Os handlers React de viewport ignoram esses eventos.
-        nativeCanvas = canvas;
-        nativeEndEvent = event;
-      } else {
-        stop(event);
-        canvas.discardActiveObject();
-        canvas.requestRenderAll();
-        if (target?.selectable) held = setTimeout(() => {
-          held = undefined;
-          canvas.setActiveObject(target);
-          latest.current.onToolModeChange?.('select');
-          if (!latest.current.readOnly) drag = target;
-          canvas.requestRenderAll();
-        }, 500);
+      stop(event);
+      if (target && target === heldSelection && canvas.getActiveObject() === target) {
+        // O hold também vale depois de soltar: arrastar o item já selecionado
+        // continua pertencendo ao objeto, sem reiniciar a espera ou fazer pan.
+        if (!current.readOnly) drag = target;
+        return;
       }
+      heldSelection = undefined;
+      canvas.discardActiveObject();
+      canvas.requestRenderAll();
+      if (target?.selectable) held = setTimeout(() => {
+        held = undefined;
+        // Seleção pontual dentro de Pan, sem trocar a ferramenta escolhida.
+        // O próximo gesto livre continua sendo pan; dois dedos cancelam a espera.
+        heldSelection = target;
+        canvas.setActiveObject(target);
+        if (!latest.current.readOnly) drag = target;
+        canvas.requestRenderAll();
+      }, TIMINGS.mobileLongPressDelayMs);
     };
     const onMove = (event: TouchEvent) => {
       if (!owned) return;
@@ -182,6 +197,6 @@ export function useMobileCanvasGestures(args: MobileCanvasGesturesArgs) {
       document.removeEventListener('touchend', onEnd, options);
       document.removeEventListener('touchcancel', onEnd, options);
     };
-  }, [args.enabled, args.houseId, args.containerRef]);
+  }, [args.enabled, args.houseId, args.containerRef, args.canvasToolMode]);
   return shouldSkipLegacyTouch;
 }

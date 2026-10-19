@@ -13,7 +13,7 @@ function setup(readOnly = false, canvasToolMode: 'select' | 'pan' = 'pan') {
   const target = {left: 200, top: 200, selectable: true, lockMovementX: readOnly, lockMovementY: readOnly,
     set: vi.fn(function (this: {left: number; top: number}, key: 'left' | 'top', value: number) {this[key] = value;}), setCoords: vi.fn()};
   let active: typeof target | undefined;
-  const canvas = {upperCanvasEl, skipTargetFind: true, isDrawingMode: false, findTarget: vi.fn(() => target),
+  const canvas = {upperCanvasEl, skipTargetFind: true, isDrawingMode: false, findTarget: vi.fn<() => typeof target | undefined>(() => target),
     getActiveObject: () => active, setActiveObject: (object: typeof target) => {active = object;},
     discardActiveObject: () => {active = undefined;}, getWidth: () => 1200, getHeight: () => 800,
     requestRenderAll: vi.fn(), fire: vi.fn()};
@@ -86,7 +86,7 @@ describe('gestos mobile com dono único', () => {
     expect(canvas.getActiveObject()).toBeUndefined();
     act(() => {vi.advanceTimersByTime(500);});
     expect(canvas.getActiveObject()).toBe(target);
-    expect(onToolModeChange).toHaveBeenCalledWith('select');
+    expect(onToolModeChange).not.toHaveBeenCalled();
     send('touchMove', [[450, 190]]);
     send('touchEnd', []);
     expect(target.left).toBe(250);
@@ -94,6 +94,47 @@ describe('gestos mobile com dono único', () => {
     expect(result.current.viewportX).toBe(300);
     expect(result.current.viewportY).toBe(200);
     expect(canvas.fire).toHaveBeenCalledWith('object:modified', {target});
+  });
+  it('entrega a área vazia em Seleção ao Fabric para seleção múltipla, sem pan', () => {
+    const {send, upperCanvasEl, result, canvas} = setup(false, 'select');
+    canvas.findTarget.mockReturnValue(undefined);
+    const received: string[] = [];
+    ['touchstart', 'touchmove', 'touchend'].forEach(type => upperCanvasEl.addEventListener(type, () => received.push(type)));
+    send('touchStart', [[400, 170]]);
+    send('touchMove', [[450, 190]]);
+    send('touchEnd', []);
+    expect(received).toEqual(['touchstart', 'touchmove', 'touchend']);
+    expect(result.current.viewportX).toBe(300);
+    expect(result.current.viewportY).toBe(200);
+  });
+  it('mantém a seleção por espera para arrastar o item na próxima sequência em Pan', () => {
+    vi.useFakeTimers();
+    const {send, result, target, canvas} = setup();
+    send('touchStart', [[400, 170]]);
+    act(() => {vi.advanceTimersByTime(500);});
+    send('touchEnd', []);
+    expect(canvas.getActiveObject()).toBe(target);
+    send('touchStart', [[400, 170]]);
+    send('touchMove', [[450, 190]]);
+    send('touchEnd', []);
+    expect(target.left).toBe(250);
+    expect(target.top).toBe(220);
+    expect(result.current.viewportX).toBe(300);
+    expect(result.current.viewportY).toBe(200);
+  });
+  it('acrescentar o segundo dedo durante a espera inicia pinça sem selecionar nem mover o objeto', () => {
+    vi.useFakeTimers();
+    const {send, result, canvas, target, onToolModeChange} = setup();
+    send('touchStart', [[350, 170]]);
+    act(() => {vi.advanceTimersByTime(300);});
+    send('touchStart', [[350, 170], [450, 170]]);
+    act(() => {vi.advanceTimersByTime(500);});
+    send('touchMove', [[300, 170], [500, 170]]);
+    send('touchEnd', []);
+    expect(canvas.getActiveObject()).toBeUndefined();
+    expect(onToolModeChange).not.toHaveBeenCalled();
+    expect(target.left).toBe(200);
+    expect(result.current.zoom).toBeCloseTo(2);
   });
   it('um movimento antes da espera cancela seleção e faz pan sem alterar o objeto', () => {
     vi.useFakeTimers();

@@ -290,6 +290,10 @@ test.describe('V001 gestos mobile', () => {
     const afterDrag = (await getCanvasPosition(page))!;
     expect(afterDrag).toEqual(position);
     await capture(page, 'a014-arrasto-sem-pan.png');
+    // Seleção é uma escolha explícita: o toque prolongado não troca a ferramenta Pan.
+    await showCanvasTopBar(page); await page.getByRole('button', {name: /Zoom atual/}).click();
+    await expect(page.getByRole('button', {name: /^Panning/})).toHaveClass(/bg-blue-50/);
+    await page.getByRole('button', {name: /^Seleção/}).click(); await page.keyboard.press('Escape');
     // A próxima sequência em Seleção deve alcançar os controles nativos do Fabric.
     const selected = structuredClone(afterObject);
     const corner = {
