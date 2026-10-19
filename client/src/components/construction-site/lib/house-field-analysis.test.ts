@@ -23,6 +23,17 @@ function setup() {
 }
 
 describe('Análise de Campo: preparação persistida e domínio', () => {
+  it('aplica a preferência proporcional no destino, inserção e recálculo manual', () => {
+    let {draft} = setup();
+    for (const piloti of Object.values(draft.house.pilotis)) {piloti.height = 1.5; piloti.nivel = 0.2;}
+    expect(getFieldAnalysisDestinations(draft, 'piloti_0_0', 'left')).toEqual([]);
+    expect(getFieldAnalysisDestinations(draft, 'piloti_0_0', 'left', true)).toContain('piloti_0_2');
+    draft = addFieldAnalysisContraventamento(draft, 'piloti_0_0', 'piloti_0_2', 'left', true);
+    expect(getFieldAnalysisDestinations(draft, 'piloti_0_0', 'left', true)).toEqual([]);
+    draft = updateFieldAnalysisPiloti(draft, 'piloti_0_0', {nivel: 0.3}, true);
+    expect(draft.contraventamentos).toHaveLength(1);
+    expect(draft.contraventamentos[0].isAuto).toBe(false);
+  });
   it('A-013/A-020 redefine somente a configuração e as vistas, preservando objetos e família', () => {
     const {session, storage, site, house, draft} = setup();
     session.saveHouseFieldAnalysis(site.constructionSite.id, house.id, draft);

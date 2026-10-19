@@ -85,10 +85,11 @@ export function configureHouseFieldAnalysis(draft: HouseFieldAnalysisDraft, inpu
 
 /** Mesmas decisões automáticas da planta: conservar coluna ocupada e remover verticais inelegíveis. */
 function reconcileFieldAnalysisContraventamentos(
-  pilotis: HouseFieldAnalysisDraft['house']['pilotis'], definitions: FieldContraventamentoDefinition[],
+  pilotis: HouseFieldAnalysisDraft['house']['pilotis'], definitions: FieldContraventamentoDefinition[], allowWithinProportion = false,
 ): FieldContraventamentoDefinition[] {
   const required = collectAutoContraventamentoRowsByColumn(pilotis);
   const next = definitions.filter((definition) => isContraventamentoHorizontalSide(definition.side)
+    || (allowWithinProportion && !definition.isAuto)
     || required.has(parsePilotiGridPosition(definition.originPilotiId)!.col));
   for (const col of HOUSE_CONTRAVENTAMENTO_COLUMNS) {
     const requiredRows = required.get(col);
@@ -100,7 +101,7 @@ function reconcileFieldAnalysisContraventamentos(
   return next;
 }
 
-export function updateFieldAnalysisPiloti(draft: HouseFieldAnalysisDraft, pilotiId: string, patch: HousePilotiPatch): HouseFieldAnalysisDraft {
+export function updateFieldAnalysisPiloti(draft: HouseFieldAnalysisDraft, pilotiId: string, patch: HousePilotiPatch, allowWithinProportion = false): HouseFieldAnalysisDraft {
   const current = draft.house.pilotis[pilotiId];
   if (!current) throw new Error('Piloti inválido.');
   const height = patch.height ?? current.height;
@@ -113,7 +114,7 @@ export function updateFieldAnalysisPiloti(draft: HouseFieldAnalysisDraft, piloti
   return {
     ...draft, house: {...draft.house, pilotis},
     contraventamentos: height !== current.height || nivel !== current.nivel
-      ? reconcileFieldAnalysisContraventamentos(pilotis, draft.contraventamentos)
+      ? reconcileFieldAnalysisContraventamentos(pilotis, draft.contraventamentos, allowWithinProportion)
       : draft.contraventamentos,
   };
 }
@@ -132,27 +133,27 @@ function definitionsOverlap(a: FieldContraventamentoDefinition, b: FieldContrave
   return a.side === b.side && getAllPilotiIds().some((id) => definitionTouches(a, id) && definitionTouches(b, id));
 }
 
-export function getFieldAnalysisDestinations(draft: HouseFieldAnalysisDraft, originPilotiId: string, side: ContraventamentoSide): string[] {
+export function getFieldAnalysisDestinations(draft: HouseFieldAnalysisDraft, originPilotiId: string, side: ContraventamentoSide, allowWithinProportion = false): string[] {
   const first = parsePilotiGridPosition(originPilotiId);
   return getAllPilotiIds().filter((id) => {
     const candidate = parsePilotiGridPosition(id)!;
     const eligible = isContraventamentoVerticalSide(side)
-      ? isHouseContraventamentoDestinationEligible({first, candidate, pilotis: draft.house.pilotis})
-      : isHouseHorizontalContraventamentoDestinationEligible({first, candidate, side, pilotis: draft.house.pilotis});
+      ? isHouseContraventamentoDestinationEligible({first, candidate, pilotis: draft.house.pilotis, allowWithinProportion})
+      : isHouseHorizontalContraventamentoDestinationEligible({first, candidate, side, pilotis: draft.house.pilotis, allowWithinProportion});
     const proposed = {originPilotiId, destinationPilotiId: id, side, isAuto: false};
     return eligible && !draft.contraventamentos.some((definition) => definitionsOverlap(definition, proposed));
   });
 }
 
-export function getFieldAnalysisContraventamentoState(draft: HouseFieldAnalysisDraft, pilotiId: string): Record<ContraventamentoSide, {active: boolean; disabled: boolean}> {
+export function getFieldAnalysisContraventamentoState(draft: HouseFieldAnalysisDraft, pilotiId: string, allowWithinProportion = false): Record<ContraventamentoSide, {active: boolean; disabled: boolean}> {
   return Object.fromEntries((['left', 'right', 'top', 'bottom'] as const).map((side) => {
     const active = draft.contraventamentos.some((definition) => definition.side === side && definitionTouches(definition, pilotiId));
-    return [side, {active, disabled: !active && getFieldAnalysisDestinations(draft, pilotiId, side).length === 0}];
+    return [side, {active, disabled: !active && getFieldAnalysisDestinations(draft, pilotiId, side, allowWithinProportion).length === 0}];
   })) as Record<ContraventamentoSide, {active: boolean; disabled: boolean}>;
 }
 
-export function addFieldAnalysisContraventamento(draft: HouseFieldAnalysisDraft, originPilotiId: string, destinationPilotiId: string, side: ContraventamentoSide): HouseFieldAnalysisDraft {
-  if (!getFieldAnalysisDestinations(draft, originPilotiId, side).includes(destinationPilotiId)) throw new Error('Destino de contraventamento inválido.');
+export function addFieldAnalysisContraventamento(draft: HouseFieldAnalysisDraft, originPilotiId: string, destinationPilotiId: string, side: ContraventamentoSide, allowWithinProportion = false): HouseFieldAnalysisDraft {
+  if (!getFieldAnalysisDestinations(draft, originPilotiId, side, allowWithinProportion).includes(destinationPilotiId)) throw new Error('Destino de contraventamento inválido.');
   return {...draft, contraventamentos: [...draft.contraventamentos, {originPilotiId, destinationPilotiId, side, isAuto: false}]};
 }
 

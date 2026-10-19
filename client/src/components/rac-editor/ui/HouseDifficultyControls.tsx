@@ -303,10 +303,11 @@ export function HouseDifficultyControls({
         <Tooltip>
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
-              <button type='button' aria-label='Obstáculos' aria-pressed={hasObstacles}
+              <button type='button' aria-label='Obstáculos' aria-pressed={hasObstacles} disabled={!onSiteAssessmentChange}
                 className={cn(showLabels
                   ? 'pointer-events-auto relative flex h-[64px] w-[88px] flex-col items-center justify-center gap-1 rounded-[18px] shadow-sm ring-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'
                   : 'pointer-events-auto relative grid h-8 w-8 place-items-center rounded-full shadow-sm ring-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
+                  !onSiteAssessmentChange && 'cursor-not-allowed opacity-60',
                   hasObstacles ? 'bg-blue-600 text-white ring-blue-500 hover:bg-blue-500' : 'bg-white/90 text-slate-500 ring-slate-200 hover:bg-blue-50 hover:text-blue-700')}>
                 <TrafficCone aria-hidden='true' className='h-4 w-4'/>
                 {showLabels && <span aria-hidden='true' className='text-center text-[12px] leading-[1.2]'>Obstáculos</span>}
@@ -325,7 +326,7 @@ export function HouseDifficultyControls({
 
   if (isRadialMenu) {
     const items: RadialMenuItem[] = [
-      {id: 'soil', label: 'Tipo de solo', content: <SoilIcon aria-hidden='true' className={cn('h-4 w-4', selectedSoil.iconClassName)}/>,
+      {id: 'soil', disabled: !onSiteAssessmentChange, label: 'Tipo de solo', content: <SoilIcon aria-hidden='true' className={cn('h-4 w-4', selectedSoil.iconClassName)}/>,
         children: SOIL_PROFILE_OPTIONS.map(option => {
           const selected = option.value === (siteAssessment?.soilProfile ?? '');
           const OptionIcon = option.Icon;
@@ -337,7 +338,7 @@ export function HouseDifficultyControls({
           };
         }),
       },
-      {id: 'obstacles', label: 'Obstáculos', content: <TrafficCone aria-hidden='true' className='h-4 w-4'/>,
+      {id: 'obstacles', disabled: !onSiteAssessmentChange, label: 'Obstáculos', content: <TrafficCone aria-hidden='true' className='h-4 w-4'/>,
         active: hasObstacles, pressed: hasObstacles,
         children: OBSTACLE_OPTIONS.map(({key, label, Icon, iconClassName}) => ({
           id: key, label, content: <Icon aria-hidden='true' className={cn('h-4 w-4', iconClassName)}/>,

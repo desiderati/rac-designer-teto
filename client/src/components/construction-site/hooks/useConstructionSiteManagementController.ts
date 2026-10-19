@@ -1,5 +1,6 @@
 import {withPreparedHouseRacView} from '@/components/rac-editor/lib/prepared-house-rac.ts';
-import {type RefObject, useCallback, useEffect, useState} from 'react';
+import {createElement, type RefObject, useCallback, useEffect, useRef, useState} from 'react';
+import {RacPdfExportProgress, RAC_PDF_EXPORT_STEPS, createInitialRacPdfExportStatuses, type RacPdfExportStepId} from '@/components/rac-editor/@modals/ui/RacPdfExportProgress.tsx';
 import {toast} from '@/components/ui/sonner.tsx';
 import {jsPDF} from 'jspdf';
 import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasDocumentHandle.ts';
@@ -64,10 +65,12 @@ export function useConstructionSiteManagementController({
 
   const emitHouseStoreChange = useHouseStoreEmitter();
   const [version, setVersion] = useState(0);
+  const zipExportInFlight = useRef(false);
   const {
     documentSaveStatus,
     runCanvasDocumentTransaction,
     suspendForFieldAnalysis,
+    suspendForManagement,
     resumeAfterFieldAnalysis,
     isDocumentTransitioning,
     saveActiveHouseDocument,
@@ -92,6 +95,13 @@ export function useConstructionSiteManagementController({
   const activateHouse = useCallback(async (constructionSiteId: string, houseId: string) => {
     await runDocumentSelection(() => constructionSiteManagementPort.activateHouse(constructionSiteId, houseId));
   }, [constructionSiteManagementPort, runDocumentSelection]);
+
+  const activateHouseForManagement = useCallback(async (siteId: string, houseId: string) => {
+    await suspendForManagement();
+    const document = constructionSiteManagementPort.activateHouse(siteId, houseId);
+    if (document) houseDrawingDocumentPort.importHouseDrawingDocument(document);
+    setVersion(current => current + 1);
+  }, [constructionSiteManagementPort, houseDrawingDocumentPort, suspendForManagement]);
 
   const openHouseFieldAnalysis = useCallback(async (siteId: string, houseId: string) => {
     await suspendForFieldAnalysis();
@@ -233,6 +243,20 @@ export function useConstructionSiteManagementController({
   }, [constructionSiteManagementPort, flushActiveHouseDocumentSave]);
 
   const exportConstructionRacsZip = useCallback(async (constructionSiteId?: string) => {
+    if (zipExportInFlight.current) return;
+    zipExportInFlight.current = true;
+    const id = `construction-racs-${Date.now()}`;
+    let statuses = createInitialRacPdfExportStatuses();
+    let phase: RacPdfExportStepId = 'capture-canvas';
+    let dismissed = false;
+    const options = {id, onDismiss: () => {dismissed = true;}};
+    const updateProgress = (step: RacPdfExportStepId, _houseId = '', index = 0, total = 0) => {
+      phase = step;
+      const active = RAC_PDF_EXPORT_STEPS.findIndex(entry => entry.id === step);
+      statuses = Object.fromEntries(RAC_PDF_EXPORT_STEPS.map(({id}, position) => [id, position < active ? 'success' : position === active ? 'active' : 'pending'])) as typeof statuses;
+      if (!dismissed) toast.loading(() => createElement(RacPdfExportProgress, {statuses, archive: true, houseLabel: total ? `Casa ${index} de ${total}` : undefined}), options);
+    };
+    updateProgress('capture-canvas');
     try {
       await flushActiveHouseDocumentSave({force: true});
 
@@ -241,18 +265,17 @@ export function useConstructionSiteManagementController({
         ?? constructionSiteManagementPort.getConstructionSiteSnapshot();
 
       if (!targetConstructionSite) {
-        toast.error('Nenhuma construção ativa para exportar RACs.');
-        return;
+        throw new Error('Nenhuma construção ativa para exportar RACs.');
       }
 
       if (targetConstructionSite.constructionSite.status !== 'in_progress') {
-        toast.error('A exportação em ZIP só está disponível para construções em andamento.');
-        return;
+        throw new Error('A exportação em ZIP só está disponível para construções em andamento.');
       }
 
       const {default: JSZip} = await import('jszip');
 
       const result = await buildRacPdfZipExport({
+        onProgress: updateProgress,
         constructionSite: targetConstructionSite,
         JSZip,
         jsPDF,
@@ -268,13 +291,20 @@ export function useConstructionSiteManagementController({
       const failureMessage = result.failures.length > 0
         ? ` ${result.failures.length} falha(s) foram relatadas no ZIP.`
         : '';
-      toast.success(`ZIP de RACs gerado com ${result.exportedHouseIds.length} PDF(s).${failureMessage}`);
+      statuses = Object.fromEntries(RAC_PDF_EXPORT_STEPS.map(({id}) => [id, 'success'])) as typeof statuses;
+      if (!dismissed) {
+        const content = () => createElement(RacPdfExportProgress, {statuses, archive: true, resultMessage: `ZIP de RACs gerado com ${result.exportedHouseIds.length} PDF(s).${failureMessage}`});
+        if (result.failures.length) toast.warning(content, options);
+        else toast.success(content, options);
+      }
     } catch (error) {
       console.error('[useConstructionSiteManagementController] Failed to export RAC ZIP:', error);
       requestChunkRecovery(error);
-      toast.error(error instanceof Error && error.message.trim()
-        ? error.message
-        : 'Falha ao exportar RACs em ZIP.');
+      statuses = {...statuses, [phase]: 'error'};
+      const resultMessage = error instanceof Error && error.message.trim() ? error.message : 'Falha ao exportar RACs em ZIP.';
+      if (!dismissed) toast.error(() => createElement(RacPdfExportProgress, {statuses, archive: true, resultMessage}), options);
+    } finally {
+      zipExportInFlight.current = false;
     }
   }, [constructionSiteManagementPort, flushActiveHouseDocumentSave]);
 
@@ -373,6 +403,7 @@ export function useConstructionSiteManagementController({
       markHouseBuilt,
       markHouseDraft,
       activateHouse,
+      activateHouseForManagement,
       updateActiveFamily: (input: UpdateFamilyInput) => constructionSiteManagementPort.updateActiveFamily(input),
       updateActiveHouseSiteAssessment: (input: Partial<SiteAssessment>) =>
         constructionSiteManagementPort.updateActiveHouseSiteAssessment(input),

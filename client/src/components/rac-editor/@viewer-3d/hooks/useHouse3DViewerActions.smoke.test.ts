@@ -16,6 +16,29 @@ function wrapper({children}: {children: ReactNode}) {
 }
 
 describe('useHouse3DViewerActions.ts', () => {
+  it('recusa mudança de cor e inserção por handlers em casa construída', async () => {
+    const setViewer3D = vi.fn();
+    const onDocumentChange = vi.fn();
+    const onOpenChange = vi.fn();
+    const capture = vi.fn();
+    const {result} = renderHook(() => useHouse3DViewerActions({
+      readOnly: true, houseType: 'tipo6', hasHouseViews: true,
+      onOpenChange, canvasRef: {current: {insertImage: capture} as never},
+      cameraPoseStorageKey: null, viewerPreferencesStorageKey: null,
+      viewer3DPort: {getViewer3D: () => ({cameraPose: null, wallColor: '#88b3d5', hideBelowTerrain: true}), setViewer3D},
+      onDocumentChange,
+    }), {wrapper});
+    await act(async () => {
+      result.current.handleWallColorChange('#ffffff');
+      await result.current.handleInsertOnCanvas();
+      result.current.handleClose();
+    });
+    expect(result.current.wallColor).toBe('#88b3d5');
+    expect(setViewer3D).not.toHaveBeenCalled();
+    expect(capture).not.toHaveBeenCalled();
+    expect(onDocumentChange).not.toHaveBeenCalled();
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
   beforeEach(() => {
     localStorage.clear();
     vi.restoreAllMocks();

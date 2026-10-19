@@ -28,6 +28,7 @@ export interface UseMenuActionsArgs {
   handleAddText: () => void;
   handleOpenImageUpload: () => void;
   handleOpenConstructionSites: () => void;
+  handleOpenConstructionEdit?: (constructionId: string) => Promise<void>;
   handleOpenHouseEdit?: (constructionId: string, houseId: string) => Promise<void>;
   handleAddHouse?: (constructionId: string) => Promise<void>;
   handleActivateHouse: (constructionId: string, houseId: string) => Promise<void>;
@@ -76,6 +77,7 @@ export function useRacEditorMenuActions({
   handleOpenImageUpload,
   handleOpenConstructionSites,
   handleOpenHouseEdit,
+  handleOpenConstructionEdit,
   handleAddHouse,
   handleActivateHouse,
   handleDelete,
@@ -126,6 +128,7 @@ export function useRacEditorMenuActions({
     openImageUpload: handleOpenImageUpload,
     openConstructionSites: handleOpenConstructionSites,
     openHouseEdit: handleOpenHouseEdit,
+    openConstructionEdit: handleOpenConstructionEdit,
     addHouse: handleAddHouse,
     activateHouse: handleActivateHouse,
     deleteSelection: handleDelete,
@@ -152,6 +155,7 @@ export function useRacEditorMenuActions({
     },
   }), [
     handleOpenHouseEdit,
+  handleOpenConstructionEdit,
     handleAddHouse,
     handleAddArrow,
     handleAddDirtRoad,

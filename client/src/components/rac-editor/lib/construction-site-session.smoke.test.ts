@@ -26,6 +26,25 @@ function createStorage(initialConstructionSites: StoredConstructionSitesDocument
 }
 
 describe('constructionSite-session.ts', () => {
+  it('conclui todas as casas em uma gravação sem alterar outra construção', () => {
+    const {storage, writes} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    const first = session.createConstructionSite({externalCode: 'CC0001', constructionDate: '2026-10-19', communityName: 'Primeira'});
+    session.createHouse({familyName: 'Um'});
+    const archived = session.createHouse({familyName: 'Dois'});
+    session.archiveHouse(archived.id);
+    const other = session.createConstructionSite({externalCode: 'CC0002', constructionDate: '2026-10-19', communityName: 'Outra'});
+    session.createHouse({familyName: 'Outra família'});
+    const before = structuredClone(session.getConstructionSiteSnapshots().find(site => site.constructionSite.id === other.constructionSite.id));
+    const count = writes.length;
+    session.markConstructionSiteCompleted(first.constructionSite.id);
+    const result = session.getConstructionSiteSnapshots();
+    expect(writes.length).toBe(count + 1);
+    expect(result.find(site => site.constructionSite.id === first.constructionSite.id)?.houses.map(house => house.status)).toEqual(['built', 'built']);
+    expect(result.find(site => site.constructionSite.id === other.constructionSite.id)).toEqual(before);
+    session.markConstructionSiteInProgress(first.constructionSite.id);
+    expect(session.getConstructionSiteSnapshots().find(site => site.constructionSite.id === first.constructionSite.id)?.houses.every(house => house.status === 'built')).toBe(true);
+  });
   it('não cria construção ou casa automaticamente quando o storage está vazio', () => {
     const {storage, writes} = createStorage();
 
@@ -808,7 +827,7 @@ describe('constructionSite-session.ts', () => {
     expect(session.getConstructionSite()?.constructionSite.activeHouseId).toBe(house.id);
   });
 
-  it('usa casa de construção editável quando a construção selecionada está concluída', () => {
+  it('mantém a casa construída selecionada para consulta sem mudar de construção', () => {
     const {storage} = createStorage();
     const session = createConstructionSiteSession(storage);
     session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
@@ -826,11 +845,12 @@ describe('constructionSite-session.ts', () => {
 
     const document = session.prepareRacEditorOpening();
 
-    expect(document?.house.id).toBe(editableHouse.id);
-    expect(session.getConstructionSite()?.constructionSite.id).toBe(editableConstructionSiteId);
+    expect(document?.house.id).toBe(completedHouse.id);
+    expect(session.getConstructionSite()?.constructionSite.id).toBe(completedConstructionSiteId);
+    expect(session.getConstructionSiteSnapshots().find(site => site.constructionSite.id === editableConstructionSiteId)?.houses.find(house => house.id === editableHouse.id)?.status).not.toBe('built');
   });
 
-  it('não permite abrir o Canvas quando só existem casas em construções concluídas', () => {
+  it('permite consultar o Canvas quando só existem casas em construções concluídas', () => {
     const {storage} = createStorage();
     const session = createConstructionSiteSession(storage);
     session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
@@ -839,8 +859,8 @@ describe('constructionSite-session.ts', () => {
 
     session.markConstructionSiteCompleted(constructionSiteId);
 
-    expect(session.canOpenRacEditor()).toBe(false);
-    expect(session.prepareRacEditorOpening()).toBeNull();
+    expect(session.canOpenRacEditor()).toBe(true);
+    expect(session.prepareRacEditorOpening()).not.toBeNull();
     expect(session.getActiveHouseDrawingDocument()).not.toBeNull();
   });
 
@@ -1181,15 +1201,17 @@ describe('constructionSite-session.ts', () => {
       status: 'active',
     });
     expect(persistedHouse).toMatchObject({
-      status: 'draft',
+      status: 'built',
       houseType: 'tipo6',
       leaders: 'Líder original',
-      extraMaterials: {},
+      extraMaterials: undefined,
       siteAssessment: {},
     });
     expect(persistedFamily?.name).toBe('Família Original');
 
     session.markConstructionSiteInProgress(constructionSiteId);
+    expect(session.getActiveHouse().status).toBe('built');
+    session.markHouseDraft(house.id);
     session.updateActiveHouseExtraMaterials({floorBeams: 10});
 
     expect(session.getActiveHouse().extraMaterials.floorBeams).toBe(10);

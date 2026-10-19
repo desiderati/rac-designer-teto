@@ -9,6 +9,7 @@ export interface AppSettings {
   showStairsOnTopView: boolean;
   showPilotiLabelsOnTopView: boolean;
   showToolMenuLabels: boolean;
+  allowContraventamentoWithinProportion: boolean;
 }
 
 export type AppSettingKey = keyof AppSettings;

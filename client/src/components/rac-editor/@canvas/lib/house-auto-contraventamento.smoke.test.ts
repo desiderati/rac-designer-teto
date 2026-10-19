@@ -30,6 +30,16 @@ function createPilotiRect(pilotiId: string, left: number) {
 }
 
 describe('house-auto-contraventamento.ts', () => {
+  it('preserva o manual proporcional com a preferência ativa sem gerar automáticos', () => {
+    const {group} = createMockGroup();
+    group._objects.push({isContraventamento: true, contraventamentoCol: 0, contraventamentoSide: 'left', isAutoContraventamento: false});
+    refreshAutoContraventamentoInAllViews({
+      pilotis: {piloti_0_0: {height: 2, nivel: 0.4, isMaster: true}},
+      topViews: [{instanceId: 'top', group}], elevationViews: [], allowWithinProportion: true,
+    });
+    expect(group._objects).toHaveLength(1);
+    expect(group._objects[0].isAutoContraventamento).toBe(false);
+  });
   it('cria contraventamento automático quando piloti está fora da proporção', () => {
     const {group} = createMockGroup();
 

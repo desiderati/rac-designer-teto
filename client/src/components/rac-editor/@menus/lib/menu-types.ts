@@ -31,6 +31,7 @@ export interface MenuActionMap {
   openImageUpload: () => void;
   openConstructionSites: () => void;
   openHouseEdit?: (constructionId: string, houseId: string) => Promise<void>;
+  openConstructionEdit?: (constructionId: string) => Promise<void>;
   addHouse?: (constructionId: string) => Promise<void>;
   activateHouse: (constructionId: string, houseId: string) => Promise<void>;
   deleteSelection: () => void;

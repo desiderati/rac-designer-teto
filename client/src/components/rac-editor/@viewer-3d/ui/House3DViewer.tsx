@@ -32,6 +32,7 @@ import type {HouseIllustrationPort} from '@/components/rac-editor/ports/HouseIll
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface House3DViewerProps {
+  readOnly?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   canvasRef: RefObject<CanvasSnapshotHandle | null>;
@@ -45,7 +46,7 @@ function readPersistedCameraPose(storageKey: string | null, storageRevision: num
   return readHouse3DViewerCameraPose(storageKey);
 }
 
-export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, houseIllustrationPort, onDocumentChange}: House3DViewerProps) {
+export function House3DViewer({readOnly = false, open, onOpenChange, canvasRef, activeHouseId, houseIllustrationPort, onDocumentChange}: House3DViewerProps) {
   const {houseDrawingDocumentPort} = useEditorPorts();
   const {
     houseType,
@@ -94,6 +95,7 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, hou
     handleDialogOpenChange,
     handleInsertOnCanvas,
   } = useHouse3DViewerActions({
+    readOnly,
     houseType,
     hasHouseViews,
     doorFace,
@@ -142,7 +144,7 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, hou
                     variant='outline'
                     size='icon'
                     title='Cor das Paredes'
-                    disabled={!isSceneReady}
+                    disabled={readOnly || !isSceneReady}
                   >
                     <FontAwesomeIcon icon={faPalette}/>
                   </Button>
@@ -185,7 +187,7 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, hou
                     ? 'Inserir imagem 3D no Canvas'
                     : 'Gerar imagem 3D para inserir no Canvas'}
                 onClick={handleInsertOnCanvas}
-                disabled={!canRenderHouse || !isSceneReady || isGeneratingIllustration}
+                disabled={readOnly || !canRenderHouse || !isSceneReady || isGeneratingIllustration}
               >
                 {isGeneratingIllustration ? <Loader2 className='h-4 w-4 animate-spin'/> : <FontAwesomeIcon icon={faCamera}/>}
               </Button>

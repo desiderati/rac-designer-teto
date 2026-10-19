@@ -31,10 +31,12 @@ arquivamento.
     - Remover a casa do Canvas exibe `Indefinida`, sem apagar o histórico de impressão.
 
 3. `Construída`
-    - Estado aplicado manualmente pela pessoa usuária.
+    - Estado aplicado manualmente à casa ou automaticamente ao concluir sua construção.
     - Bloqueia edição do canvas, barra de ferramentas, controles laterais, nome da família, reinício do desenho,
       configurações da casa e materiais extras.
-    - A casa ainda pode ser consultada e exportada.
+    - A casa ainda pode ser consultada e exportada. O botão do formulário para abrir o Canvas permanece habilitado.
+    - No Canvas, mantém Seleção, Panning e Fit to View; não permite mover, transformar, excluir, colar ou editar os objetos.
+    - Tipo de solo e obstáculos ficam desabilitados. No 3D, cores e inserção de imagem no Canvas ficam bloqueadas.
     - Ao liberar a edição, a listagem volta a refletir a configuração atual e o histórico de impressão.
 
 4. `Arquivada`
@@ -83,9 +85,8 @@ arquivamento.
       excluir a construção inteira.
 
 8. Disponibilidade do Canvas
-    - O Canvas só pode ser aberto quando existir ao menos uma casa não arquivada em uma construção em andamento.
-    - Se nenhuma construção em andamento tiver ao menos uma casa não arquivada, o retorno ao Canvas deve ficar
-      indisponível.
+    - O Canvas pode ser aberto para uma casa não arquivada em uma construção não arquivada.
+    - Casas construídas ou construções concluídas abrem em modo somente leitura.
 
 ## Segurança
 

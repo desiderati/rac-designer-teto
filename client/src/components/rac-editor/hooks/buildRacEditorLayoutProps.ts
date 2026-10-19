@@ -174,6 +174,7 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       onFreeDrawPathCreated: args.handleFreeDrawPathCreated,
       onCanvasDocumentChange: args.onCanvasDocumentChange,
       readOnly: args.isHouseReadOnly,
+      loading: args.documentTransitioning,
     },
     houseTypeSelector: {
       pilotisSetupOpen: args.pilotisSetupOpen,
@@ -246,6 +247,7 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       onClosePdfPreview: args.handleClosePdfPreview,
     },
     viewer: {
+      readOnly: args.isHouseReadOnly,
       open: args.is3DViewerOpen,
       onOpenChange: args.setIs3DViewerOpen,
       canvasRef: args.canvasRef,

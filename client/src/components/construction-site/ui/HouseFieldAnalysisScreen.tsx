@@ -90,7 +90,7 @@ export function HouseFieldAnalysisScreen({
   const constructionSiteId = constructionSite.constructionSite.id;
   const pilotiIds = useMemo(() => getAllPilotiIds().filter((id) => Boolean(draft.house.pilotis[id])), [draft.house.pilotis]);
   const selectedPiloti = draft.house.pilotis[selectedPilotiId] ?? DEFAULT_HOUSE_PILOTI;
-  const braceState = stage === 'ready' ? getFieldAnalysisContraventamentoState(draft, selectedPilotiId) : null;
+  const braceState = stage === 'ready' ? getFieldAnalysisContraventamentoState(draft, selectedPilotiId, settings.allowContraventamentoWithinProportion) : null;
 
   useEffect(() => {
     mountedRef.current = true;
@@ -205,18 +205,18 @@ export function HouseFieldAnalysisScreen({
   }), []);
   const pilotiWritePort = useMemo<HousePilotiWritePort>(() => ({
     updatePiloti: (id, patch) => {
-      const next = updateFieldAnalysisPiloti(draftRef.current, id, patch);
+      const next = updateFieldAnalysisPiloti(draftRef.current, id, patch, settings.allowContraventamentoWithinProportion);
       applyDraft(next);
       return next.house.pilotis[id];
     },
     applyInitialPilotiNiveis: () => undefined,
     calculateAndApplyRecommendedHeights: () => undefined,
-  }), [applyDraft]);
+  }), [applyDraft, settings.allowContraventamentoWithinProportion]);
 
   const changeContraventamento = (side: ContraventamentoSide, destinationPilotiId?: string) => {
     try {
       const next = destinationPilotiId
-        ? addFieldAnalysisContraventamento(draftRef.current, selectedPilotiId, destinationPilotiId, side)
+        ? addFieldAnalysisContraventamento(draftRef.current, selectedPilotiId, destinationPilotiId, side, settings.allowContraventamentoWithinProportion)
         : removeFieldAnalysisContraventamento(draftRef.current, selectedPilotiId, side);
       applyDraft(next);
     } catch (error) {
@@ -282,7 +282,7 @@ export function HouseFieldAnalysisScreen({
               contraventamentoRightDisabled={braceState?.right.disabled}
               contraventamentoTopDisabled={braceState?.top.disabled}
               contraventamentoBottomDisabled={braceState?.bottom.disabled}
-              getInlineContraventamentoDestinations={(side) => getFieldAnalysisDestinations(draftRef.current, selectedPilotiId, side)}
+              getInlineContraventamentoDestinations={(side) => getFieldAnalysisDestinations(draftRef.current, selectedPilotiId, side, settings.allowContraventamentoWithinProportion)}
               onInlineContraventamentoChange={changeContraventamento}
             />
           </div>

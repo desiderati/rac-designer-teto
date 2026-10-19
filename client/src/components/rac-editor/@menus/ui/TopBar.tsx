@@ -104,7 +104,7 @@ export function TopBar({
 
       {/* Center: Zoom indicator + canvas-tool submenu */}
       <div className='absolute left-1/2 top-0 z-50 -translate-x-1/2'>
-        <ZoomMenu
+        <ZoomMenu readOnly={isReadOnly}
           zoom={zoom}
           canvasToolMode={canvasToolMode}
           onSetToolMode={actions.setCanvasToolMode}

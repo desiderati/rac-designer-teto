@@ -48,6 +48,7 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
     settingsPort.updateSetting('showStairsOnTopView', tempSettings.showStairsOnTopView);
     settingsPort.updateSetting('showPilotiLabelsOnTopView', tempSettings.showPilotiLabelsOnTopView);
     settingsPort.updateSetting('showToolMenuLabels', tempSettings.showToolMenuLabels);
+    settingsPort.updateSetting('allowContraventamentoWithinProportion', tempSettings.allowContraventamentoWithinProportion);
     onSettingsChange?.();
     onOpenChange(false);
   };
@@ -59,6 +60,15 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
 
   const content =
     <div className='space-y-4'>
+      <div className='flex items-start justify-between gap-4'>
+        <Label htmlFor='allow-contraventamento-within-proportion' className='text-sm leading-snug cursor-pointer flex-1'>
+          Permitir o contraventamento mesmo que os pilotis estejam dentro da proporção
+        </Label>
+        <Switch
+          id='allow-contraventamento-within-proportion'
+          checked={tempSettings.allowContraventamentoWithinProportion ?? APP_SETTINGS_DEFAULTS.allowContraventamentoWithinProportion}
+          onCheckedChange={(v) => handleToggle('allowContraventamentoWithinProportion', v)}/>
+      </div>
       <div className='flex items-start justify-between gap-4'>
         <Label htmlFor='auto-adjust-piloti-heights' className='text-sm leading-snug cursor-pointer flex-1'>
           Recalcular alturas automaticamente ao alterar níveis
@@ -84,7 +94,7 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
           htmlFor='zoom-enabled'
           className='text-sm leading-snug cursor-pointer flex-1'
         >
-          Habilitar Minimap por padrão
+          Habilitar mini-mapa no canvas
         </Label>
         <Switch
           id='zoom-enabled'
@@ -154,7 +164,7 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
       </div>
       <div className='flex items-start justify-between gap-4'>
         <Label htmlFor='show-tool-menu-labels' className='text-sm leading-snug cursor-pointer flex-1'>
-          Mostrar rótulos nos menus (desktop)
+          Mostrar rótulos nos menus laterais do canvas
         </Label>
         <Switch
           id='show-tool-menu-labels'

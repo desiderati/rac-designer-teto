@@ -57,6 +57,7 @@ export function refreshAutoStairs(params: {
 }
 
 export function refreshAutoContraventamento(params: {
+  allowWithinProportion?: boolean;
   house: HouseRuntimeSnapshot<CanvasGroup> | null;
   requestRender: () => void;
 }): void {
@@ -65,6 +66,7 @@ export function refreshAutoContraventamento(params: {
   renderWhenChanged(
     refreshAutoContraventamentoInAllViews({
       pilotis: params.house.pilotis,
+      allowWithinProportion: params.allowWithinProportion,
       topViews: params.house.views.top,
       elevationViews: collectElevationViewInstances(params.house),
     }),
@@ -198,6 +200,7 @@ export class HouseVisualEffects {
 
   refreshAutoContraventamento(): void {
     refreshAutoContraventamento({
+      allowWithinProportion: this.args.settingsPort.getSettings().allowContraventamentoWithinProportion,
       house: this.args.getHouse(),
       requestRender: () => this.args.requestCanvasRender(),
     });

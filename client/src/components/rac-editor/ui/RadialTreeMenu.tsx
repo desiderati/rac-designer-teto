@@ -152,7 +152,8 @@ export function RadialTreeMenu({side, label, items, rootIcon = faPenRuler, activ
 
   const positions = getRadialMenuPositions(level.length, side, window.innerHeight);
   return <div ref={ref} data-testid={testId} data-guided-tour-id={guidedTourId}
-    className={`pointer-events-auto fixed top-1/2 z-50 -translate-y-1/2 ${side === 'left' ? 'left-3' : 'right-3'}`}>
+    style={side === 'left' ? {left: 'max(2rem, calc(env(safe-area-inset-left, 0px) + 1rem))'} : {right: 'max(2rem, calc(env(safe-area-inset-right, 0px) + 1rem))'}}
+    className='pointer-events-auto fixed top-1/2 z-50 -translate-y-1/2'>
     <button ref={centerRef} type='button' aria-label={current ? `Voltar para ${parentLabel}` : label}
       aria-expanded={open} aria-pressed={current ? current.pressed : active} onClick={centerClick}
       className={`relative z-10 grid h-12 w-12 place-items-center rounded-full border border-slate-200 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${(current ? current.pressed : active) ? 'bg-blue-600 text-white' : current ? 'bg-white text-blue-600' : 'bg-white text-slate-600'}`}>

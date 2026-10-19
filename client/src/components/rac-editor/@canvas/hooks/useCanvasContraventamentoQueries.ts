@@ -1,4 +1,5 @@
 import {useCallback} from 'react';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {useHouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-store.ts';
 import {
   CanvasGroup,
@@ -41,6 +42,7 @@ export function useContraventamentoQueries({
   contraventamentoSide,
   pilotiIdForEditor,
 }: UseContraventamentoQueriesArgs) {
+  const {settingsPort} = useEditorPorts();
   const houseSnapshot = useHouseRuntimeSnapshot<CanvasGroup>();
 
   const getTopViewGroup = useCallback((): CanvasGroup | null => {
@@ -101,6 +103,7 @@ export function useContraventamentoQueries({
         first,
         candidate: parsed,
         pilotis: houseSnapshot?.pilotis ?? {},
+        allowWithinProportion: settingsPort.getSettings().allowContraventamentoWithinProportion,
       });
     }
 
@@ -110,6 +113,7 @@ export function useContraventamentoQueries({
         candidate: parsed,
         side,
         pilotis: houseSnapshot?.pilotis ?? {},
+        allowWithinProportion: settingsPort.getSettings().allowContraventamentoWithinProportion,
       });
       if (!structurallyEligible) return false;
       if (!isContraventamentoHorizontalSide(side)) return false;
@@ -131,6 +135,7 @@ export function useContraventamentoQueries({
     getContraventamentoHorizontalSides,
     getTopViewGroup,
     houseSnapshot,
+    settingsPort,
   ]);
 
   const isPilotiEligibleForContraventamentoColumn = useCallback((pilotiId: string): boolean => {
@@ -140,8 +145,9 @@ export function useContraventamentoQueries({
     return hasEligiblePilotiForContraventamentoInColumn({
       col: parsed.col,
       pilotis: houseSnapshot?.pilotis ?? {},
+      allowWithinProportion: settingsPort.getSettings().allowContraventamentoWithinProportion,
     });
-  }, [houseSnapshot]);
+  }, [houseSnapshot, settingsPort]);
 
   const isPilotiEligibleForContraventamentoRow = useCallback((pilotiId: string): boolean => {
     const parsed = parsePilotiGridPosition(pilotiId);
@@ -150,8 +156,9 @@ export function useContraventamentoQueries({
     return hasEligiblePilotiForContraventamentoInRow({
       row: parsed.row,
       pilotis: houseSnapshot?.pilotis ?? {},
+      allowWithinProportion: settingsPort.getSettings().allowContraventamentoWithinProportion,
     });
-  }, [houseSnapshot]);
+  }, [houseSnapshot, settingsPort]);
 
   const getContraventamentoEditorState = useCallback(() => {
     const disabled = createContraventamentoEditorState({

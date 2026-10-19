@@ -13,7 +13,7 @@ const houseLabelCollator = new Intl.Collator('pt-BR', {
 });
 
 interface HamburgerMenuProps {
-  actions: Pick<MenuActionMap, 'activateHouse' | 'openConstructionSites' | 'openHouseEdit' | 'addHouse'>;
+  actions: Pick<MenuActionMap, 'activateHouse' | 'openConstructionSites' | 'openHouseEdit' | 'openConstructionEdit' | 'addHouse'>;
   constructionGroups: MenuConstructionGroup[];
   documentTransitioning?: boolean;
 }
@@ -35,13 +35,7 @@ export function HamburgerMenu({actions, constructionGroups, documentTransitionin
 
   const toggleConstruction = (constructionId: string) => {
     setExpandedConstructionIds((current) => {
-      const next = new Set(current);
-      if (next.has(constructionId)) {
-        next.delete(constructionId);
-      } else {
-        next.add(constructionId);
-      }
-      return next;
+      return current.has(constructionId) ? new Set() : new Set([constructionId]);
     });
   };
 
@@ -87,12 +81,13 @@ export function HamburgerMenu({actions, constructionGroups, documentTransitionin
 
           return (
             <div key={construction.id} className='py-0.5'>
+              <div className='flex items-center gap-1'>
               <button
                 type='button'
                 aria-expanded={expanded}
                 onClick={() => toggleConstruction(construction.id)}
                 className={cn(
-                  'w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm font-semibold',
+                  'min-w-0 flex-1 flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm font-semibold',
                   'transition-colors',
                   construction.active
                     ? 'bg-slate-100 text-slate-950'
@@ -106,6 +101,14 @@ export function HamburgerMenu({actions, constructionGroups, documentTransitionin
                 />
                 <span className='min-w-0 flex-1 truncate text-left'>{constructionLabel}</span>
               </button>
+              {actions.openConstructionEdit ? (
+                <button type='button' aria-label={`Editar construção ${constructionLabel}`} title={`Editar construção ${constructionLabel}`}
+                  className='grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-500 hover:bg-blue-50 hover:text-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500'
+                  onClick={() => {void actions.openConstructionEdit?.(construction.id); setOpen(false);}}>
+                  <Pencil className='h-3.5 w-3.5' aria-hidden='true'/>
+                </button>
+              ) : null}
+              </div>
 
               {expanded ? (
                 <div className='ml-4 mt-0.5 space-y-0.5 border-l border-slate-100 pl-1.5'>

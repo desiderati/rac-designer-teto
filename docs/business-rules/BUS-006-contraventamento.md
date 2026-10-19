@@ -40,6 +40,15 @@ Definir como criar e remover contraventamentos de forma segura, previsível e f�
 7. Linha/faixa
     - Contraventamento horizontal é controlado por linha/faixa e pode ligar dois pilotis dessa linha.
 
+## Preferência de contraventamento manual
+
+A opção “Permitir o contraventamento mesmo que os pilotis estejam dentro da proporção”,
+em Configurações, vem desativada. Ao ativá-la, Canvas e análise de campo permitem inserção
+manual em colunas e linhas proporcionais, preservando nível mínimo, geometria, capacidade,
+ocupação dos lados e bloqueios de casas construídas. A preferência persiste neste navegador.
+O recálculo preserva as ligações manuais proporcionais enquanto a opção estiver ativa;
+a criação automática continua exclusiva dos pilotis fora da proporção.
+
 ## Regras de capacidade por coluna
 
 1. Uma coluna pode ter até dois contraventamentos verticais:

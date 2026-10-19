@@ -1,4 +1,4 @@
-import React, {MutableRefObject, RefObject, useCallback, useEffect} from 'react';
+import React, {MutableRefObject, RefObject, useCallback, useEffect, useRef} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
 import {INTERACTION_THRESHOLDS, TIMINGS, ZOOM_LIMITS} from '@/shared/config.ts';
 import type {CanvasZoomGesture} from '@/components/rac-editor/@canvas/hooks/useCanvasViewport.ts';
@@ -59,6 +59,8 @@ export function useCanvasPointerInteractions({
   handleZoomChange,
   canvasToolMode,
 }: UseCanvasPointerInteractionsArgs) {
+  // Um gesto pertence ao objeto OU à viewport durante toda a sequência de toque.
+  const draggingObjectRef = useRef(false);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -134,6 +136,7 @@ export function useCanvasPointerInteractions({
 
   const handleTouchStart = useCallback((event: React.TouchEvent) => {
     if (event.touches.length === 2) {
+      draggingObjectRef.current = false;
       event.preventDefault();
       setIsSingleFingerPanning(false);
       singleFingerStartPoint.current = null;
@@ -164,6 +167,7 @@ export function useCanvasPointerInteractions({
     }
 
     if (event.touches.length === 1) {
+      draggingObjectRef.current = canvasToolMode === 'select' && Boolean(fabricCanvasRef.current?.getActiveObject());
       singleFingerStartPoint.current = {
         x: event.touches[0].clientX,
         y: event.touches[0].clientY,
@@ -181,6 +185,7 @@ export function useCanvasPointerInteractions({
     }
   }, [
     fabricCanvasRef,
+    canvasToolMode,
     lastPanPoint,
     lastPinchCenter,
     lastPinchDistance,
@@ -217,6 +222,7 @@ export function useCanvasPointerInteractions({
     }
 
     if (event.touches.length === 1 && singleFingerStartPoint.current) {
+      if (draggingObjectRef.current) return;
       const touch = event.touches[0];
       const deltaX = touch.clientX - lastPanPoint.current.x;
       const deltaY = touch.clientY - lastPanPoint.current.y;
@@ -255,6 +261,7 @@ export function useCanvasPointerInteractions({
   ]);
 
   const handleTouchEnd = useCallback(() => {
+    draggingObjectRef.current = false;
     lastPinchDistance.current = null;
     lastPinchCenter.current = null;
     singleFingerStartPoint.current = null;

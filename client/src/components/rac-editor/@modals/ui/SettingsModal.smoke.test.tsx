@@ -26,6 +26,22 @@ function renderSettingsModal() {
 }
 
 describe('SettingsModal.tsx', () => {
+  it('mantém contraventamento proporcional desativado até confirmar e persiste a escolha', async () => {
+    const user = userEvent.setup();
+    const {settingsPort, rerenderOpen} = renderSettingsModal();
+    const label = 'Permitir o contraventamento mesmo que os pilotis estejam dentro da proporção';
+    expect(screen.getByLabelText(label)).not.toBeChecked();
+    await user.click(screen.getByLabelText(label));
+    await user.click(screen.getByRole('button', {name: 'Cancelar'}));
+    expect(settingsPort.getSettings().allowContraventamentoWithinProportion).toBe(false);
+    rerenderOpen(false); rerenderOpen(true);
+    expect(screen.getByLabelText(label)).not.toBeChecked();
+    await user.click(screen.getByLabelText(label));
+    await user.click(screen.getByRole('button', {name: 'Confirmar'}));
+    expect(settingsPort.getSettings().allowContraventamentoWithinProportion).toBe(true);
+    rerenderOpen(false); rerenderOpen(true);
+    expect(screen.getByLabelText(label)).toBeChecked();
+  });
   it('renderiza as opções padrão do editor conforme configuração inicial', () => {
     renderSettingsModal();
 
@@ -33,7 +49,7 @@ describe('SettingsModal.tsx', () => {
     expect(screen.getByLabelText(
       'Navegar automaticamente para o próximo piloti ao definir a altura do piloti selecionado',
     )).not.toBeChecked();
-    expect(screen.getByLabelText('Habilitar Minimap por padrão')).not.toBeChecked();
+    expect(screen.getByLabelText('Habilitar mini-mapa no canvas')).not.toBeChecked();
     expect(screen.getByLabelText(
       'Abrir modais de editores em posição fixa ao lado da barra de ferramentas esquerda',
     )).toBeChecked();
@@ -44,7 +60,7 @@ describe('SettingsModal.tsx', () => {
     )).not.toBeChecked();
     expect(screen.getByLabelText('Mostrar escada na vista planta')).not.toBeChecked();
     expect(screen.getByLabelText('Mostrar labels dos pilotis na vista planta')).toBeChecked();
-    expect(screen.getByLabelText('Mostrar rótulos nos menus (desktop)')).toBeChecked();
+    expect(screen.getByLabelText('Mostrar rótulos nos menus laterais do canvas')).toBeChecked();
   });
 
   it('mantém a configuração de recalcular alturas sem título ou subtexto auxiliar', () => {
@@ -67,26 +83,26 @@ describe('SettingsModal.tsx', () => {
   it('salva a desativação dos rótulos somente ao confirmar e reapresenta a preferência persistida', async () => {
     const user = userEvent.setup();
     const {updateSetting, settingsPort, onSettingsChange, rerenderOpen} = renderSettingsModal();
-    await user.click(screen.getByLabelText('Mostrar rótulos nos menus (desktop)'));
+    await user.click(screen.getByLabelText('Mostrar rótulos nos menus laterais do canvas'));
     expect(updateSetting).not.toHaveBeenCalled();
     expect(settingsPort.getSettings().showToolMenuLabels).toBe(true);
     await user.click(screen.getByRole('button', {name: 'Confirmar'}));
     expect(updateSetting).toHaveBeenCalledWith('showToolMenuLabels', false);
     expect(onSettingsChange).toHaveBeenCalledTimes(1);
     rerenderOpen(false); rerenderOpen(true);
-    expect(screen.getByLabelText('Mostrar rótulos nos menus (desktop)')).not.toBeChecked();
+    expect(screen.getByLabelText('Mostrar rótulos nos menus laterais do canvas')).not.toBeChecked();
   });
 
   it('descarta o rascunho dos rótulos ao cancelar e reabre marcado', async () => {
     const user = userEvent.setup();
     const {updateSetting, settingsPort, onSettingsChange, rerenderOpen} = renderSettingsModal();
-    await user.click(screen.getByLabelText('Mostrar rótulos nos menus (desktop)'));
+    await user.click(screen.getByLabelText('Mostrar rótulos nos menus laterais do canvas'));
     await user.click(screen.getByRole('button', {name: 'Cancelar'}));
     expect(updateSetting).not.toHaveBeenCalled();
     expect(onSettingsChange).not.toHaveBeenCalled();
     expect(settingsPort.getSettings().showToolMenuLabels).toBe(true);
     rerenderOpen(false); rerenderOpen(true);
-    expect(screen.getByLabelText('Mostrar rótulos nos menus (desktop)')).toBeChecked();
+    expect(screen.getByLabelText('Mostrar rótulos nos menus laterais do canvas')).toBeChecked();
   });
 
 });

@@ -15,6 +15,7 @@ const LazyHouse3DViewer = lazy(async () => {
 });
 
 interface RacEditor3DViewerOverlayProps {
+  readOnly?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   canvasRef: RefObject<CanvasSnapshotHandle | null>;
@@ -25,6 +26,7 @@ interface RacEditor3DViewerOverlayProps {
 
 export function House3DViewerOverlay({
   open,
+  readOnly = false,
   onOpenChange,
   canvasRef,
   activeHouseId,
@@ -37,6 +39,7 @@ export function House3DViewerOverlay({
     <Suspense fallback={null}>
       <LazyHouse3DViewer
         open={open}
+        readOnly={readOnly}
         onOpenChange={onOpenChange}
         canvasRef={canvasRef}
         activeHouseId={activeHouseId}

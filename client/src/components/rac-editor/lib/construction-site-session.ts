@@ -1196,7 +1196,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   private isConstructionSiteEditableForCanvas(
     constructionSite: ConstructionSiteState | null | undefined,
   ): constructionSite is ConstructionSiteState {
-    return Boolean(constructionSite) && !this.isConstructionSiteReadOnly(constructionSite);
+    return Boolean(constructionSite) && !this.isConstructionSiteArchived(constructionSite);
   }
 
   private isConstructionSiteReadOnly(constructionSite: ConstructionSiteState | null | undefined): boolean {
@@ -1220,6 +1220,12 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
 
     constructionSite.constructionSite.status = status;
     constructionSite.constructionSite.updatedAt = new Date().toISOString();
+    if (status === 'completed') {
+      constructionSite.houses.forEach((house) => {
+        house.status = 'built';
+        house.updatedAt = constructionSite.constructionSite.updatedAt;
+      });
+    }
     this.normalizeConstructionSiteActiveHouse(constructionSite);
 
     if (this.state?.constructionSite.id === constructionSiteId) {

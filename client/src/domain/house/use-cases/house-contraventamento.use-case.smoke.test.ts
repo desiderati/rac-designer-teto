@@ -14,6 +14,23 @@ import {
 } from '@/domain/house/use-cases/house-contraventamento.use-case.ts';
 
 describe('house-contraventamento.use-case.ts', () => {
+  it('libera a proporção apenas para ações manuais e mantém nível e geometria', () => {
+    const pilotis = {piloti_0_0: {height: 2, nivel: 0.4}, piloti_0_1: {height: 2, nivel: 0.4}, piloti_1_0: {height: 2, nivel: 0.4}};
+    expect(isHousePilotiEligibleForContraventamento(pilotis.piloti_0_0)).toBe(false);
+    expect(isHousePilotiEligibleForContraventamento(pilotis.piloti_0_0, true)).toBe(true);
+    for (const piloti of [null, {height: 2, nivel: 0.1}, {height: 0, nivel: 0.4}, {height: NaN, nivel: 0.4}, {height: 2, nivel: Infinity}]) {
+      expect(isHousePilotiEligibleForContraventamento(piloti, true)).toBe(false);
+    }
+    const params = {first: {col: 0, row: 0}, candidate: {col: 0, row: 1}, pilotis, allowWithinProportion: true};
+    expect(isHouseContraventamentoDestinationEligible(params)).toBe(true);
+    expect(isHouseContraventamentoDestinationEligible({...params, candidate: {col: 1, row: 0}})).toBe(false);
+    expect(isHouseContraventamentoDestinationEligible({...params, candidate: params.first})).toBe(false);
+    const horizontal = {...params, candidate: {col: 1, row: 0}, side: 'bottom' as const};
+    expect(isHouseHorizontalContraventamentoDestinationEligible(horizontal)).toBe(true);
+    expect(isHouseHorizontalContraventamentoDestinationEligible({...horizontal, side: 'top'})).toBe(false);
+    expect(isHouseHorizontalContraventamentoDestinationEligible({...horizontal, candidate: {col: 1, row: 1}})).toBe(false);
+    expect(collectAutoContraventamentoRowsByColumn(pilotis).size).toBe(0);
+  });
   it('exige nível mínimo e desproporção de altura para elegibilidade', () => {
     expect(canCreateContraventamentoForNivel(0.1)).toBe(false);
     expect(canCreateContraventamentoForNivel(0.2)).toBe(true);

@@ -221,7 +221,7 @@ function getConstructionStatusDialogContent(action: StatusChangeAction, construc
   if (action === 'markCompleted') {
     return {
       title: 'Concluir construção?',
-      description: `A construção ${normalizedConstructionCode} ficará disponível para visualização, sem edição de casas e monitores.`,
+      description: `A construção ${normalizedConstructionCode} será concluída e todas as suas casas serão marcadas como construídas, inclusive as arquivadas. Os dados continuarão disponíveis para consulta, sem edição de casas e monitores.`,
       actionLabel: 'Concluir construção',
       actionClassName: 'bg-emerald-600 text-white hover:bg-emerald-700',
       tone: 'success' as const,
@@ -231,7 +231,7 @@ function getConstructionStatusDialogContent(action: StatusChangeAction, construc
   if (action === 'markInProgress') {
     return {
       title: 'Voltar construção para andamento?',
-      description: `A construção ${normalizedConstructionCode} voltará a permitir edição de casas e monitores.`,
+      description: `A construção ${normalizedConstructionCode} voltará a permitir gestão de casas e monitores. As casas continuarão construídas até liberar sua edição individualmente.`,
       actionLabel: 'Voltar para andamento',
       actionClassName: 'bg-amber-600 text-white hover:bg-amber-700',
       tone: 'warning' as const,

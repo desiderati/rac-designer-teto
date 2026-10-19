@@ -35,6 +35,7 @@ export function refreshAutoContraventamentoInAllViews(params: {
   pilotis: Record<string, HousePiloti>;
   topViews: HouseRuntimeViewInstance<CanvasGroup>[];
   elevationViews: HouseRuntimeViewInstance<CanvasGroup>[];
+  allowWithinProportion?: boolean;
 }): boolean {
   let hasChanges = false;
   const targetGroups =
@@ -42,7 +43,7 @@ export function refreshAutoContraventamentoInAllViews(params: {
 
   params.topViews.forEach((topView) => {
     const topGroup = topView.group;
-    const topChanged = refreshAutoContraventamentoOnTopView(topGroup, params.pilotis);
+    const topChanged = refreshAutoContraventamentoOnTopView(topGroup, params.pilotis, params.allowWithinProportion);
 
     const elevationsChanged = syncContraventamentoElevationViews(
       topGroup,
@@ -65,6 +66,7 @@ export function refreshAutoContraventamentoInAllViews(params: {
 function refreshAutoContraventamentoOnTopView(
   runtimeTopGroup: CanvasGroup,
   pilotis: Record<string, HousePiloti>,
+  allowWithinProportion = false,
 ): boolean {
   const rowsByCol = collectAutoContraventamentoRowsByColumn(pilotis);
   let hasChanges = false;
@@ -79,7 +81,8 @@ function refreshAutoContraventamentoOnTopView(
         runtimeTopGroup,
         (object) =>
           getContraventamentoOrientation(object) === 'vertical'
-          && resolveContraventamentoColumn(object) === col,
+          && resolveContraventamentoColumn(object) === col
+          && (!allowWithinProportion || object.isAutoContraventamento === true),
       );
 
       if (removed > 0) hasChanges = true;

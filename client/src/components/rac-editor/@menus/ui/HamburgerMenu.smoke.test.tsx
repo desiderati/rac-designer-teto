@@ -11,6 +11,7 @@ function renderMenu(options: { documentTransitioning?: boolean; canAddHouse?: bo
     activateHouse: vi.fn().mockResolvedValue(undefined),
     openConstructionSites: vi.fn(),
     openHouseEdit: vi.fn().mockResolvedValue(undefined),
+    openConstructionEdit: vi.fn().mockResolvedValue(undefined),
     addHouse: vi.fn().mockResolvedValue(undefined),
   };
   const constructionGroups = [
@@ -49,6 +50,17 @@ function renderMenu(options: { documentTransitioning?: boolean; canAddHouse?: bo
 }
 
 describe('HamburgerMenu.tsx', () => {
+  it('edita a construção correta e expande apenas uma construção por vez', async () => {
+    const {user, actions} = renderMenu();
+    await user.click(screen.getByRole('button', {name: 'Abrir menu principal'}));
+    await user.click(screen.getByRole('button', {name: 'CC2604 - Heliópolis'}));
+    expect(screen.getByRole('button', {name: 'CC2603 - Tiradentes'})).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('button', {name: 'Família Souza'})).not.toBeInTheDocument();
+    expect(screen.getByRole('button', {name: 'Família Lima'})).toBeVisible();
+    await user.click(screen.getByRole('button', {name: 'Editar construção CC2604 - Heliópolis'}));
+    expect(actions.openConstructionEdit).toHaveBeenCalledWith('construction-2604');
+    expect(actions.activateHouse).not.toHaveBeenCalled();
+  });
   it('preserva seleção e edição da mesma casa com nome longo sem espaços', async () => {
     const houseLabel = 'CasaComNomeMuitoLongoSemEspacos'.repeat(4);
     const {user, actions} = renderMenu({houseLabel});

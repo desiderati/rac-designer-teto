@@ -79,6 +79,7 @@ export interface ConstructionSiteManagementActions {
   markHouseBuilt(houseId: string): Promise<void>;
   markHouseDraft(houseId: string): Promise<void>;
   activateHouse(constructionSiteId: string, houseId: string): Promise<void>;
+  activateHouseForManagement?(constructionSiteId: string, houseId: string): Promise<void>;
   updateActiveHouseSiteAssessment(input: Partial<SiteAssessment>): void;
   updateActiveHouseConfiguration(input: UpdateHouseConfigurationInput): Promise<void>;
   updateActiveHouseExtraMaterials(input: UpdateHouseExtraMaterialsInput): void;

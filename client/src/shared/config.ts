@@ -11,6 +11,7 @@ export const APP_SETTINGS_DEFAULTS = {
   showStairsOnTopView: false,
   showPilotiLabelsOnTopView: true,
   showToolMenuLabels: true,
+  allowContraventamentoWithinProportion: false,
 } as const;
 
 export const STORAGE_KEYS = {

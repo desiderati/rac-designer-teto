@@ -32,7 +32,7 @@ export function useCanvasKeyboardShortcuts() {
         (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable);
       const activeObject = canvas.getActiveObject();
       const isEditingCanvasText = activeObject?.type === 'i-text' && (activeObject as IText).isEditing;
-      if (isTypingTarget || isEditingCanvasText) return;
+      if (isTypingTarget || isEditingCanvasText || isAnyEditorOpen()) return;
 
       if (event.key === 'Delete' || event.key === 'Backspace') {
         if (isAnyEditorOpen()) return;

@@ -50,7 +50,9 @@ import type {
 import type {HouseDifficultyIndicator} from '@/components/rac-editor/lib/house-difficulty-indicator.ts';
 import type {SiteAssessment} from '@/shared/types/construction-site.ts';
 import {INTERACTION_THRESHOLDS, TIMINGS} from '@/shared/config.ts';
+import {bindReadOnlyCanvasInteraction} from '@/components/rac-editor/@canvas/lib/read-only-canvas-interaction.ts';
 import {recoverCanvasObjects} from '@/components/rac-editor/@canvas/lib/recover-canvas-objects.ts';
+import {useCanvasMobileViewport} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
 
 interface CanvasProps {
   children?: ReactNode;
@@ -147,6 +149,8 @@ export const Canvas =
       onContraventamentoCancel,
       onFreeDrawPathCreated,
     }, ref) => {
+      const {landscape} = useCanvasMobileViewport();
+      const [landscapeSelection, setLandscapeSelection] = useState(false);
 
       const containerRef = useRef<HTMLDivElement>(null);
       const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -499,7 +503,7 @@ export const Canvas =
       }, [clearHistory, getCurrentScreenPoint, getVisibleCenter, readOnly, saveHistory]);
 
       const scheduleImageLongPress = useCallback((event: ReactTouchEvent<HTMLDivElement>) => {
-        if (readOnly || event.touches.length !== 1) return;
+        if (readOnly || landscape || event.touches.length !== 1) return;
 
         const touch = event.touches.item(0);
         if (!touch) return;
@@ -518,7 +522,7 @@ export const Canvas =
             else openColorEditor(target);
           }, TIMINGS.mobileLongPressDelayMs),
         };
-      }, [clearImageLongPress, findObjectAtPointer, openColorEditor, openImageLayerMenu, readOnly]);
+      }, [clearImageLongPress, findObjectAtPointer, openColorEditor, openImageLayerMenu, readOnly, landscape]);
 
       const cancelImageLongPressOnMove = useCallback((event: ReactTouchEvent<HTMLDivElement>) => {
         const pendingLongPress = imageLongPressRef.current;
@@ -547,17 +551,17 @@ export const Canvas =
         const fabric = fabricCanvasRef.current;
         if (!fabric) return;
 
-        if (readOnly) {
+        if (readOnly && canvasToolMode !== 'pan') {
           fabric.discardActiveObject();
-          fabric.selection = false;
-          fabric.skipTargetFind = true;
+          fabric.selection = true;
+          fabric.skipTargetFind = false;
           fabric.isDrawingMode = false;
-          fabric.defaultCursor = 'not-allowed';
-          fabric.hoverCursor = 'not-allowed';
-          fabric.moveCursor = 'not-allowed';
-          fabric.upperCanvasEl.style.cursor = 'not-allowed';
-          fabric.lowerCanvasEl.style.cursor = 'not-allowed';
-          fabric.wrapperEl.style.cursor = 'not-allowed';
+          fabric.defaultCursor = 'default';
+          fabric.hoverCursor = 'default';
+          fabric.moveCursor = 'default';
+          fabric.upperCanvasEl.style.cursor = 'default';
+          fabric.lowerCanvasEl.style.cursor = 'default';
+          fabric.wrapperEl.style.cursor = 'default';
         } else if (canvasToolMode === 'pan') {
           const panCursor = isPanning ? 'grabbing' : 'grab';
           fabric.selection = false;
@@ -582,6 +586,7 @@ export const Canvas =
       }, [canvasToolMode, isPanning, readOnly]);
 
       useCanvasFabricSetup({
+        readOnly,
         canvasRef,
         containerRef,
         fabricCanvasRef,
@@ -607,6 +612,38 @@ export const Canvas =
         onContraventamentoCancelRef,
         onFreeDrawPathCreated: readOnly ? undefined : onFreeDrawPathCreated,
       });
+
+      useEffect(() => {
+        const canvas = fabricCanvasRef.current;
+        if (!canvas || !readOnly) return;
+        return bindReadOnlyCanvasInteraction(canvas);
+      }, [readOnly]);
+
+      useEffect(() => {
+        const canvas = fabricCanvasRef.current;
+        if (!canvas || !landscape || readOnly) {setLandscapeSelection(false); return;}
+        const originals = new Map<CanvasObject, {borderColor: string; borderScaleFactor: number; cornerSize: number; padding: number}>();
+        const highlight = () => {
+          canvas.getActiveObjects().forEach(object => {
+            const target = object as CanvasObject;
+            if (!originals.has(target)) originals.set(target, {borderColor: target.borderColor, borderScaleFactor: target.borderScaleFactor, cornerSize: target.cornerSize, padding: target.padding});
+            target.set({borderColor: '#1d4ed8', borderScaleFactor: 3, cornerSize: 20, padding: 8});
+          });
+          setLandscapeSelection(canvas.getActiveObjects().length > 0);
+          canvas.requestRenderAll();
+        };
+        canvas.on('selection:created', highlight);
+        canvas.on('selection:updated', highlight);
+        canvas.on('selection:cleared', highlight);
+        highlight();
+        return () => {
+          canvas.off('selection:created', highlight);
+          canvas.off('selection:updated', highlight);
+          canvas.off('selection:cleared', highlight);
+          originals.forEach((style, object) => object.set(style));
+          canvas.requestRenderAll();
+        };
+      }, [landscape, readOnly]);
 
       useCanvasContainerLifecycle({
         containerRef,
@@ -688,9 +725,7 @@ export const Canvas =
         containerHeight: containerSize.height,
       });
 
-      const canvasCursor = readOnly
-        ? 'not-allowed'
-        : canvasToolMode === 'pan' ? (isPanning ? 'grabbing' : 'grab') : undefined;
+      const canvasCursor = canvasToolMode === 'pan' ? (isPanning ? 'grabbing' : 'grab') : undefined;
 
       return (
         <div
@@ -750,6 +785,7 @@ export const Canvas =
           >
             {children}
           </CanvasOverlays>
+          {landscapeSelection && landscape && !readOnly ? <div role='status' className='pointer-events-none absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full bg-blue-700 px-4 py-2 text-xs font-semibold text-white shadow-md'>Item selecionado · arraste para mover apenas o item</div> : null}
           {imageLayerMenu
             ? <div
                 role='menu'

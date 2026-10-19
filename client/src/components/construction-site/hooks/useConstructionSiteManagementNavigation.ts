@@ -36,6 +36,7 @@ export function useConstructionSiteManagementNavigation({
 }: UseConstructionSiteManagementNavigationInput) {
 
   const [screen, setScreen] = useState<ConstructionSiteManagementScreen>(initialScreen);
+  const [openingHouseId, setOpeningHouseId] = useState<string | null>(null);
 
   const [selectedConstructionId, setSelectedConstructionId] = useState<string | null>(
     constructionSite?.constructionSite.id ?? null,
@@ -189,9 +190,14 @@ export function useConstructionSiteManagementNavigation({
     const house = constructionSite.houses.find((entry) => entry.id === houseId);
     if (!house || house.status === 'archived') return;
 
-    await actions.activateHouse(constructionSite.constructionSite.id, houseId);
-    setSelectedHouseId(houseId);
-    setScreen('house-detail');
+    setOpeningHouseId(houseId);
+    try {
+      await (actions.activateHouseForManagement ?? actions.activateHouse)(constructionSite.constructionSite.id, houseId);
+      setSelectedHouseId(houseId);
+      setScreen('house-detail');
+    } finally {
+      setOpeningHouseId(null);
+    }
   };
 
   const openHouseExtraMaterials = async (houseId: string) => {
@@ -200,7 +206,7 @@ export function useConstructionSiteManagementNavigation({
     const house = constructionSite.houses.find((entry) => entry.id === houseId);
     if (!house || house.status === 'archived') return;
 
-    await actions.activateHouse(constructionSite.constructionSite.id, houseId);
+    await (actions.activateHouseForManagement ?? actions.activateHouse)(constructionSite.constructionSite.id, houseId);
     setSelectedHouseId(houseId);
     setScreen('house-extra-materials');
   };
@@ -384,6 +390,7 @@ export function useConstructionSiteManagementNavigation({
     openHouseCreate,
     openMonitorCreate,
     openHouseDetail,
+    openingHouseId,
     openHouseExtraMaterials,
     openHouseFieldAnalysis,
     closeHouseFieldAnalysis,

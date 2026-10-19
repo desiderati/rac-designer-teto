@@ -11,6 +11,14 @@ describe('editor-settings.ts', () => {
     vi.restoreAllMocks();
   });
 
+  it('mantém a nova preferência desativada em dados antigos e persiste sua ativação', () => {
+    localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify({autoNavigatePiloti: true}));
+    expect(getSettings().allowContraventamentoWithinProportion).toBe(false);
+    updateSetting('allowContraventamentoWithinProportion', true);
+    expect(getSettings().allowContraventamentoWithinProportion).toBe(true);
+    expect(getSettings().autoNavigatePiloti).toBe(true);
+  });
+
   it('returns defaults when storage is empty', () => {
     expect(getSettings()).toEqual({
       autoNavigatePiloti: false,
@@ -23,6 +31,7 @@ describe('editor-settings.ts', () => {
       showStairsOnTopView: false,
       showPilotiLabelsOnTopView: true,
       showToolMenuLabels: true,
+      allowContraventamentoWithinProportion: false,
     });
   });
 
@@ -39,6 +48,7 @@ describe('editor-settings.ts', () => {
       showStairsOnTopView: false,
       showPilotiLabelsOnTopView: true,
       showToolMenuLabels: true,
+      allowContraventamentoWithinProportion: false,
     });
   });
 
@@ -59,6 +69,7 @@ describe('editor-settings.ts', () => {
       showStairsOnTopView: false,
       showPilotiLabelsOnTopView: true,
       showToolMenuLabels: true,
+      allowContraventamentoWithinProportion: false,
     });
   });
   it('habilita rótulos de ferramentas ao ler preferências anteriores sem essa opção', () => {

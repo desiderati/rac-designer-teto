@@ -15,15 +15,23 @@ export type RacPdfExportStepStatus = 'pending' | 'active' | 'success' | 'error';
 
 export function RacPdfExportProgress({
   statuses,
+  archive = false,
+  houseLabel,
+  resultMessage,
 }: {
+  archive?: boolean;
+  houseLabel?: string;
+  resultMessage?: string;
   statuses: Record<RacPdfExportStepId, RacPdfExportStepStatus>;
 }) {
   const failed = RAC_PDF_EXPORT_STEPS.some(({id}) => statuses[id] === 'error');
   const complete = RAC_PDF_EXPORT_STEPS.every(({id}) => statuses[id] === 'success');
+  let detail = archive ? `Preparando ZIP${houseLabel ? ` · ${houseLabel}` : ''}.` : 'Preparando a prévia para revisão.';
+  if (complete) detail = archive ? 'ZIP pronto para download.' : 'Prévia pronta para revisão.';
+  if (failed) detail = archive ? 'Falha ao gerar os PDFs da construção.' : 'Falha ao preparar a prévia do PDF. Você pode tentar novamente pela prévia.';
+  if (resultMessage) detail = resultMessage;
   return (
-    <ToastMessage title='Geração do PDF' detail={failed
-        ? 'Falha ao preparar a prévia do PDF. Você pode tentar novamente pela prévia.'
-        : complete ? 'Prévia pronta para revisão.' : 'Preparando a prévia para revisão.'}>
+    <ToastMessage title={archive ? 'Geração dos PDFs da construção' : 'Geração do PDF'} detail={detail}>
       <ol className='rac-toast-task-list' aria-label='Etapas da geração do PDF'>
         {RAC_PDF_EXPORT_STEPS.map(({id, label}) => {
         const status = statuses[id];
@@ -35,7 +43,7 @@ export function RacPdfExportProgress({
               {status === 'error' ? <X className='h-4 w-4'/> : null}
               {status === 'pending' ? <Circle className='h-4 w-4'/> : null}
             </span>
-            <span className='rac-toast-task-label'>{label}<span className='rac-toast-task-state'>{{pending: 'Pendente', active: 'Em andamento', success: 'Concluída', error: 'Falhou'}[status]}</span></span>
+            <span className='rac-toast-task-label'>{archive && id === 'create-preview' ? 'Compactar PDFs e preparar o download' : label}<span className='rac-toast-task-state'>{{pending: 'Pendente', active: 'Em andamento', success: 'Concluída', error: 'Falhou'}[status]}</span></span>
           </li>
         );
         })}

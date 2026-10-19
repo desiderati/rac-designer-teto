@@ -24,12 +24,14 @@ de suas casas.
 
 2. `Concluída`
     - Estado da construção finalizada para uso operacional.
+    - Ao concluir, todas as casas dessa construção passam a `Construída`, inclusive as arquivadas, em uma única gravação. Outras construções não são alteradas.
     - Mantém a construção, suas casas e seus monitores disponíveis para visualização.
     - Bloqueia edição dos dados da própria construção.
     - Bloqueia criação, edição, ativação/inativação e demais mudanças de monitores.
     - Bloqueia criação, edição, arquivamento, desarquivamento, marcação como construída, retorno para rascunho,
       configuração, materiais extras e edição no Canvas das casas dessa construção.
-    - Permite retornar explicitamente para `Em andamento`.
+    - Permite consultar o Canvas das casas em modo somente leitura.
+    - Permite retornar explicitamente para `Em andamento`; as casas permanecem construídas até liberar sua edição individualmente.
     - Permite arquivar a construção.
 
 3. `Arquivada`
@@ -62,9 +64,9 @@ de suas casas.
 
 ## Disponibilidade do Canvas
 
-O Canvas só pode ser aberto quando existir ao menos uma Construção TETO em andamento com ao menos
-uma casa não arquivada. Se não houver construção em andamento com casa apta, a gestão permanece
-consultável, mas o retorno ao Canvas deve ficar indisponível.
+O Canvas pode ser aberto quando existir uma construção não arquivada com uma casa não arquivada.
+Casas construídas e construções concluídas permitem consulta, com edição bloqueada. Sem casa apta,
+o retorno ao Canvas fica indisponível.
 
 ## Segurança
 

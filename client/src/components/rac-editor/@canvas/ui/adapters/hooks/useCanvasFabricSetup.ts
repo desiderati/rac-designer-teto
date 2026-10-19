@@ -21,6 +21,7 @@ import {preventTextFocusScroll} from '@/components/rac-editor/@canvas/lib/non-sc
 import {queueCompletedFreehandTip} from '@/components/rac-editor/@canvas/lib/canvas-object-dom-events.ts';
 
 interface UseCanvasFabricSetupArgs {
+  readOnly?: boolean;
   canvasRef: MutableRefObject<HTMLCanvasElement | null>;
   containerRef: MutableRefObject<HTMLDivElement | null>;
   fabricCanvasRef: MutableRefObject<FabricCanvas | null>;
@@ -45,6 +46,7 @@ interface UseCanvasFabricSetupArgs {
 }
 
 export function useCanvasFabricSetup({
+  readOnly,
   canvasRef,
   containerRef,
   fabricCanvasRef,
@@ -70,6 +72,7 @@ export function useCanvasFabricSetup({
   const {settingsPort} = useEditorPorts();
 
   const latestArgsRef = useRef<UseCanvasFabricSetupArgs>({
+    readOnly,
     canvasRef,
     containerRef,
     fabricCanvasRef,
@@ -94,6 +97,7 @@ export function useCanvasFabricSetup({
   });
 
   latestArgsRef.current = {
+    readOnly,
     canvasRef,
     containerRef,
     fabricCanvasRef,
@@ -230,7 +234,7 @@ export function useCanvasFabricSetup({
       canvas,
       onSelectionChange: emitSelectionChange,
       clearPilotiSelection: () => emitPilotiSelection(null),
-      isAnyEditorOpen: () => latestArgsRef.current.isAnyEditorOpenRef.current,
+      isAnyEditorOpen: () => latestArgsRef.current.isAnyEditorOpenRef.current || Boolean(latestArgsRef.current.readOnly),
       isContraventamentoMode: () => latestArgsRef.current.isContraventamentoModeRef.current,
     });
 
@@ -246,12 +250,12 @@ export function useCanvasFabricSetup({
         latestArgsRef.current.onContraventamentoCancelRef.current?.();
       },
       onSelectionChange: emitSelectionChange,
-      isAnyEditorOpen: () => latestArgsRef.current.isAnyEditorOpenRef.current,
+      isAnyEditorOpen: () => latestArgsRef.current.isAnyEditorOpenRef.current || Boolean(latestArgsRef.current.readOnly),
     });
 
     const unbindKeyboardShortcuts = bindKeyboardShortcuts({
       canvas,
-      isAnyEditorOpen: () => latestArgsRef.current.isAnyEditorOpenRef.current,
+      isAnyEditorOpen: () => latestArgsRef.current.isAnyEditorOpenRef.current || Boolean(latestArgsRef.current.readOnly),
       tryDelete: () => {
         if (!latestArgsRef.current.onDelete) return false;
         latestArgsRef.current.onDelete();
@@ -273,7 +277,7 @@ export function useCanvasFabricSetup({
       onSelectionChange: emitSelectionChange,
       getCurrentScreenPoint: (canvasPoint) =>
         latestArgsRef.current.getCurrentScreenPoint(canvasPoint),
-      isAnyEditorOpen: () => latestArgsRef.current.isAnyEditorOpenRef.current,
+      isAnyEditorOpen: () => latestArgsRef.current.isAnyEditorOpenRef.current || Boolean(latestArgsRef.current.readOnly),
     });
 
     return () => {

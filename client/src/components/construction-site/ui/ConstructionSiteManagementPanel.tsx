@@ -424,6 +424,7 @@ export function ConstructionSiteManagementPanel({
         data-testid='construction-management-card'
         className='mx-auto flex min-h-full min-w-0 w-full max-w-none flex-col rounded-none border-0 bg-white p-4 shadow-none sm:min-h-[calc(100dvh-5rem)] sm:max-w-4xl sm:rounded-[24px] sm:border sm:border-slate-200/80 sm:p-6 sm:shadow-sm lg:p-8'
       >
+        {navigation.openingHouseId ? <p role='status' className='mb-4 flex items-center gap-2 rounded-xl bg-blue-50 p-3 text-sm font-semibold text-blue-800'><span className='h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent'/>Carregando configuração da casa…</p> : null}
         {hasRemoteSyncConflict && onOpenRemoteSyncConflict ? (
           <div role='status' className='mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950'>
             <AlertTriangle className='h-5 w-5 shrink-0' aria-hidden='true'/>
@@ -468,14 +469,14 @@ export function ConstructionSiteManagementPanel({
               </div>
               {onBackToCanvas && ((navigation.screen === 'house-detail' && navigation.selectedHouse) || (navigation.screen === 'house-create' && (canOpenRacEditor || initialScreen === 'house-create'))) ? (
                 <button type='button' aria-label='Abrir Canvas da casa' title='Abrir Canvas da casa'
-                  disabled={navigation.screen === 'house-detail' && (isSelectedConstructionReadOnly || navigation.selectedHouse?.status === 'archived')}
+                  disabled={navigation.screen === 'house-detail' && (constructionSite?.constructionSite.status === 'archived' || navigation.selectedHouse?.status === 'archived')}
                   className='grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-700 transition-colors hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50'
                   onClick={() => requestNavigation(async () => {
                     if (navigation.screen === 'house-create') {
                       onBackToCanvas(false);
                       return;
                     }
-                    if (!constructionSite || !navigation.selectedHouse || isSelectedConstructionReadOnly || navigation.selectedHouse.status === 'archived') return;
+                    if (!constructionSite || !navigation.selectedHouse || constructionSite.constructionSite.status === 'archived' || navigation.selectedHouse.status === 'archived') return;
                     await actions.activateHouse(constructionSite.constructionSite.id, navigation.selectedHouse.id);
                     onBackToCanvas(true);
                   })}>

@@ -39,9 +39,11 @@ describe('rac pdf report renderer', () => {
     report.monitors.forEach((monitor) => {
       const row = drawn.find((entry) => entry.text === monitor.name);
       expect(row).toBeDefined();
+      expect(row?.page).toBe(2);
       expect(row?.y).toBeLessThan(513);
     });
     expect(drawn.find((entry) => entry.text === 'Monitor 5')?.page).toBeGreaterThan(1);
+    expect(drawn.filter(entry => entry.text.startsWith('MONITORIA')).map(entry => ({text: entry.text, page: entry.page}))).toEqual([{text: 'MONITORIA', page: 2}]);
   });
   it('mantém as cinco áreas de foto com largura e altura idênticas', () => {
     const rect = {x: 238, y: 58, width: 584, height: 454};

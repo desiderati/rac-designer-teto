@@ -53,7 +53,6 @@ const LEFT_COLUMN_X = PAGE_MARGIN_X;
 const LEFT_COLUMN_Y = 66;
 const LEFT_COLUMN_WIDTH = 198;
 const LEFT_SECTION_GAP = 12;
-const EXTRA_MATERIAL_TO_MONITOR_GAP = 10;
 const MAIN_CANVAS_GAP = 20;
 const MAIN_CANVAS_Y = 58;
 const MAIN_CANVAS_FOOTER_GAP = 20;
@@ -61,11 +60,10 @@ const FOOTER_CELL_HEIGHT = 42;
 const FOOTER_CELL_TOP_OFFSET = 14;
 const FOOTER_CELL_BORDER_WIDTH = 0.35;
 const FOOTER_LABELS = ['1,0 m', '1,2 m', '1,5 m', '2,0 m', '2,5 m', '3,0 m'];
-const FIRST_PAGE_MONITOR_LIMIT = 4;
-const FIRST_PAGE_MONITOR_COLUMNS = 2;
-const FIRST_PAGE_MONITOR_COLUMN_WIDTH = 108;
-const FIRST_PAGE_MONITOR_ROW_HEIGHT = 30;
-const FIRST_PAGE_MONITOR_SUMMARY_WIDTH = 90;
+const MONITOR_COLUMNS = 2;
+const MONITOR_COLUMN_WIDTH = 108;
+const MONITOR_ROW_HEIGHT = 30;
+const MONITOR_SUMMARY_WIDTH = 90;
 // O valor termina 13 pt após o rótulo; o recuo até o próximo campo passa de 11 para 22 pt.
 const EXTRA_MATERIAL_ROW_HEIGHT = (13 + 22) * 0.75;
 const FIRST_PAGE_MUTED_BODY_FONT_SIZE = 6.4;
@@ -135,10 +133,10 @@ export function createRacPdfReportDocument({
 
   drawPageBackground(pdf);
   drawHeader(pdf, report);
-  const firstPageMonitorCount = drawLeftColumn(pdf, report);
+  drawLeftColumn(pdf, report);
   drawMainCanvas(pdf, report);
   drawFooter(pdf, report);
-  drawContinuationPages(pdf, report, firstPageMonitorCount);
+  drawContinuationPages(pdf, report);
 
   return pdf;
 }
@@ -320,15 +318,7 @@ function drawLeftColumn(pdf: JsPDFDocument, report: RacPdfReportModel) {
   cursorY = drawTerrainSection(pdf, report, cursorY);
   cursorY += LEFT_SECTION_GAP;
   cursorY = drawExtraMaterialsSection(pdf, report, cursorY);
-  cursorY += EXTRA_MATERIAL_TO_MONITOR_GAP;
-  const canvasRect = getMainCanvasRect(pdf);
-  const remainingHeight = canvasRect.y + canvasRect.height - cursorY;
-  const monitorRows = Math.max(0, Math.floor((remainingHeight - 22 - 12) / FIRST_PAGE_MONITOR_ROW_HEIGHT));
-  const monitorCount = Math.min(report.monitors.length, FIRST_PAGE_MONITOR_LIMIT, monitorRows * FIRST_PAGE_MONITOR_COLUMNS);
-  if (monitorCount > 0 || (!report.monitors.length && remainingHeight >= 40)) {
-    drawMonitoringSection(pdf, report, cursorY, monitorCount);
-  }
-  return monitorCount;
+  return cursorY;
 }
 
 function drawHouseSection(pdf: JsPDFDocument, report: RacPdfReportModel, y: number): number {
@@ -382,39 +372,6 @@ function drawExtraMaterialsSection(pdf: JsPDFDocument, report: RacPdfReportModel
   cursorY += getFirstPageExtraMaterialsFieldHeight(report.extraMaterials.fields.length);
 
   return cursorY;
-}
-
-function drawMonitoringSection(pdf: JsPDFDocument, report: RacPdfReportModel, y: number, monitorCount: number): number {
-  const cursorY = drawSectionTitle(pdf, 'MONITORIA', LEFT_COLUMN_X, y, LEFT_COLUMN_WIDTH);
-
-  const visibleMonitors = report.monitors.slice(0, monitorCount);
-  if (visibleMonitors.length === 0) {
-    drawMutedValue(pdf, 'Nenhum monitor ativo informado.', LEFT_COLUMN_X, cursorY + 2, LEFT_COLUMN_WIDTH);
-    return cursorY + 18;
-  }
-
-  visibleMonitors.forEach((monitor, index) => {
-    const column = index % FIRST_PAGE_MONITOR_COLUMNS;
-    const row = Math.floor(index / FIRST_PAGE_MONITOR_COLUMNS);
-    drawMonitorSummary(
-      pdf,
-      monitor,
-      LEFT_COLUMN_X + column * FIRST_PAGE_MONITOR_COLUMN_WIDTH,
-      cursorY + row * FIRST_PAGE_MONITOR_ROW_HEIGHT,
-      FIRST_PAGE_MONITOR_SUMMARY_WIDTH,
-    );
-  });
-
-  if (report.monitors.length > visibleMonitors.length) {
-    setText(pdf, COLORS.faint);
-    pdf.setFont(DEFAULT_FONT, 'bold');
-    setFontSize(pdf, 5.8);
-    pdf.text(`+${report.monitors.length - visibleMonitors.length} monitor(es)`, LEFT_COLUMN_X + LEFT_COLUMN_WIDTH, y, {
-      align: 'right',
-    });
-  }
-
-  return cursorY + Math.ceil(visibleMonitors.length / FIRST_PAGE_MONITOR_COLUMNS) * FIRST_PAGE_MONITOR_ROW_HEIGHT + 12;
 }
 
 function getMainCanvasRect(pdf: JsPDFDocument): Rect {
@@ -511,7 +468,7 @@ function drawFooterCell(
 ) {
   pdf.setLineWidth(FOOTER_CELL_BORDER_WIDTH);
   if (highlighted) {
-    setFill(pdf, COLORS.surfaceStrong);
+    setFill(pdf, [203, 213, 225]);
     setStroke(pdf, COLORS.line);
     pdf.roundedRect(x + 2, y - FOOTER_CELL_TOP_OFFSET, width - 4, FOOTER_CELL_HEIGHT, 3, 3, 'FD');
   } else {
@@ -519,7 +476,7 @@ function drawFooterCell(
     pdf.roundedRect(x + 2, y - FOOTER_CELL_TOP_OFFSET, width - 4, FOOTER_CELL_HEIGHT, 3, 3, 'S');
   }
 
-  setText(pdf, highlighted ? COLORS.muted : COLORS.faint);
+  setText(pdf, highlighted ? COLORS.ink : COLORS.faint);
   pdf.setFont(DEFAULT_FONT, 'bold');
   setFontSize(pdf, 5.2);
   pdf.text(limitText(pdf, label, width - 10), x + width / 2, y, {align: 'center'});
@@ -542,12 +499,13 @@ function fitFooterValueText(pdf: JsPDFDocument, value: string, maxWidth: number,
   return limitText(pdf, value, maxWidth);
 }
 
-function drawContinuationPages(pdf: JsPDFDocument, report: RacPdfReportModel, firstPageMonitorCount: number) {
-  const hiddenMonitors = report.monitors.slice(firstPageMonitorCount);
+function drawContinuationPages(pdf: JsPDFDocument, report: RacPdfReportModel) {
+  const hiddenMonitors = report.monitors;
   const extraJustificationText = report.extraMaterials.justification.trim();
   const notesText = report.notes.trim();
 
   let page = createContinuationPage(pdf, report);
+  page = drawContinuationMonitors(pdf, report, hiddenMonitors, page);
   if (extraJustificationText) {
     page = drawContinuationTextSection(
       pdf,
@@ -560,7 +518,6 @@ function drawContinuationPages(pdf: JsPDFDocument, report: RacPdfReportModel, fi
   if (notesText) {
     page = drawContinuationTextSection(pdf, report, 'OBSERVAÇÕES', notesText, page);
   }
-  page = drawContinuationMonitors(pdf, report, hiddenMonitors, page);
 
 }
 
@@ -834,30 +791,30 @@ function drawContinuationMonitors(
 
   while (monitorIndex < monitors.length) {
     const contentStartY = nextPage.cursorY + 22;
-    const availableRows = Math.floor((nextPage.bottomY - contentStartY) / FIRST_PAGE_MONITOR_ROW_HEIGHT);
+    const availableRows = Math.floor((nextPage.bottomY - contentStartY) / MONITOR_ROW_HEIGHT);
     if (availableRows <= 0) {
       nextPage = createContinuationPage(pdf, report);
       continue;
     }
 
-    const visibleCount = Math.min(monitors.length - monitorIndex, availableRows * FIRST_PAGE_MONITOR_COLUMNS);
+    const visibleCount = Math.min(monitors.length - monitorIndex, availableRows * MONITOR_COLUMNS);
     const visibleMonitors = monitors.slice(monitorIndex, monitorIndex + visibleCount);
     const sectionContentY = drawSectionTitle(
       pdf,
-      'MONITORIA (CONTINUAÇÃO)',
+      monitorIndex === 0 ? 'MONITORIA' : 'MONITORIA (CONTINUAÇÃO)',
       LEFT_COLUMN_X,
       nextPage.cursorY,
       LEFT_COLUMN_WIDTH,
     );
     visibleMonitors.forEach((monitor, index) => {
-      const column = index % FIRST_PAGE_MONITOR_COLUMNS;
-      const row = Math.floor(index / FIRST_PAGE_MONITOR_COLUMNS);
+      const column = index % MONITOR_COLUMNS;
+      const row = Math.floor(index / MONITOR_COLUMNS);
       drawMonitorSummary(
         pdf,
         monitor,
-        LEFT_COLUMN_X + column * FIRST_PAGE_MONITOR_COLUMN_WIDTH,
-        sectionContentY + row * FIRST_PAGE_MONITOR_ROW_HEIGHT,
-        FIRST_PAGE_MONITOR_SUMMARY_WIDTH,
+        LEFT_COLUMN_X + column * MONITOR_COLUMN_WIDTH,
+        sectionContentY + row * MONITOR_ROW_HEIGHT,
+        MONITOR_SUMMARY_WIDTH,
       );
     });
 
@@ -865,7 +822,7 @@ function drawContinuationMonitors(
     nextPage = {
       ...nextPage,
       cursorY: sectionContentY
-        + Math.ceil(visibleMonitors.length / FIRST_PAGE_MONITOR_COLUMNS) * FIRST_PAGE_MONITOR_ROW_HEIGHT
+        + Math.ceil(visibleMonitors.length / MONITOR_COLUMNS) * MONITOR_ROW_HEIGHT
         + LEFT_SECTION_GAP,
     };
   }

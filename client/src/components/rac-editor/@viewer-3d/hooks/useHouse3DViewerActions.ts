@@ -22,6 +22,7 @@ import type {HouseDrawingViewer3DDocument} from '@/shared/types/house-drawing-do
 const EDITOR_TOAST_POSITION = 'bottom-right' as const;
 
 interface UseHouse3DViewerActionsArgs {
+  readOnly?: boolean;
   houseType: HouseType;
   hasHouseViews: boolean;
   doorFace?: House3DDoorFace;
@@ -44,6 +45,7 @@ interface UseHouse3DViewerActionsArgs {
  * não do componente de layout nem do estado canônico da casa.
  */
 export function useHouse3DViewerActions({
+  readOnly = false,
   houseType,
   hasHouseViews,
   doorFace,
@@ -102,14 +104,14 @@ export function useHouse3DViewerActions({
 
   const handleReset = useCallback(() => {
     clearSceneReadiness();
-    removeHouse3DViewerCameraPose(cameraPoseStorageKey);
+    if (!readOnly) removeHouse3DViewerCameraPose(cameraPoseStorageKey);
     const previous = viewer3DPort?.getViewer3D?.();
-    if (previous) {
+    if (previous && !readOnly) {
       viewer3DPort?.setViewer3D?.({...previous, cameraPose: null});
       onDocumentChange?.();
     }
     setResetKey((key) => key + 1);
-  }, [cameraPoseStorageKey, clearSceneReadiness, onDocumentChange, viewer3DPort]);
+  }, [readOnly, cameraPoseStorageKey, clearSceneReadiness, onDocumentChange, viewer3DPort]);
 
   const toggleFullscreen = useCallback(() => {
     setIsFullscreen((fullscreen) => !fullscreen);
@@ -129,6 +131,7 @@ export function useHouse3DViewerActions({
   }, [hideBelowTerrain, viewerPreferencesStorageKey, wallColor]);
 
   const handleWallColorChange = useCallback((nextWallColor: string) => {
+    if (readOnly) return;
     setWallColor(nextWallColor);
     writeHouse3DViewerPreferences(viewerPreferencesStorageKey, {
       wallColor: nextWallColor,
@@ -140,9 +143,10 @@ export function useHouse3DViewerActions({
 
     viewer3DPort?.setViewer3D?.({...previous, wallColor: nextWallColor});
     onDocumentChange?.();
-  }, [hideBelowTerrain, onDocumentChange, viewer3DPort, viewerPreferencesStorageKey]);
+  }, [readOnly, hideBelowTerrain, onDocumentChange, viewer3DPort, viewerPreferencesStorageKey]);
 
   const handleClose = useCallback(() => {
+    if (readOnly) {onOpenChange(false); return;}
     const pose = cameraPoseReaderRef.current?.()
       ?? (houseType ? createHouse3DDoorFacingCameraPose({doorFace: doorFace ?? 'front', compact: false}) : null);
     persistCurrentCameraPose();
@@ -159,7 +163,7 @@ export function useHouse3DViewerActions({
     });
     onDocumentChange?.();
     onOpenChange(false);
-  }, [doorFace, hideBelowTerrain, houseType, onDocumentChange, onOpenChange, persistCurrentCameraPose, persistCurrentViewerPreferences, viewer3DPort, wallColor]);
+  }, [readOnly, doorFace, hideBelowTerrain, houseType, onDocumentChange, onOpenChange, persistCurrentCameraPose, persistCurrentViewerPreferences, viewer3DPort, wallColor]);
 
   const handleDialogOpenChange = useCallback((nextOpen: boolean) => {
     if (!nextOpen) {
@@ -171,6 +175,7 @@ export function useHouse3DViewerActions({
   }, [handleClose, onOpenChange]);
 
   const handleInsertOnCanvas = useCallback(async () => {
+    if (readOnly) return;
     if (generationInFlightRef.current) return;
 
     if (pendingImage) {
@@ -246,7 +251,7 @@ export function useHouse3DViewerActions({
       generationInFlightRef.current = false;
       setGenerating(false);
     }
-  }, [hasHouseViews, houseIllustrationPort, houseType, insertPendingImage, pendingImage, publishImage, setGenerating, wallColor]);
+  }, [readOnly, hasHouseViews, houseIllustrationPort, houseType, insertPendingImage, pendingImage, publishImage, setGenerating, wallColor]);
 
   return {
     resetKey,

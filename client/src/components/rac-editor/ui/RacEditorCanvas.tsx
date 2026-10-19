@@ -41,6 +41,7 @@ interface RacEditorCanvasProps {
   onFreeDrawPathCreated: () => void;
   onCanvasDocumentChange: () => void;
   readOnly?: boolean;
+  loading?: boolean;
 }
 
 export function RacEditorCanvas({
@@ -71,6 +72,7 @@ export function RacEditorCanvas({
   onFreeDrawPathCreated,
   onCanvasDocumentChange,
   readOnly = false,
+  loading = false,
 }: RacEditorCanvasProps) {
   useCanvasHouseInitialization({canvasRef});
   const [hasActiveSelection, setHasActiveSelection] = useState(false);
@@ -92,7 +94,8 @@ export function RacEditorCanvas({
   }, [canvasRef, onSelectionAuxCleanup, onSelectionMessage]);
 
   return (
-    <div className='relative h-full min-h-0 min-w-[360px] overflow-hidden'>
+    <div className='relative h-full min-h-0 min-w-[360px] overflow-hidden' aria-busy={loading}>
+      {loading ? <div data-testid='house-canvas-loading' role='status' className='absolute inset-0 z-30 grid place-items-center bg-slate-50/95'><div className='flex items-center gap-3 rounded-xl border bg-white px-5 py-4 text-sm font-semibold text-slate-700 shadow-sm'><span className='h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent'/>Carregando Canvas da casa selecionada…</div></div> : null}
       <Canvas
         ref={canvasRef}
         activeHouseId={activeHouseId}

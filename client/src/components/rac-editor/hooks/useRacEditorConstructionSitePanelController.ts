@@ -50,8 +50,14 @@ export function useRacEditorConstructionSitePanelController({
 
   const handleOpenHouseEdit = useCallback(async (constructionId: string, houseId: string) => {
     houseBeforeAdd.current = null;
-    await constructionSiteManagement.actions.activateHouse(constructionId, houseId);
+    await (constructionSiteManagement.actions.activateHouseForManagement ?? constructionSiteManagement.actions.activateHouse)(constructionId, houseId);
     openConstructionSiteManagement('house-detail');
+  }, [constructionSiteManagement, openConstructionSiteManagement]);
+
+  const handleOpenConstructionEdit = useCallback(async (constructionId: string) => {
+    houseBeforeAdd.current = null;
+    await constructionSiteManagement.actions.activateConstructionSite(constructionId);
+    openConstructionSiteManagement('construction-detail');
   }, [constructionSiteManagement, openConstructionSiteManagement]);
 
   const handleAddHouse = useCallback(async (constructionId: string) => {
@@ -94,6 +100,7 @@ export function useRacEditorConstructionSitePanelController({
     constructionSiteManagementInitialScreen,
     handleOpenConstructionSites,
     handleOpenHouseEdit,
+    handleOpenConstructionEdit,
     handleAddHouse,
     handleCanvasDocumentChange,
     handleActivateHouse,

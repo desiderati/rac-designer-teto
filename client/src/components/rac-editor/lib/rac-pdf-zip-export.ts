@@ -1,4 +1,5 @@
 import type JSZip from 'jszip';
+import type {RacPdfExportStepId} from '@/components/rac-editor/@modals/ui/RacPdfExportProgress.tsx';
 import type {jsPDF as JsPDFDocument} from 'jspdf';
 import type {ConstructionSiteState, PersistedHouseRecord} from '@/shared/types/construction-site.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
@@ -48,6 +49,7 @@ interface BuildRacPdfZipExportArgs {
   renderCanvasImageDataUrl: RacPdfZipCanvasRenderer;
   renderHouse3DImageDataUrl: RacPdfHouse3DRenderer;
   generatedAt?: Date;
+  onProgress?: (step: RacPdfExportStepId, houseId: string, index: number, total: number) => void;
 }
 
 interface BuildRacPdfHouseExportArgs {
@@ -57,6 +59,7 @@ interface BuildRacPdfHouseExportArgs {
   renderCanvasImageDataUrl: RacPdfZipCanvasRenderer;
   renderHouse3DImageDataUrl: RacPdfHouse3DRenderer;
   generatedAt?: Date;
+  onProgress?: (step: RacPdfExportStepId, houseId: string, index: number, total: number) => void;
 }
 
 const ZIP_FAILURE_REPORT_FILE_NAME = 'ERROS_EXPORTACAO_RACS.txt';
@@ -133,6 +136,7 @@ export async function buildRacPdfHouseExport({
 }
 
 export async function buildRacPdfZipExport({
+  onProgress,
   constructionSite,
   JSZip,
   jsPDF,
@@ -150,7 +154,9 @@ export async function buildRacPdfZipExport({
   const failures: RacPdfZipExportFailure[] = [];
   const usedFileNames = new Set<string>();
 
-  for (const house of houses) {
+  for (const [index, house] of houses.entries()) {
+    const progress = (step: RacPdfExportStepId) => onProgress?.(step, house.id, index + 1, houses.length);
+    progress('capture-canvas');
     try {
       assertHouseReadyForPdf(constructionSite, house.id);
       const fingerprint = getRacPdfFingerprint(constructionSite, house.id);
@@ -164,9 +170,12 @@ export async function buildRacPdfZipExport({
       const canvasCapture = await renderCanvasImageDataUrl(house);
       const canvasImageDataUrl = typeof canvasCapture === 'string' ? canvasCapture : canvasCapture.imageDataUrl;
       const hasOmittedRasterSources = typeof canvasCapture !== 'string' && canvasCapture.hasOmittedRasterSources;
+      progress('capture-3d');
       const house3DImageDataUrl = await renderHouse3DImageDataUrl(house);
       if (!house3DImageDataUrl) throw new Error('Não foi possível capturar a visualização 3D da casa.');
+      progress('prepare-photos');
       const photos = await prepareRacPdfReportPhotos(constructionSite, house.id);
+      progress('build-report-model');
       const report = buildRacPdfReportModel({
         constructionSite,
         houseId: house.id,
@@ -182,6 +191,7 @@ export async function buildRacPdfZipExport({
         throw new Error('Não foi possível montar o modelo do PDF.');
       }
 
+      progress('render-pdf');
       const pdf = createRacPdfReportDocument({
         report,
         jsPDF,
@@ -214,6 +224,7 @@ export async function buildRacPdfZipExport({
     throw new Error('Não foi possível gerar PDF para nenhuma casa da construção.');
   }
 
+  onProgress?.('create-preview', '', houses.length, houses.length);
   const blob = await zip.generateAsync({type: 'blob'});
   return {
     fileName: buildZipFileName(constructionSite),

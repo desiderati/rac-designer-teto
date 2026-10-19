@@ -6,6 +6,7 @@ import type {CanvasToolMode} from '../lib/menu-types.ts';
 
 interface ZoomMenuProps {
   /** Zoom atual do canvas (1 = 100%). */
+  readOnly?: boolean;
   zoom: number;
 
   /** Modo atual da ferramenta do canvas. */
@@ -28,7 +29,7 @@ interface ZoomMenuProps {
  * Mostra o percentual de zoom atual e abre um submenu horizontal com seleção,
  * pan e ajuste à viewport, seguindo a referência visual refinada do Stitch.
  */
-export function ZoomMenu({zoom, canvasToolMode, onSetToolMode, onFitToView, onFitContent, isMobile}: ZoomMenuProps) {
+export function ZoomMenu({readOnly = false, zoom, canvasToolMode, onSetToolMode, onFitToView, onFitContent, isMobile}: ZoomMenuProps) {
   const zoomPercent = Math.round(zoom * 100);
 
   return (
@@ -81,14 +82,14 @@ export function ZoomMenu({zoom, canvasToolMode, onSetToolMode, onFitToView, onFi
             onClick={onFitToView}
             isMobile={isMobile}
           />
-          <ToolPill
+          {!readOnly ? <ToolPill
             icon={TOP_BAR_ICONS.toolFitContent}
             label='Localizar'
             shortcut='L'
             isActive={false}
             onClick={onFitContent}
             isMobile={isMobile}
-          />
+          /> : null}
         </div>
       </PopoverContent>
     </Popover>

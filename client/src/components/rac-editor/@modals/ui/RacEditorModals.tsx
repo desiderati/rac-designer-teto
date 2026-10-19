@@ -1,5 +1,5 @@
 import {SettingsModal} from '@/components/rac-editor/@modals/ui/SettingsModal.tsx';
-import {ConfirmDialogModal} from '@/components/rac-editor/@modals/ui/ConfirmDialogModal.tsx';
+import {DestructiveConfirmationDialog} from '@/components/construction-site/ui/DestructiveConfirmationDialog.tsx';
 import {ImageUploadModal} from '@/components/rac-editor/@modals/ui/ImageUploadModal.tsx';
 import {RacPdfExportChecklistModal} from '@/components/rac-editor/@modals/ui/RacPdfExportChecklistModal.tsx';
 import {RacPdfPreviewModal} from '@/components/rac-editor/@modals/ui/RacPdfPreviewModal.tsx';
@@ -72,14 +72,14 @@ export function RacEditorModals({
         onInsertImage={onInsertUploadedImage}
       />
 
-      <ConfirmDialogModal
-        isMobile={isMobile}
-        isOpen={showRestartConfirm}
+      <DestructiveConfirmationDialog
+        open={showRestartConfirm}
         title='Reiniciar Canvas'
         description='Isso irá limpar todo o conteúdo do canvas. Deseja continuar?'
-        confirmLabel='Confirmar'
-        handleConfirm={onConfirmRestartDrawing}
-        handleCancel={onCloseRestartConfirm}
+        confirmLabel='Reiniciar Canvas'
+        pendingLabel='Reiniciando…'
+        onConfirm={onConfirmRestartDrawing}
+        onOpenChange={open => {if (!open) onCloseRestartConfirm();}}
       />
 
       <RacPdfExportChecklistModal

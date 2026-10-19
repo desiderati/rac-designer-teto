@@ -30,6 +30,7 @@ const controllerMocks = vi.hoisted(() => ({
   JSZip: vi.fn(),
   jsPDF: vi.fn(),
   toast: {
+    loading: vi.fn(),
     success: vi.fn(),
     warning: vi.fn(),
     error: vi.fn(),
@@ -472,6 +473,58 @@ describe('useConstructionSiteManagementController.ts', () => {
     expect(loadCanvasDocument).toHaveBeenCalledWith(targetCanvas);
   });
 
+  it('abre metadados de outra casa sem hidratar Fabric e suspende autosave do Canvas antigo', async () => {
+    const savedCanvas: HouseDrawingCanvasDocument = {
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [createCanvasObject('object_current')],
+    };
+    const targetCanvas: HouseDrawingCanvasDocument = {
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [createCanvasObject('object_b')],
+    };
+    const targetDocument = createDrawingDocument('house_b', 'Família B', targetCanvas);
+    const exportCanvasDocument = vi.fn(() => savedCanvas);
+    const loadCanvasDocument = vi.fn(async () => true);
+    const canvasHandle = {
+      createDocumentPort: () => ({
+        exportCanvasDocument,
+        loadCanvasDocument,
+      }),
+      saveHistory: vi.fn(),
+    } as unknown as CanvasHandle;
+    const canvasRef: MutableRefObject<CanvasHandle | null> = {current: canvasHandle};
+    const constructionSiteManagementPort = createConstructionSiteManagementPort({
+      activateHouse: vi.fn(() => targetDocument),
+      getActiveHouseDrawingDocument: vi.fn(() => targetDocument),
+    });
+    const ports = createEditorPorts({
+      constructionSiteManagementPort,
+      houseDrawingDocumentPort: {
+        exportHouseDrawingDocument: vi.fn(() => createDrawingDocument('house_a', 'Família A', savedCanvas)),
+        importHouseDrawingDocument: vi.fn(),
+      },
+    });
+
+    const {result} = renderHook(
+      () => useConstructionSiteManagementController({canvasRef}),
+      {wrapper: createWrapper(ports)},
+    );
+
+    await act(async () => {
+      await result.current.actions.activateHouseForManagement('construction_site_b', 'house_b');
+    });
+
+    expect(constructionSiteManagementPort.activateHouse).toHaveBeenCalledWith('construction_site_b', 'house_b');
+    expect(constructionSiteManagementPort.saveActiveHouseDrawingDocument).not.toHaveBeenCalled();
+    expect(loadCanvasDocument).not.toHaveBeenCalled();
+    expect(ports.houseDrawingDocumentPort.importHouseDrawingDocument).toHaveBeenCalledWith(targetDocument);
+    await act(async () => {await result.current.notifyActiveHouseDocumentChanged();});
+    expect(exportCanvasDocument).not.toHaveBeenCalled();
+    act(() => result.current.hydrateActiveHouseDocument(targetDocument));
+    await act(async () => {await result.current.actions.activateHouse('construction_site_b', 'house_b');});
+    expect(loadCanvasDocument).toHaveBeenCalledWith(targetCanvas);
+  });
+
   it('serializa trocas rápidas de casa para não salvar canvas antigo com estado lógico novo', async () => {
     const savedCanvas: HouseDrawingCanvasDocument = {
       schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
@@ -578,6 +631,7 @@ describe('useConstructionSiteManagementController.ts', () => {
     });
 
     expect(controllerMocks.buildRacPdfZipExport).toHaveBeenCalledWith({
+      onProgress: expect.any(Function),
       constructionSite,
       JSZip: controllerMocks.JSZip,
       jsPDF: controllerMocks.jsPDF,
@@ -589,7 +643,9 @@ describe('useConstructionSiteManagementController.ts', () => {
       ['house_draft'],
       ['house_built'],
     ]);
-    expect(controllerMocks.toast.success).toHaveBeenCalledWith('ZIP de RACs gerado com 2 PDF(s).');
+    expect(controllerMocks.toast.success).toHaveBeenCalledWith(expect.any(Function), expect.objectContaining({id: expect.any(String)}));
+    expect(controllerMocks.toast.success.mock.calls[0][0]().props.resultMessage).toBe('ZIP de RACs gerado com 2 PDF(s).');
+    expect(controllerMocks.toast.loading.mock.invocationCallOrder[0]).toBeLessThan(controllerMocks.buildRacPdfZipExport.mock.invocationCallOrder[0]);
   });
 
   it('exporta RAC em PDF para a casa selecionada e marca a casa exportada', async () => {
@@ -677,7 +733,8 @@ describe('useConstructionSiteManagementController.ts', () => {
     expect(controllerMocks.buildRacPdfZipExport).not.toHaveBeenCalled();
     expect(constructionSiteManagementPort.markHouseRacPrinted).not.toHaveBeenCalled();
     expect(controllerMocks.toast.error)
-      .toHaveBeenCalledWith('A exportação em ZIP só está disponível para construções em andamento.');
+      .toHaveBeenCalledWith(expect.any(Function), expect.objectContaining({id: expect.any(String)}));
+    expect(controllerMocks.toast.error.mock.calls[0][0]().props.resultMessage).toBe('A exportação em ZIP só está disponível para construções em andamento.');
   });
 
   it('salva a casa ativa quando o Canvas notifica mudança documental real', async () => {

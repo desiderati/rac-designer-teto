@@ -10,6 +10,7 @@ import type {HousePiloti} from '@/shared/types/house.ts';
 import type {AppSettings} from '@/shared/types/settings.ts';
 
 const defaultSettings: AppSettings = {
+  allowContraventamentoWithinProportion: false,
   autoNavigatePiloti: false,
   autoAdjustPilotiHeightsFromNivel: true,
   zoomEnabledByDefault: true,

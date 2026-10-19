@@ -37,16 +37,19 @@ export function canCreateContraventamentoForNivel(nivel: number): boolean {
  * Valida a regra lógica de elegibilidade de um piloti para contraventamento.
  *
  * Um piloti só participa da regra quando tem nível mínimo configurado e altura
- * abaixo da proporção recomendada para esse nível.
+ * abaixo da proporção recomendada para esse nível. A preferência manual pode
+ * dispensar somente a regra de proporção.
  */
 export function isHousePilotiEligibleForContraventamento(
   piloti: HouseContraventamentoPilotiInput,
+  allowWithinProportion = false,
 ): boolean {
   const nivel = Number(piloti?.nivel ?? 0);
   const height = Number(piloti?.height ?? 0);
 
   return canCreateContraventamentoForNivel(nivel)
-    && isPilotiOutOfProportion(height, nivel);
+    && Number.isFinite(nivel) && Number.isFinite(height) && height > 0
+    && (allowWithinProportion || isPilotiOutOfProportion(height, nivel));
 }
 
 /**
@@ -58,9 +61,10 @@ export function isHousePilotiEligibleForContraventamento(
 export function hasEligiblePilotiForContraventamentoInColumn(params: {
   col: number;
   pilotis: Record<string, HouseContraventamentoPilotiInput>;
+  allowWithinProportion?: boolean;
 }): boolean {
   return HOUSE_CONTRAVENTAMENTO_ROWS.some((row) =>
-    isHousePilotiEligibleForContraventamento(params.pilotis[`piloti_${params.col}_${row}`]),
+    isHousePilotiEligibleForContraventamento(params.pilotis[`piloti_${params.col}_${row}`], params.allowWithinProportion),
   );
 }
 
@@ -73,9 +77,10 @@ export function hasEligiblePilotiForContraventamentoInColumn(params: {
 export function hasEligiblePilotiForContraventamentoInRow(params: {
   row: number;
   pilotis: Record<string, HouseContraventamentoPilotiInput>;
+  allowWithinProportion?: boolean;
 }): boolean {
   return HOUSE_CONTRAVENTAMENTO_COLUMNS.some((col) =>
-    isHousePilotiEligibleForContraventamento(params.pilotis[`piloti_${col}_${params.row}`]),
+    isHousePilotiEligibleForContraventamento(params.pilotis[`piloti_${col}_${params.row}`], params.allowWithinProportion),
   );
 }
 
@@ -106,6 +111,7 @@ export function isHouseContraventamentoDestinationEligible(params: {
   first: HouseContraventamentoGridPoint | null;
   candidate: HouseContraventamentoGridPoint;
   pilotis: Record<string, HouseContraventamentoPilotiInput>;
+  allowWithinProportion?: boolean;
 }): boolean {
   if (!params.first) return false;
   if (params.candidate.col !== params.first.col) return false;
@@ -114,6 +120,7 @@ export function isHouseContraventamentoDestinationEligible(params: {
   return hasEligiblePilotiForContraventamentoInColumn({
     col: params.candidate.col,
     pilotis: params.pilotis,
+    allowWithinProportion: params.allowWithinProportion,
   });
 }
 
@@ -125,6 +132,7 @@ export function isHouseHorizontalContraventamentoDestinationEligible(params: {
   candidate: HouseContraventamentoGridPoint;
   side: ContraventamentoSide | null | undefined;
   pilotis: Record<string, HouseContraventamentoPilotiInput>;
+  allowWithinProportion?: boolean;
 }): boolean {
   if (!params.first) return false;
   if (!canUseHorizontalContraventamentoSideInRow({row: params.first.row, side: params.side})) {
@@ -136,6 +144,7 @@ export function isHouseHorizontalContraventamentoDestinationEligible(params: {
   return hasEligiblePilotiForContraventamentoInRow({
     row: params.candidate.row,
     pilotis: params.pilotis,
+    allowWithinProportion: params.allowWithinProportion,
   });
 }
 
