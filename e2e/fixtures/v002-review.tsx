@@ -15,6 +15,7 @@ import type {PersistedHouseRecord} from '@/shared/types/construction-site.ts';
 const house = HouseAggregate.createInitialHouseState({id: 'v002-fixture', pilotiIds: getAllPilotiIds(),
   defaultPiloti: DEFAULT_HOUSE_PILOTI, defaultTerrainType: 1});
 house.houseType = 'tipo6';
+house.preAssignedSides = {front: 'bottom'};
 house.pilotis = Object.fromEntries(getAllPilotiIds().map((id, index) => [id, {
   height: index === 0 || index === 11 ? 1.2 : 1, nivel: index === 0 ? .25 : .2, isMaster: index === 0,
 }]));

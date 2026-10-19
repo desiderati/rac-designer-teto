@@ -22,3 +22,35 @@ it('A-014 mantém mini planta e materiais sem o bloco textual dispensado na V-00
   expect(summary.getByText('Vigas p/ Escada')).toBeVisible();
   expect(house).toEqual(before);
 });
+
+it.each([
+  {type: 'tipo6', view: 'front', side: 'top', label: 'superior'},
+  {type: 'tipo6', view: 'front', side: 'bottom', label: 'inferior'},
+  {type: 'tipo3', view: 'side2', side: 'left', label: 'esquerdo'},
+  {type: 'tipo3', view: 'side2', side: 'right', label: 'direito', preAssigned: true},
+])('A-014 inclui a porta da $type no lado $label sem alterar a casa', ({type, view, side, label, preAssigned}) => {
+  const house = {houseType: type, drawingDocument: {house: {
+    houseType: type,
+    pilotis: {piloti_0_0: {height: 1.2, nivel: .2, isMaster: true}},
+    sideMappings: {top: null, bottom: null, left: null, right: null, ...(!preAssigned ? {[side]: view} : {})},
+    preAssignedSides: preAssigned ? {[view]: side} : {},
+  }}} as unknown as PersistedHouseRecord;
+  const before = structuredClone(house);
+  render(<HouseMaterialsSummary familyName='Porta' house={house} materials={{asphaltBlanket: true}}/>);
+  fireEvent.click(screen.getByRole('button', {name: 'Resumo da Casa de Porta'}));
+  const summary = within(screen.getByRole('tooltip'));
+  expect(summary.getByRole('img', {name: `Mini planta da casa, sem identificadores de pilotis, porta no lado ${label}`})).toBeVisible();
+  expect(summary.getByText('Porta', {exact: true})).toBeVisible();
+  expect(summary.getByText('Manta Asfáltica')).toBeVisible();
+  expect(summary.queryByText(/Tipo da casa|Tamanho da casa|Pilotis .* m:/)).not.toBeInTheDocument();
+  expect(house).toEqual(before);
+});
+
+it('A-014 não inventa a posição da porta sem orientação definida', () => {
+  const house = {drawingDocument: {house: {houseType: 'tipo6', pilotis: {},
+    sideMappings: {top: null, bottom: null, left: null, right: null}, preAssignedSides: {},
+  }}} as unknown as PersistedHouseRecord;
+  render(<HouseMaterialsSummary familyName='Sem orientação' house={house}/>);
+  fireEvent.click(screen.getByRole('button', {name: 'Resumo da Casa de Sem orientação'}));
+  expect(within(screen.getByRole('tooltip')).queryByText('Porta', {exact: true})).not.toBeInTheDocument();
+});

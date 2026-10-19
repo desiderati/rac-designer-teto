@@ -72,7 +72,10 @@ for (const width of [360, 767]) {
     await expect(content).not.toContainText(/Tipo da casa|Tamanho da casa|Pilotis .* m:/);
     await expect(content).toContainText('Vigas p/ Escada');
     await expect(content).toContainText('Manta Asfáltica');
-    await expect(content.locator('svg[role="img"]').first()).toBeVisible();
+    const miniature = content.locator('svg[role="img"]').first();
+    await expect(miniature).toBeVisible();
+    await expect(miniature).toHaveAccessibleName(/porta no lado inferior/);
+    await expect(miniature.getByText('Porta', {exact: true})).toBeVisible();
     await content.screenshot({path: test.info().outputPath('A-014-resumo.png')});
     await page.keyboard.press('Escape');
     await expect(content).toHaveCount(0);
@@ -91,6 +94,12 @@ test('A-021 volta às construções em retrato usando a navegação real e prese
   await expect(page.getByRole('button', {name: 'Mostrar barra superior'})).toHaveCount(0);
   await expect(dialog.getByRole('button', {name: 'Close', exact: true})).toHaveCount(0);
   const back = dialog.getByRole('button', {name: 'Voltar às construções', exact: true});
+  const colors = await back.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {background: style.backgroundColor, foreground: style.color};
+  });
+  expect(colors.background).toBe('rgb(37, 99, 235)');
+  expect(colors.foreground).toBe('rgb(255, 255, 255)');
   await back.focus();
   await page.keyboard.press('Escape');
   await expect(dialog).toBeVisible();

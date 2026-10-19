@@ -29,7 +29,7 @@ export function HouseMaterialsSummary({familyName, materials, guidedTourId, hous
         </TooltipTrigger>
         <TooltipContent side='top' collisionPadding={12} className='max-h-[50dvh] w-64 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl bg-white p-4 text-slate-900 shadow-lg' onClick={(event) => event.stopPropagation()}>
           <div className='space-y-3'><strong>Resumo da Casa</strong>{house ?
-            <HousePlanMiniature pilotis={house.drawingDocument.house?.pilotis ?? {}}/>
+            <HousePlanMiniature pilotis={house.drawingDocument.house?.pilotis ?? {}} house={house.drawingDocument.house}/>
             : null}
             {MATERIAL_SECTIONS.map((section, index) => {
               const sectionRows = rows.filter((row) => section.labels.some((label) => label === row.label));
