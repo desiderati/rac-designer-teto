@@ -18,6 +18,12 @@ import type { ConstructionSiteState } from '@/shared/types/construction-site.ts'
 import { mergeConstructionSiteStates } from '@/domain/construction-site/construction-site-conflict-merge.ts';
 import {createIndexedDbConstructionSiteStorageDriver} from '@/infra/storage/indexed-db-construction-sites.storage.ts';
 import {isIsolatedLocalMode, isLocalEditorMode} from '@/shared/local-runtime.ts';
+import {
+  IndexedDbRemoteSyncJournal,
+  remoteJournalIdentity,
+  type RemoteSyncJournal,
+  type RemoteJournalSnapshot,
+} from '@/infra/storage/remote-sync-journal.ts';
 import type {
   RemoteSyncConflict,
   RemoteSyncController,
@@ -26,7 +32,9 @@ import type {
 
 export type RemoteConstructionSiteStorageLoadState =
   | { status: 'loading' }
-  | { status: 'legacy_confirmation'; discardLegacyData: () => Promise<void>; keepLegacyData: () => void }
+  | { status: 'pending_sessions'; sessions: PendingSession[]; message?: string;
+    recover: (session: PendingSession) => Promise<void>; continueCurrent: () => void }
+  | { status: 'legacy_confirmation'; message?: string; discardLegacyData: () => Promise<void>; keepLegacyData: () => void }
   | { status: 'blocked'; reviewLegacyData: () => void }
   | { status: 'error'; message: string }
   | { status: 'ready'; storage: ConstructionSiteSessionStoragePort; sync: RemoteSyncController };
@@ -36,19 +44,33 @@ type SessionRepository = ConstructionSiteRepositoryPort & {
   getSavedAt?: (constructionSiteId: string) => string | undefined;
 };
 
-export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSiteStorageLoadState {
-  const repository = useMemo<SessionRepository>(() => (
-    isLocalEditorMode
+type PendingSession = {sessionId: string; revision: number; savedAt: string; documentCount: number};
+
+export function useRemoteConstructionSiteSessionStorage(ownerId?: string): RemoteConstructionSiteStorageLoadState {
+  const sessionRepository = useMemo<{ownerId?: string; repository: SessionRepository}>(() => ({
+    ownerId,
+    repository: isLocalEditorMode
       ? new IndexedDbConstructionSiteRepositoryAdapter(
         isIsolatedLocalMode
           ? createIndexedDbConstructionSiteStorageDriver('rac-designer-teto-isolated', true)
           : createIndexedDbConstructionSiteStorageDriver(),
       )
-      : new RemoteConstructionSiteRepositoryAdapter(racTrpcClient)
-  ), []);
-  const [loadStatus, setLoadStatus] = useState<'loading' | 'legacy_confirmation' | 'blocked' | 'ready' | 'error'>('loading');
+      : new RemoteConstructionSiteRepositoryAdapter(racTrpcClient),
+  }), [ownerId]);
+  const repository = sessionRepository.repository;
+  const journalState = useMemo(() => {
+    if (isLocalEditorMode) return {journal: undefined, error: null};
+    try {
+      return {journal: new IndexedDbRemoteSyncJournal(remoteJournalIdentity(ownerId ?? '')), error: null};
+    } catch (error) {
+      return {journal: undefined, error: toRemoteSyncMessage(error, 'Não foi possível preparar a fila persistente.')};
+    }
+  }, [ownerId]);
+  const [loadStatus, setLoadStatus] = useState<'loading' | 'legacy_confirmation' | 'pending_sessions' | 'blocked' | 'ready' | 'error'>('loading');
+  const [pendingSessions, setPendingSessions] = useState<PendingSession[]>([]);
+  const recoveryReviewedFor = useRef<string | undefined>(undefined);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [storage, setStorage] = useState<ConstructionSiteSessionStoragePort | null>(null);
+  const [storage, setStorage] = useState<ReturnType<typeof createReactiveConstructionSiteSessionStorage> | null>(null);
   const [syncStatus, setSyncStatus] = useState<RemoteSyncStatus>('syncing');
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -56,6 +78,8 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
   const [revision, setRevision] = useState(0);
   const [loadGeneration, setLoadGeneration] = useState(0);
   const syncSessionGenerationRef = useRef(0);
+  const needsRemoteReload = useRef(false);
+  const loadedOwner = useRef<string | undefined>(undefined);
 
   const loadRemote = useCallback(async () => {
     const syncSessionGeneration = syncSessionGenerationRef.current + 1;
@@ -64,15 +88,58 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
     setLoadError(null);
     setSyncStatus('syncing');
     try {
-      const summaries = await repository.list();
-      const constructionSites = (await Promise.all(
-        summaries.map((summary) => repository.load(summary.id)),
-      )).filter((constructionSite): constructionSite is ConstructionSiteState => constructionSite !== null);
+      if (journalState.error) throw new Error(journalState.error);
+      const recovered = await journalState.journal?.read();
+      if (syncSessionGenerationRef.current !== syncSessionGeneration) return;
+      const hasPending = recovered && !areConstructionSiteListsEqual(recovered.document, recovered.synchronized);
+      if (!hasPending && recoveryReviewedFor.current !== ownerId) {
+        const sessions = await journalState.journal?.pendingSessions() ?? [];
+        if (syncSessionGenerationRef.current !== syncSessionGeneration) return;
+        if (sessions.length) {
+          setPendingSessions(sessions);
+          setLoadStatus('pending_sessions');
+          return;
+        }
+        recoveryReviewedFor.current = ownerId;
+      }
+      let constructionSites: ConstructionSiteState[];
+      let cachedOffline = false;
+      needsRemoteReload.current = false;
+      if (recovered && hasPending) {
+        constructionSites = recovered.document;
+        for (const state of recovered.synchronized) {
+          repository.setDocumentVersion?.(state.constructionSite.id, state.constructionSite.documentVersion ?? 0);
+        }
+      } else {
+        try {
+          const summaries = await repository.list();
+          const results = await Promise.allSettled(summaries.map((summary) => repository.load(summary.id)));
+          const failure = results.find(entry => entry.status === 'rejected' && isAuthenticationError(entry.reason))
+            ?? results.find(entry => entry.status === 'rejected');
+          if (failure?.status === 'rejected') throw failure.reason;
+          constructionSites = results.flatMap(entry => entry.status === 'fulfilled' && entry.value ? [entry.value] : []);
+        } catch (error) {
+          if (syncSessionGenerationRef.current !== syncSessionGeneration) return;
+          if (!recovered || isAuthenticationError(error)) throw error;
+          constructionSites = recovered.document;
+          // As cargas paralelas que tiveram sucesso podem ter avançado o cache
+          // de versões do adapter. A edição continuará baseada no snapshot local.
+          for (const state of recovered.synchronized) {
+            repository.setDocumentVersion?.(state.constructionSite.id, state.constructionSite.documentVersion ?? 0);
+          }
+          cachedOffline = true;
+          needsRemoteReload.current = true;
+          setErrorMessage('Exibindo a cópia deste dispositivo. Reconecte para consultar a base compartilhada.');
+        }
+        if (syncSessionGenerationRef.current !== syncSessionGeneration) return;
+        if (!cachedOffline) await journalState.journal?.write({document: constructionSites, synchronized: constructionSites});
+      }
 
       const nextStorage = createReactiveConstructionSiteSessionStorage(
         constructionSites,
         async (next, previous) => {
           const isCurrentSyncSession = () => syncSessionGenerationRef.current === syncSessionGeneration;
+          if (!isCurrentSyncSession()) return false;
           if (isCurrentSyncSession()) setSyncStatus('pending');
           const synchronized = await persistReactiveConstructionSites(
             repository,
@@ -91,6 +158,8 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
               if (isCurrentSyncSession()) setConflict(value);
             },
             (id) => nextStorage.read().constructionSites.find((entry) => entry.constructionSite.id === id),
+            isCurrentSyncSession,
+            (id, saved) => nextStorage.acknowledge(id, saved),
           );
           if (synchronized && isCurrentSyncSession()) {
             setSyncStatus('synced');
@@ -98,21 +167,38 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
           }
           return synchronized;
         },
+        {
+          journal: journalState.journal,
+          initialSynchronized: hasPending ? recovered!.synchronized : constructionSites,
+          isActive: () => syncSessionGenerationRef.current === syncSessionGeneration,
+          onPersistenceError: (error) => {
+            if (syncSessionGenerationRef.current !== syncSessionGeneration) return;
+            setSyncStatus('error');
+            setErrorMessage(toRemoteSyncMessage(error, 'Não foi possível preservar as alterações neste dispositivo.'));
+          },
+          onSettled: () => {
+            if (syncSessionGenerationRef.current !== syncSessionGeneration) return;
+            setSyncStatus('synced');
+            setErrorMessage(null);
+          },
+        },
       );
       if (syncSessionGenerationRef.current !== syncSessionGeneration) return;
       setStorage(nextStorage);
       setConflict(null);
-      setErrorMessage(null);
-      setSyncStatus('synced');
-      setLastSyncedAt(new Date().toISOString());
+      if (!cachedOffline) setErrorMessage(null);
+      setSyncStatus(cachedOffline ? 'error' : hasPending ? 'pending' : 'synced');
+      setLastSyncedAt(cachedOffline || hasPending ? null : new Date().toISOString());
+      loadedOwner.current = ownerId;
       setLoadStatus('ready');
+      if (hasPending) nextStorage.resume?.();
     } catch (error) {
       if (syncSessionGenerationRef.current !== syncSessionGeneration) return;
       setLoadStatus('error');
       setLoadError(toRemoteSyncMessage(error, 'Falha ao carregar as Construções TETO remotas.'));
       setSyncStatus('error');
     }
-  }, [repository]);
+  }, [journalState, ownerId, repository]);
 
   useEffect(() => {
     let alive = true;
@@ -136,13 +222,43 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
         setLoadStatus('error');
         setLoadError(toRemoteSyncMessage(error, 'Não foi possível verificar os dados locais.'));
       });
-    return () => { alive = false; };
+    return () => { alive = false; syncSessionGenerationRef.current += 1; };
   }, [loadRemote, loadGeneration]);
 
   const discardLegacyData = useCallback(async () => {
-    await clearLegacyIndexedDbConstructionSites();
-    setLoadGeneration((generation) => generation + 1);
+    setLoadError(null);
+    try {
+      await clearLegacyIndexedDbConstructionSites();
+      setLoadGeneration((generation) => generation + 1);
+    } catch (error) {
+      setLoadError(toRemoteSyncMessage(error, 'Não foi possível apagar os dados locais. Tente novamente.'));
+    }
   }, []);
+
+  const recoverPendingSession = useCallback(async (session: PendingSession) => {
+    const generation = syncSessionGenerationRef.current;
+    setLoadError(null);
+    try {
+      await journalState.journal?.recover(session.sessionId, session.revision);
+      if (syncSessionGenerationRef.current !== generation) return;
+      recoveryReviewedFor.current = ownerId;
+      await loadRemote();
+    } catch (error) {
+      if (syncSessionGenerationRef.current !== generation) return;
+      setLoadError(toRemoteSyncMessage(error, 'Não foi possível retomar a fila. Os registros foram preservados.'));
+      try {
+        const sessions = await journalState.journal?.pendingSessions() ?? [];
+        if (syncSessionGenerationRef.current === generation) setPendingSessions(sessions);
+      } catch {
+        // A falha original permanece visível e nenhum registro é substituído.
+      }
+    }
+  }, [journalState, loadRemote, ownerId]);
+
+  const continueCurrentSession = useCallback(() => {
+    recoveryReviewedFor.current = ownerId;
+    void loadRemote();
+  }, [loadRemote, ownerId]);
 
   const keepLegacyData = useCallback(() => {
     setLoadStatus('blocked');
@@ -172,6 +288,17 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
     setSyncStatus('syncing');
     setErrorMessage(null);
     try {
+      if (conflict.operation === 'remove') {
+        if (conflict.remoteState.constructionSite.status !== 'archived') {
+          throw new Error('A construção não está mais arquivada. Use a versão remota para continuar.');
+        }
+        repository.setDocumentVersion?.(conflict.constructionSiteId, conflict.remoteVersion);
+        setConflict(null);
+        setRevision(value => value + 1);
+        setSyncStatus('pending');
+        await storage.confirmRemoval(conflict.remoteState);
+        return;
+      }
       const latestLocal = storage.read().constructionSites.find(
         (entry) => entry.constructionSite.id === conflict.constructionSiteId,
       );
@@ -197,6 +324,7 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
       setSyncStatus('synced');
       setLastSyncedAt(new Date().toISOString());
     } catch (error) {
+      setConflict(current => current ?? conflict);
       setSyncStatus('conflict');
       setErrorMessage(toRemoteSyncMessage(error, 'Não foi possível aplicar suas alterações.'));
     }
@@ -207,12 +335,50 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
       setSyncStatus('conflict');
       return;
     }
-    if (storage?.resume) {
-      storage.resume();
+    if (storage) {
+      if (!needsRemoteReload.current) {
+        storage.resume?.();
+        return;
+      }
+      const generation = syncSessionGenerationRef.current;
+      setSyncStatus('syncing');
+      try {
+        // A consulta usa outro adapter: versões recebidas só podem avançar a
+        // fila atual se a sessão não tiver mudado durante o carregamento.
+        const freshRepository = new RemoteConstructionSiteRepositoryAdapter(racTrpcClient);
+        const refreshed = await storage.refresh(async () => {
+          const summaries = await freshRepository.list();
+          return (await Promise.all(summaries.map(summary => freshRepository.load(summary.id))))
+            .filter((state): state is ConstructionSiteState => state !== null);
+        }, states => {
+          for (const state of states) {
+            repository.setDocumentVersion?.(state.constructionSite.id, state.constructionSite.documentVersion ?? 0);
+          }
+        });
+        if (syncSessionGenerationRef.current !== generation) return;
+        if (refreshed) {
+          needsRemoteReload.current = false;
+          setRevision(value => value + 1);
+          setErrorMessage(null);
+          setLastSyncedAt(new Date().toISOString());
+          setSyncStatus('synced');
+        } else storage.resume?.();
+      } catch (error) {
+        if (syncSessionGenerationRef.current !== generation) return;
+        setSyncStatus('error');
+        setErrorMessage(toRemoteSyncMessage(error, 'Não foi possível atualizar a base remota. A sessão local foi preservada.'));
+      }
       return;
     }
     await loadRemote();
-  }, [conflict, loadRemote, storage]);
+  }, [conflict, loadRemote, repository, storage]);
+
+  useEffect(() => {
+    if (isLocalEditorMode || !storage) return;
+    const reconnect = () => { void retry(); };
+    window.addEventListener('online', reconnect);
+    return () => window.removeEventListener('online', reconnect);
+  }, [retry, storage]);
 
   const sync = useMemo<RemoteSyncController>(() => ({
     status: syncStatus,
@@ -226,8 +392,10 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
     retry,
   }), [conflict, dismissError, errorMessage, keepLocalVersion, lastSyncedAt, retry, revision, syncStatus, useRemoteVersion]);
 
-  if (loadStatus === 'loading') return { status: 'loading' };
-  if (loadStatus === 'legacy_confirmation') return { status: 'legacy_confirmation', discardLegacyData, keepLegacyData };
+  if (loadStatus === 'loading' || (!isLocalEditorMode && loadStatus === 'ready' && loadedOwner.current !== ownerId)) return { status: 'loading' };
+  if (loadStatus === 'legacy_confirmation') return { status: 'legacy_confirmation', message: loadError ?? undefined, discardLegacyData, keepLegacyData };
+  if (loadStatus === 'pending_sessions') return {status: 'pending_sessions', sessions: pendingSessions,
+    message: loadError ?? undefined, recover: recoverPendingSession, continueCurrent: continueCurrentSession};
   if (loadStatus === 'blocked') return { status: 'blocked', reviewLegacyData };
   if (loadStatus === 'error') return { status: 'error', message: loadError ?? 'Falha ao carregar a base remota.' };
   if (!storage) return { status: 'loading' };
@@ -246,6 +414,8 @@ export async function persistReactiveConstructionSites(
   setErrorMessage?: (value: string | null) => void,
   setConflict?: (value: RemoteSyncConflict | null) => void,
   getLatestLocalState?: (constructionSiteId: string) => ConstructionSiteState | undefined,
+  isActive: () => boolean = () => true,
+  onAcknowledged?: (id: string, saved?: ConstructionSiteState) => Promise<void>,
 ): Promise<boolean> {
   setStatus?.('syncing');
   setErrorMessage?.(null);
@@ -258,8 +428,10 @@ export async function persistReactiveConstructionSites(
 
   try {
     for (const constructionSite of changed) {
+      if (!isActive()) return false;
       try {
         await repository.save(constructionSite);
+        await onAcknowledged?.(constructionSite.constructionSite.id, constructionSite);
       } catch (error) {
         if (!isConflictError(error)) throw error;
         const remote = repository.load
@@ -279,7 +451,25 @@ export async function persistReactiveConstructionSites(
         throw error;
       }
     }
-    for (const constructionSiteId of removedIds) await repository.remove(constructionSiteId);
+    for (const constructionSiteId of removedIds) {
+      if (!isActive()) return false;
+      try {
+        await repository.remove(constructionSiteId);
+      } catch (error) {
+        if (!isConflictError(error) || !repository.load) throw error;
+        const base = previousById.get(constructionSiteId)!;
+        const remote = await loadConflictState(
+          id => repository.load!(id), base, base, id => repository.getSavedAt?.(id),
+        );
+        if (remote) {
+          setConflict?.({...remote, operation: 'remove'});
+          setStatus?.('conflict');
+          return false;
+        }
+        // A intenção de excluir já foi satisfeita por outra sessão.
+      }
+      await onAcknowledged?.(constructionSiteId);
+    }
     setStatus?.('synced');
     setLastSyncedAt?.(new Date().toISOString());
     return true;
@@ -299,24 +489,56 @@ export async function persistReactiveConstructionSites(
 export function createReactiveConstructionSiteSessionStorage(
   initialConstructionSites: ConstructionSiteState[],
   onWrite: (next: ConstructionSiteState[], previous: ConstructionSiteState[]) => Promise<boolean>,
-): ConstructionSiteSessionStoragePort {
+  options: {
+    journal?: RemoteSyncJournal;
+    initialSynchronized?: ConstructionSiteState[];
+    isActive?: () => boolean;
+    onPersistenceError?: (error: unknown) => void;
+    onSettled?: () => void;
+  } = {},
+): ConstructionSiteSessionStoragePort & {
+  acknowledge(id: string, saved?: ConstructionSiteState): Promise<void>;
+  refresh(load: () => Promise<ConstructionSiteState[]>, onAccepted: (states: ConstructionSiteState[]) => void): Promise<boolean>;
+  confirmRemoval(remoteState: ConstructionSiteState): Promise<void>;
+} {
   let pendingWrite: Promise<void> | null = null;
   let paused = false;
   let document: StoredConstructionSitesDocument = {
     version: 1,
     constructionSites: cloneConstructionSites(initialConstructionSites),
   };
-  let synchronizedConstructionSites = cloneConstructionSites(initialConstructionSites);
+  let synchronizedConstructionSites = cloneConstructionSites(options.initialSynchronized ?? initialConstructionSites);
+  let persistenceQueue = Promise.resolve();
+  let mutationRevision = 0;
+  const persist = () => {
+    const snapshot: RemoteJournalSnapshot = {
+      document: cloneConstructionSites(document.constructionSites),
+      synchronized: cloneConstructionSites(synchronizedConstructionSites),
+    };
+    const task = persistenceQueue.then(() => options.journal?.write(snapshot));
+    persistenceQueue = task.then(() => undefined, () => undefined);
+    return task;
+  };
+  const persistenceFailed = (error: unknown) => {
+    paused = true;
+    options.onPersistenceError?.(error);
+  };
 
   const schedule = () => {
-    if (paused || pendingWrite || areConstructionSiteListsEqual(document.constructionSites, synchronizedConstructionSites)) return;
+    if (paused || pendingWrite || (options.isActive && !options.isActive())
+      || areConstructionSiteListsEqual(document.constructionSites, synchronizedConstructionSites)) return;
     const run = async () => {
       while (!paused && !areConstructionSiteListsEqual(document.constructionSites, synchronizedConstructionSites)) {
+        if (options.isActive && !options.isActive()) return;
         const next = cloneConstructionSites(document.constructionSites);
         const localSnapshot = cloneConstructionSites(next);
         const previous = cloneConstructionSites(synchronizedConstructionSites);
+        // A intenção deve estar confirmada no IndexedDB ANTES de qualquer chamada de rede.
+        await persist();
+        if (paused || (options.isActive && !options.isActive())) return;
         if (!await onWrite(next, previous)) {
           paused = true;
+          await persist();
           return;
         }
         synchronizedConstructionSites = cloneConstructionSites(next);
@@ -329,11 +551,12 @@ export function createReactiveConstructionSiteSessionStorage(
         if (areConstructionSiteListsEqual(document.constructionSites, localSnapshot)) {
           document = {version: document.version, constructionSites: cloneConstructionSites(next)};
         }
+        await persist();
       }
+      if (!paused && (!options.isActive || options.isActive())) options.onSettled?.();
     };
     const tracked = run().catch((error) => {
-      paused = true;
-      console.error('[rac] Falha ao sincronizar Construções TETO remotas.', error);
+      persistenceFailed(error);
     });
     pendingWrite = tracked;
     void tracked.finally(() => {
@@ -343,12 +566,49 @@ export function createReactiveConstructionSiteSessionStorage(
   };
 
   return {
+    refresh: async (load, onAccepted) => {
+      const revision = mutationRevision;
+      if (pendingWrite || (options.isActive && !options.isActive())
+        || !areConstructionSiteListsEqual(document.constructionSites, synchronizedConstructionSites)) return false;
+      const fresh = await load();
+      if (revision !== mutationRevision || pendingWrite || (options.isActive && !options.isActive())) return false;
+      onAccepted(fresh);
+      document = {version: document.version, constructionSites: cloneConstructionSites(fresh)};
+      synchronizedConstructionSites = cloneConstructionSites(fresh);
+      mutationRevision += 1;
+      const acceptedRevision = mutationRevision;
+      try { await persist(); } catch (error) { persistenceFailed(error); throw error; }
+      return acceptedRevision === mutationRevision && !pendingWrite;
+    },
+    confirmRemoval: async (remoteState) => {
+      const id = remoteState.constructionSite.id;
+      synchronizedConstructionSites = replaceConstructionSite(synchronizedConstructionSites, remoteState);
+      document = {...document, constructionSites: document.constructionSites.filter(entry => entry.constructionSite.id !== id)};
+      mutationRevision += 1;
+      const previousWrite = pendingWrite;
+      try {
+        await persist();
+        await previousWrite;
+        paused = false;
+        schedule();
+      } catch (error) { persistenceFailed(error); throw error; }
+    },
+    acknowledge: async (id, saved) => {
+      mutationRevision += 1;
+      synchronizedConstructionSites = saved
+        ? replaceConstructionSite(synchronizedConstructionSites, saved)
+        : synchronizedConstructionSites.filter(entry => entry.constructionSite.id !== id);
+      await persist();
+    },
     read: () => cloneDocument(document),
     write: (constructionSites) => {
+      mutationRevision += 1;
       document = { version: document.version, constructionSites: cloneConstructionSites(constructionSites) };
+      void persist().catch(persistenceFailed);
       schedule();
     },
     replace: (constructionSites, synchronizedConstructionSiteId) => {
+      mutationRevision += 1;
       document = { version: document.version, constructionSites: cloneConstructionSites(constructionSites) };
       if (synchronizedConstructionSiteId) {
         const synchronized = constructionSites.find((entry) => entry.constructionSite.id === synchronizedConstructionSiteId);
@@ -356,12 +616,18 @@ export function createReactiveConstructionSiteSessionStorage(
       } else {
         synchronizedConstructionSites = cloneConstructionSites(constructionSites);
       }
-      paused = false;
-      schedule();
+      const previousWrite = pendingWrite;
+      void persist().then(() => previousWrite).then(() => {
+        paused = false;
+        schedule();
+      }).catch(persistenceFailed);
     },
     resume: () => {
       paused = false;
-      schedule();
+      void persist().then(() => {
+        if (areConstructionSiteListsEqual(document.constructionSites, synchronizedConstructionSites)) options.onSettled?.();
+        else schedule();
+      }).catch(persistenceFailed);
     },
   };
 }

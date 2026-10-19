@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { RemoteSyncProvider, type RemoteSyncConflict } from '@/contexts/RemoteSyncContext.tsx';
 import type { ConstructionSiteState } from '@/shared/types/construction-site.ts';
@@ -16,6 +16,27 @@ function state(version: number): ConstructionSiteState {
 }
 
 describe('modal de conflito remoto', () => {
+  it.each(['archived', 'in_progress'] as const)('oferece decisão de exclusão respeitando status remoto %s', async (status) => {
+    const remoteState = state(4); remoteState.constructionSite.status = status;
+    const keepLocalVersion = vi.fn(async () => undefined);
+    render(<RemoteSyncProvider value={{
+      status: 'conflict', revision: 0, lastSyncedAt: null, errorMessage: null,
+      conflict: {operation: 'remove', constructionSiteId: 'site-1', baseState: state(3),
+        localState: state(3), remoteState, remoteVersion: 4, conflicts: [], remoteOnlyEntities: []},
+      dismissError: vi.fn(), useRemoteVersion: vi.fn(), keepLocalVersion, retry: vi.fn(),
+    }}><RemoteSyncStatus/></RemoteSyncProvider>);
+    const button = screen.getByRole('button', {name: 'Confirmar exclusão'});
+    expect(screen.queryByRole('button', {name: 'Mesclar sem remover dados'})).not.toBeInTheDocument();
+    if (status === 'archived') {
+      expect(button).toBeEnabled();
+      await act(async () => { fireEvent.click(button); });
+      expect(keepLocalVersion).toHaveBeenCalledOnce();
+    } else {
+      expect(button).toBeDisabled();
+      expect(screen.getByText(/não está mais arquivada/)).toBeVisible();
+    }
+  });
+
   it('não monta a resolução quando o usuário está preenchendo um formulário', () => {
     const conflict: RemoteSyncConflict = {
       constructionSiteId: 'site-1',

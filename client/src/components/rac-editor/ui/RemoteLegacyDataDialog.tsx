@@ -14,11 +14,13 @@ export function RemoteLegacyDataDialog({
   onConfirmDiscard,
   onKeepLocal,
   busy = false,
+  error,
 }: {
   open: boolean;
   onConfirmDiscard: () => Promise<void>;
   onKeepLocal: () => void;
   busy?: boolean;
+  error?: string;
 }) {
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen && !busy) onKeepLocal(); }}>
@@ -44,6 +46,7 @@ export function RemoteLegacyDataDialog({
           <p className='border-t border-amber-200 pt-3 text-xs text-amber-800'>Esta ação é necessária para evitar misturar uma cópia antiga com a base compartilhada.</p>
         </div>
 
+        {error ? <p role='alert' className='text-sm text-red-700'>{error}</p> : null}
         <ActionDock testId='remote-legacy-data-actions' surface='dialog' spacing='flush'>
           <div className='flex w-full flex-wrap gap-2 sm:justify-between'>
             <Button type='button' variant='outline' disabled={busy} onClick={onKeepLocal}>

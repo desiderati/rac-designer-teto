@@ -5,6 +5,7 @@ import type { RemoteOnlyEntity } from '@/domain/construction-site/construction-s
 export type RemoteSyncStatus = 'synced' | 'syncing' | 'pending' | 'conflict' | 'error';
 
 export interface RemoteSyncConflict {
+  operation?: 'save' | 'remove';
   constructionSiteId: string;
   baseState: ConstructionSiteState | null;
   localState: ConstructionSiteState;

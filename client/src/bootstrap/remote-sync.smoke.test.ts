@@ -75,6 +75,21 @@ function createSharedCasServer(initialState: ConstructionSiteState) {
 }
 
 describe('remote construction site session storage', () => {
+  it('interrompe os próximos saves e remoções quando a sessão deixa de estar ativa', async () => {
+    let active = true;
+    const repository = {
+      save: vi.fn(async () => { active = false; }),
+      remove: vi.fn(async () => undefined),
+    };
+    const previous = [state('removed')];
+    const result = await persistReactiveConstructionSites(repository,
+      [state('first'), state('second')], previous,
+      undefined, undefined, undefined, undefined, undefined, () => active);
+    expect(result).toBe(false);
+    expect(repository.save).toHaveBeenCalledTimes(1);
+    expect(repository.remove).not.toHaveBeenCalled();
+  });
+
   it('replaces local state without scheduling a remote write', () => {
     const onWrite = vi.fn(async () => true);
     const storage = createReactiveConstructionSiteSessionStorage([state('old')], onWrite);
@@ -137,7 +152,7 @@ describe('remote construction site session storage', () => {
 
     storage.write([first]);
     storage.write([latest]);
-    expect(onWrite).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(onWrite).toHaveBeenCalledTimes(1));
     finishFirst();
 
     await vi.waitFor(() => expect(onWrite).toHaveBeenCalledTimes(2));

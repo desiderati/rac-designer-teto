@@ -35,8 +35,10 @@ export class IndexedDbConstructionSiteStorageDriver implements ConstructionSiteS
       return cloneStorageDocument(EMPTY_DOCUMENT);
     }
 
-    const database = await this.openDatabase();
+    const database = await openExistingDatabase(this.indexedDb, this.databaseName);
+    if (!database) return cloneStorageDocument(EMPTY_DOCUMENT);
     try {
+      if (!database.objectStoreNames.contains(STORE_NAME)) return cloneStorageDocument(EMPTY_DOCUMENT);
       const result = await requestToPromise<StoredConstructionSitesDocument | undefined>(
         database
           .transaction(STORE_NAME, 'readonly')
@@ -44,7 +46,10 @@ export class IndexedDbConstructionSiteStorageDriver implements ConstructionSiteS
           .get(CONSTRUCTION_SITES_DOCUMENT_KEY),
       );
 
-      if (!isStoredConstructionSitesDocument(result)) return cloneStorageDocument(EMPTY_DOCUMENT);
+      if (result !== undefined && !isStoredConstructionSitesDocument(result)) {
+        throw new Error('Os dados locais têm formato incompatível e foram preservados.');
+      }
+      if (result === undefined) return cloneStorageDocument(EMPTY_DOCUMENT);
       return cloneStorageDocument(result);
     } finally {
       database.close();
@@ -59,12 +64,10 @@ export class IndexedDbConstructionSiteStorageDriver implements ConstructionSiteS
 
     const database = await this.openDatabase();
     try {
-      await requestToPromise(
-        database
-          .transaction(STORE_NAME, 'readwrite')
-          .objectStore(STORE_NAME)
-          .put(cloneStorageDocument(document), CONSTRUCTION_SITES_DOCUMENT_KEY),
-      );
+      const transaction = database.transaction(STORE_NAME, 'readwrite');
+      const completed = transactionComplete(transaction);
+      transaction.objectStore(STORE_NAME).put(cloneStorageDocument(document), CONSTRUCTION_SITES_DOCUMENT_KEY);
+      await completed;
     } finally {
       database.close();
     }
@@ -83,20 +86,83 @@ export class IndexedDbConstructionSiteStorageDriver implements ConstructionSiteS
 
       const request = this.indexedDb.open(this.databaseName, DATABASE_VERSION);
       request.onerror = () => reject(request.error ?? new Error('Falha ao abrir IndexedDB.'));
+      request.onblocked = () => reject(new Error('Feche outras abas para atualizar o IndexedDB.'));
       request.onsuccess = () => resolve(request.result);
       request.onupgradeneeded = () => {
         const database = request.result;
-        for (const storeName of Array.from(database.objectStoreNames)) {
-          if (storeName !== STORE_NAME) {
-            database.deleteObjectStore(storeName);
-          }
-        }
         if (!database.objectStoreNames.contains(STORE_NAME)) {
           database.createObjectStore(STORE_NAME);
         }
       };
     });
   }
+}
+
+/** Abrir sem versão não migra uma base existente. A criação implícita é abortada. */
+export function openExistingDatabase(indexedDb: IDBFactory, name: string): Promise<IDBDatabase | null> {
+  return new Promise((resolve, reject) => {
+    let absent = false;
+    const request = indexedDb.open(name);
+    request.onupgradeneeded = () => {
+      absent = true;
+      request.transaction!.abort();
+    };
+    request.onerror = () => absent
+      ? resolve(null)
+      : reject(request.error ?? new Error('Falha ao consultar IndexedDB.'));
+    request.onblocked = () => reject(new Error('O IndexedDB está bloqueado por outra aba.'));
+    request.onsuccess = () => resolve(request.result);
+  });
+}
+
+export async function inspectLegacyConstructionSiteData(indexedDb = globalThis.indexedDB): Promise<boolean> {
+  if (!indexedDb) return false;
+  const database = await openExistingDatabase(indexedDb, DATABASE_NAME);
+  if (!database) return false;
+  try {
+    const names = Array.from(database.objectStoreNames);
+    if (!names.length) return false;
+    const transaction = database.transaction(names, 'readonly');
+    const checks = names.map(async (name) => {
+      const store = transaction.objectStore(name);
+      if (name !== STORE_NAME) return (await requestToPromise(store.count())) > 0;
+      const [document, count] = await Promise.all([
+        requestToPromise<unknown>(store.get(CONSTRUCTION_SITES_DOCUMENT_KEY)),
+        requestToPromise(store.count()),
+      ]);
+      // Registros incompatíveis ou em outras chaves também exigem consentimento.
+      return count > 1 || (document === undefined ? count > 0
+        : !isStoredConstructionSitesDocument(document) || document.constructionSites.length > 0);
+    });
+    return (await Promise.all(checks)).some(Boolean);
+  } finally {
+    database.close();
+  }
+}
+
+/** Somente o handler acionado pela confirmação humana deve chamar esta limpeza. */
+export async function clearConfirmedLegacyConstructionSiteData(indexedDb = globalThis.indexedDB): Promise<void> {
+  if (!indexedDb) throw new Error('IndexedDB indisponível; os dados locais não foram apagados.');
+  const database = await openExistingDatabase(indexedDb, DATABASE_NAME);
+  if (!database) return;
+  try {
+    const names = Array.from(database.objectStoreNames);
+    if (!names.length) return;
+    const transaction = database.transaction(names, 'readwrite');
+    const completed = transactionComplete(transaction);
+    for (const name of names) transaction.objectStore(name).clear();
+    await completed;
+  } finally {
+    database.close();
+  }
+}
+
+export function transactionComplete(transaction: IDBTransaction): Promise<void> {
+  return new Promise((resolve, reject) => {
+    transaction.oncomplete = () => resolve();
+    transaction.onabort = () => reject(transaction.error ?? new Error('Transação IndexedDB cancelada.'));
+    transaction.onerror = () => reject(transaction.error ?? new Error('Falha na transação IndexedDB.'));
+  });
 }
 
 export function createIndexedDbConstructionSiteStorageDriver(databaseName?: string, requireAvailable = false): ConstructionSiteStorageDriver {

@@ -31,8 +31,11 @@ function RemoteConflictDialog() {
   const local = conflict.localState.constructionSite;
   const remote = conflict.remoteState.constructionSite;
   const hasMergeConflicts = conflict.conflicts.length > 0;
+  const isRemoval = conflict.operation === 'remove';
+  const canRemove = remote.status === 'archived';
   const remoteOnlySummary = summarizeRemoteOnlyEntities(conflict.remoteOnlyEntities);
-  const localChanges = summarizeConstructionSiteChanges(conflict.baseState, conflict.localState);
+  const localChanges = isRemoval ? ['Exclusão desta Construção TETO solicitada.']
+    : summarizeConstructionSiteChanges(conflict.baseState, conflict.localState);
   const remoteChanges = summarizeConstructionSiteChanges(conflict.baseState, conflict.remoteState);
 
   const resolve = async (action: () => Promise<void>) => {
@@ -53,14 +56,16 @@ function RemoteConflictDialog() {
           </div>
           <DialogTitle>Conflito de sincronização</DialogTitle>
           <DialogDescription>
-            Outra sessão salvou esta Construção TETO enquanto você editava. Revise as diferenças antes de escolher como continuar.
+            {isRemoval
+              ? 'Outra sessão alterou esta Construção TETO antes da exclusão. Revise a versão atual antes de manter ou confirmar a exclusão.'
+              : 'Outra sessão salvou esta Construção TETO enquanto você editava. Revise as diferenças antes de escolher como continuar.'}
           </DialogDescription>
         </DialogHeader>
 
         <div className='min-h-0 flex-1 space-y-4 overflow-y-auto px-4 pb-4 sm:px-6'>
           <div className='grid min-w-0 gap-3 sm:grid-cols-2'>
             <ConflictVersion
-              label={`Suas alterações · base v${conflict.baseState?.constructionSite.documentVersion ?? local.documentVersion ?? '?'}`}
+              label={`${isRemoval ? 'Exclusão solicitada' : 'Suas alterações'} · base v${conflict.baseState?.constructionSite.documentVersion ?? local.documentVersion ?? '?'}`}
               state={local}
               tone='blue'
               dateLabel='Última alteração local'
@@ -77,20 +82,24 @@ function RemoteConflictDialog() {
             />
           </div>
 
-          <div className={`rounded-lg px-3 py-2 text-xs leading-5 ${hasMergeConflicts ? 'bg-red-50 text-red-800' : 'bg-emerald-50 text-emerald-800'}`}>
+          {isRemoval ? <div className='rounded-lg bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-950'>
+            {canRemove
+              ? 'Confirmar exclusão removerá a versão remota mostrada, incluindo as alterações da outra sessão.'
+              : 'A construção não está mais arquivada e não pode ser excluída. Use a versão remota para continuar.'}
+          </div> : <div className={`rounded-lg px-3 py-2 text-xs leading-5 ${hasMergeConflicts ? 'bg-red-50 text-red-800' : 'bg-emerald-50 text-emerald-800'}`}>
             <strong>{hasMergeConflicts ? 'Proteção contra perda:' : 'Merge seguro:'}</strong>{' '}
             {hasMergeConflicts
               ? 'não é seguro combinar automaticamente estas alterações. Nenhuma versão será substituída sem uma nova ação explícita.'
               : 'as alterações independentes serão combinadas sem remover entidades criadas pela outra sessão.'}
-          </div>
+          </div>}
 
-          {remoteOnlySummary && (
+          {remoteOnlySummary && !isRemoval && (
             <div className='rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900'>
               <strong>Atenção:</strong> {remoteOnlySummary}. Esses dados não serão apagados pelo merge.
             </div>
           )}
 
-          {hasMergeConflicts && (
+          {hasMergeConflicts && !isRemoval && (
             <div className='rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs leading-5 text-red-800'>
               <p className='font-semibold'>Há alterações concorrentes no mesmo dado.</p>
               <p className='mt-1'>Use a versão remota e reabra a Construção para reaplicar manualmente o que estava sendo editado.</p>
@@ -98,7 +107,9 @@ function RemoteConflictDialog() {
           )}
 
           <div className='rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600'>
-            <strong className='text-slate-800'>Usar a versão remota</strong> preserva o que já está compartilhado e descarta apenas as alterações locais deste documento.
+            <strong className='text-slate-800'>Usar a versão remota</strong>{' '}
+            {isRemoval ? 'cancela sua intenção de excluir e mantém a construção compartilhada.'
+              : 'preserva o que já está compartilhado e descarta apenas as alterações locais deste documento.'}
           </div>
         </div>
 
@@ -108,9 +119,11 @@ function RemoteConflictDialog() {
               <Server className='mr-2 h-4 w-4'/>
               Usar versão remota
             </Button>
-            <Button className='min-h-10 w-full whitespace-normal sm:w-auto' type='button' disabled={isResolving || hasMergeConflicts} onClick={() => void resolve(sync.keepLocalVersion)}>
+            <Button className='min-h-10 w-full whitespace-normal sm:w-auto' type='button'
+              variant={isRemoval ? 'destructive' : 'default'}
+              disabled={isResolving || (isRemoval ? !canRemove : hasMergeConflicts)} onClick={() => void resolve(sync.keepLocalVersion)}>
               <Cloud className='mr-2 h-4 w-4'/>
-              Mesclar sem remover dados
+              {isRemoval ? 'Confirmar exclusão' : 'Mesclar sem remover dados'}
             </Button>
           </div>
         </ActionDock>

@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><title>Fixture isolada de persistência PRD-004</title></head>
+<body>
+<p>Somente dados sintéticos de testes de persistência.</p>
+<script type="module">
+  import * as legacy from '/src/infra/storage/indexed-db-construction-sites.storage.ts';
+  import * as journal from '/src/infra/storage/remote-sync-journal.ts';
+  import {createReactiveConstructionSiteSessionStorage} from '/src/bootstrap/useRemoteConstructionSiteSessionStorage.ts';
+  window.__prd004 = {...legacy, ...journal, createReactiveConstructionSiteSessionStorage};
+</script>
+</body>
+</html>

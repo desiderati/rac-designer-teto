@@ -68,6 +68,9 @@ transitórios devem declarar explicitamente seu ciclo de vida.
 10. [Diagnóstico da publicação Manus](OPS-001-diagnostico-publicacao-manus.md)
     - Conferência de commits, workflow, checkpoint e código servido, incluindo bloqueios de mídia.
 
+11. [Backup e inventário administrativo de Storage](OPS-002-backup-storage.md)
+    - Backup global versionado, integridade, reconstituição isolada e inventário de órfãos em dry-run.
+
 ## Princípios deste diretório
 
 1. Linguagem clara e orientada a comportamento de produto.

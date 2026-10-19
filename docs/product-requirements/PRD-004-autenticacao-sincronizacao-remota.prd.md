@@ -5,18 +5,18 @@ doc_type: prd
 doc_role: product-requirements
 doc_set: product-requirements
 status: in_progress
-version: "0.4.0"
+version: "0.5.0"
 owners: []
 lang: pt-BR
 created: 2026-06-22
-updated: 2026-09-17
+updated: 2026-10-19
 ---
 
 # Autenticação e Sincronização Remota Global
 
 ## 1. Visão geral
 
-O RAC Designer TETO persiste Construções TETO localmente em IndexedDB. Esta fase adiciona autenticação Manus, persistência remota global, backup, recuperação entre dispositivos e armazenamento de imagens no Storage nativo do Manus.
+O RAC Designer TETO persiste Construções TETO na base global autenticada do Manus. IndexedDB mantém cache e intenções de escrita pendentes neste dispositivo. Esta fase cobre autenticação, recuperação entre dispositivos, resiliência de rede, backup administrativo e armazenamento de imagens no Storage nativo.
 
 A aplicação usará o mesmo padrão nativo de autenticação e banco utilizado em Grocerytics: Manus OAuth, backend fullstack do Manus, tRPC, Drizzle e banco MySQL/TiDB nativo. O banco remoto será a fonte de verdade para todos os usuários autenticados.
 
@@ -31,15 +31,19 @@ Dados locais legados não serão migrados nem enviados automaticamente. Ao entra
 
 ### Estado atual da iniciativa
 
-A estrutura `client/src/` e o runtime fullstack Manus estão implementados. A aplicação já contém Manus OAuth, `auth.me`, procedures protegidos, tRPC, Drizzle, a migration inicial, banco remoto global, `RemoteConstructionSiteRepositoryAdapter`, Storage nativo e upload validado de imagens até 5 MiB. O documento de cada Construção TETO é salvo como JSON versionado e as imagens são referenciadas por URLs `/manus-storage/{key}`; payloads com base64 são recusados no servidor.
+A estrutura `client/src/`, Manus OAuth, `auth.me`, procedures protegidos, tRPC, Drizzle, banco remoto global e `RemoteConstructionSiteRepositoryAdapter` estão implementados. Cada Construção TETO é salva como JSON versionado. O upload aceita PNG, JPEG e WEBP até 7,5 MiB; a rota canônica de leitura é `/api/private-storage/{key}`, com compatibilidade de `/manus-storage/{key}`. Payloads remotos com imagens base64 são recusados.
 
-O estado visual detalhado de sincronização, a confirmação de limpeza do IndexedDB legado, a fila offline persistente, a experiência específica de resolução de conflito, o backup administrativo e a limpeza de objetos órfãos ainda não foram entregues. Portanto, este PRD permanece **em progresso**: a fundação remota foi concluída, mas os requisitos de resiliência e operação de campo ainda exigem uma etapa própria.
+Os indicadores de sincronização, a confirmação de descarte legado e a resolução explícita de conflitos já existem. A implementação local agora inclui sondagem legada sem upgrade nem exclusão, fila persistente por usuário e sessão da aba, recuperação após recarga e reenvio ao reconectar. Uma falha de IndexedDB bloqueia o envio e fica visível; o cache não substitui autenticação válida.
+
+O suporte administrativo inclui backup global versionado, verificação por SHA-256, reconstituição em diretório isolado e inventário de órfãos em dry-run. A limpeza exige política de retenção explícita, inventário completo e autorização ligada ao hash do plano. O adapter destrutivo entregue atua somente sobre arquivos locais. O Forge conhecido fornece GET/PUT, sem listagem ou exclusão; a limpeza remota depende dessas capacidades e de uma fonte confiável de uploads pendentes. Ver [OPS-002](../OPS-002-backup-storage.md).
+
+Este PRD permanece **em progresso operacional**: código e testes locais não comprovam captura de dados reais, restauração em outro backend ou limpeza real. Não foram realizadas essas operações nesta entrega. A janela de retenção continua uma decisão do mantenedor, sem padrão inventado.
 
 ## 2. Metas
 
 - Permitir que qualquer usuário autenticado pelo Manus acesse a base global.
 - Usar o banco nativo Manus como fonte de verdade compartilhada.
-- Usar Storage nativo para fotos e arquivos de até aproximadamente 5 MB, mantendo no banco apenas referências e metadados.
+- Usar Storage nativo para fotos e arquivos de até 7,5 MiB, mantendo no banco apenas referências e metadados.
 - Preservar `ConstructionSiteState` e `HouseDrawingDocument` como contratos versionados.
 - Usar IndexedDB somente como cache técnico descartável e fila de escrita pendente.
 - Manter o editor independente da implementação de autenticação e persistência por meio de ports e adapters.
@@ -69,7 +73,8 @@ Como usuário autenticado, quero carregar as Construções TETO remotas para tra
 
 Critérios de aceitação:
 
-- O aplicativo avisa antes de descartar dados locais legados.
+- A sondagem não cria banco, não altera sua versão e não remove stores ou registros.
+- O aplicativo avisa antes de descartar dados locais legados; “Manter e sair” preserva a base.
 - Após a confirmação, os dados locais legados são removidos sem upload automático.
 - A aplicação carrega a base global pelo backend protegido.
 - O editor restaura a casa ativa segundo as regras existentes.
@@ -83,7 +88,7 @@ Como usuário autenticado, quero salvar alterações no backend compartilhado pa
 Critérios de aceitação:
 
 - Alterações de construções, casas, famílias, monitores, avaliações e desenhos são persistidas.
-- Cada registro mantém `scopeId`, `constructionSiteId`, `schemaVersion`, `documentVersion`, `updatedAt` e payload versionado.
+- A linha remota mantém `id`, `scopeKey`, `externalCode`, `status`, `document`, `documentVersion`, `createdAt` e `updatedAt`; `id` corresponde à Construção TETO e `scopeKey` ao escopo global. O payload mantém os contratos versionados de domínio.
 - O payload não usa JSON Fabric bruto como contrato durável.
 - O backend verifica `expectedDocumentVersion` antes de aceitar uma escrita.
 - Conflito de versão não sobrescreve silenciosamente o remoto.
@@ -95,8 +100,8 @@ Como usuário autenticado, quero anexar fotos sem inflar o documento JSON da con
 
 Critérios de aceitação:
 
-- Fotos de até aproximadamente 5 MB são enviadas ao Storage nativo.
-- O banco armazena apenas a referência do objeto, tipo, tamanho, checksum opcional e metadados necessários.
+- Fotos de até 7,5 MiB são enviadas ao Storage nativo.
+- O payload armazena a referência relativa do objeto. Tipo, tamanho e SHA-256 dos binários são registrados no manifesto administrativo; não se pressupõe uma tabela de assets inexistente.
 - A exclusão ou substituição de uma foto não remove o registro do banco antes de a nova referência estar confirmada.
 - Objetos órfãos podem ser identificados e limpos por procedimento administrativo.
 - O payload remoto não contém base64 de imagens como regra permanente.
@@ -107,7 +112,10 @@ Como usuário em campo, quero tolerar instabilidade curta de rede sem transforma
 
 Critérios de aceitação:
 
-- O cache pode ser limpo e reconstruído a partir do backend.
+- O cache confirmado pode ser reconstruído a partir do backend. Intenções ainda não sincronizadas não devem ser descartadas como se fossem cache.
+- Cada envio aguarda a gravação da intenção no IndexedDB. Recarga da mesma sessão da aba recupera documento local e base confirmada, preservando a versão esperada.
+- Contas e sessões de abas têm filas separadas. Uma escrita concorrente na mesma fila é recusada, sem substituir o registro.
+- Em uma nova sessão, filas pendentes da mesma conta são oferecidas para retomada explícita. A transferência é atômica, exige a revisão apresentada e invalida o escritor anterior. Continuar sem retomar preserva as outras filas; limpar os dados do navegador continua removendo as cópias locais.
 - Falha de rede marca a escrita como `pendente` ou `erro`.
 - A aplicação tenta reenviar alterações pendentes quando a conectividade retorna.
 - Conflitos não são mesclados nem sobrescritos automaticamente.
@@ -122,6 +130,8 @@ Critérios de aceitação:
 - Existe um procedimento documentado para exportar o escopo global.
 - A exportação não depende de IDs internos do banco ou de tokens de sessão.
 - As referências do Storage são exportadas com metadados suficientes para reconstituição.
+- O ZIP inclui documentos canônicos e binários referenciados, hashes por arquivo e hash externo; arquivos ausentes ou corrompidos impedem validação.
+- A reconstituição local cria diretório novo e protegido, sem sobrescrever banco ou Storage.
 - A exportação pode ser transformada para outro backend sem alterar o domínio.
 
 ## 4. Requisitos funcionais
@@ -131,8 +141,8 @@ Critérios de aceitação:
 - `FR-3:` O campo `role` não restringe acesso nesta fase, mas deve permanecer disponível para autorização futura.
 - `FR-4:` Dados locais legados são descartados no primeiro ingresso remoto após confirmação explícita.
 - `FR-5:` IndexedDB pode existir somente como cache descartável e fila de escrita.
-- `FR-6:` O adapter remoto preserva listagem, carga, salvamento, remoção lógica e versionamento.
-- `FR-7:` Cada documento remoto contém `scopeId`, `constructionSiteId`, `schemaVersion`, `documentVersion`, `updatedAt`, `deletedAt` opcional e `payload`.
+- `FR-6:` O adapter remoto preserva listagem, carga, salvamento e versionamento. A remoção é física, condicionada ao estado arquivado e à versão esperada; não há tombstone nesta entrega.
+- `FR-7:` A tabela remota contém `id`, `scopeKey`, `externalCode`, `status`, `document`, `documentVersion`, `createdAt` e `updatedAt`. A versão do desenho permanece no contrato de domínio; `deletedAt` e uma coluna SQL `schemaVersion` não são exigidos pelo modelo atual.
 - `FR-8:` O payload remoto é compatível com `ConstructionSiteState`.
 - `FR-9:` Cada casa mantém seu `PersistedDrawingDocument` versionado.
 - `FR-10:` Escritas exigem `expectedDocumentVersion` e são rejeitadas quando a versão diverge.
@@ -171,7 +181,7 @@ O backend usará tRPC, Drizzle e o banco MySQL/TiDB nativo. O Storage nativo ser
 
 - Qualquer usuário Manus autenticado consegue abrir a base global em outro dispositivo.
 - Dados locais legados são descartados sem upload acidental.
-- Uma foto de até aproximadamente 5 MB é armazenada fora do payload JSON e recuperada por referência.
+- Uma foto de até 7,5 MiB é armazenada fora do payload JSON e recuperada por referência.
 - O app exibe corretamente os estados de sincronização.
 - Falhas remotas não causam sobrescrita silenciosa.
 - Conflitos de versão são detectados e apresentados de forma explícita.
@@ -188,10 +198,9 @@ A persistência poderá normalizar entidades administrativas quando relatórios,
 
 ## 10. Questões em aberto
 
-- Texto final do aviso de descarte do IndexedDB legado.
-- Política para escrita quando a rede estiver indisponível.
-- Mensagem e ação para conflito de versão.
-- Política futura para limpeza de objetos órfãos no Storage.
+- Janela de retenção e coordenação necessária antes de qualquer limpeza real.
+- Provedor de inventário global, exclusão condicional e registro confiável de uploads pendentes no Storage.
+- Execução autorizada de backup real e ensaio de importação em outro backend, além da reconstituição local já testada.
 - Momento de ativar restrições por papel ou allowlist.
 
 ## 11. Documentos complementares

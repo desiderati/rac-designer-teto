@@ -20,6 +20,7 @@ import type {HouseDocumentSaveStatus} from '@/components/rac-editor/ports/HouseD
 import {RemoteSyncStatus} from './RemoteSyncStatus.tsx';
 import {isIsolatedLocalMode, isLocalEditorMode} from '@/shared/local-runtime.ts';
 import {LegacyDataBlockedState, RemoteLegacyDataDialog} from './RemoteLegacyDataDialog.tsx';
+import {RemotePendingSessions} from './RemotePendingSessions.tsx';
 import {VIEWPORT} from '@/shared/config.ts';
 
 const PRODUCT_SCREENSHOT_URL = '/landing/rac-editor-landing-screenshot-harmonized_95473d21.png';
@@ -32,7 +33,7 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
 };
 
 export function RacEditor() {
-  const {isAuthenticated, loading, error, logout} = useAuth();
+  const {user, isAuthenticated, loading, error, logout} = useAuth();
   const [isViewportTooNarrow, setIsViewportTooNarrow] = useState(false);
   const [isViewportWarningCollapsed, setIsViewportWarningCollapsed] = useState(false);
   const [oauthErrorCode, setOauthErrorCode] = useState<string | null>(null);
@@ -104,7 +105,7 @@ export function RacEditor() {
     <StorageImageUploadProvider>
       <TerrainPhotoDescriptionProvider>
         <House3DImageInsertionProvider>
-          <RemoteRacEditor onLogout={logout}/>
+        <RemoteRacEditor key={user?.openId} ownerId={user?.openId} onLogout={logout}/>
         </House3DImageInsertionProvider>
       </TerrainPhotoDescriptionProvider>
     </StorageImageUploadProvider>,
@@ -159,8 +160,8 @@ function MinimumViewportWarning({
   );
 }
 
-function RemoteRacEditor({onLogout}: {onLogout: () => Promise<void>}) {
-  const storageState = useRemoteConstructionSiteSessionStorage();
+function RemoteRacEditor({onLogout, ownerId}: {onLogout: () => Promise<void>; ownerId?: string}) {
+  const storageState = useRemoteConstructionSiteSessionStorage(ownerId);
   const [isDiscardingLegacyData, setIsDiscardingLegacyData] = useState(false);
   const ports = useMemo(() => {
     if (storageState.status !== 'ready') return null;
@@ -170,6 +171,7 @@ function RemoteRacEditor({onLogout}: {onLogout: () => Promise<void>}) {
   }, [storageState]);
 
   if (storageState.status === 'loading') return <RacEditorLoadingState/>;
+  if (storageState.status === 'pending_sessions') return <RemotePendingSessions {...storageState}/>;
 
   if (storageState.status === 'legacy_confirmation') {
     return (
@@ -177,6 +179,7 @@ function RemoteRacEditor({onLogout}: {onLogout: () => Promise<void>}) {
         <RemoteLegacyDataDialog
           open
           busy={isDiscardingLegacyData}
+          error={storageState.message}
           onKeepLocal={storageState.keepLegacyData}
           onConfirmDiscard={async () => {
             setIsDiscardingLegacyData(true);

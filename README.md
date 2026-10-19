@@ -102,8 +102,14 @@ técnico, siga esta ordem:
 - Quando uma nova versão fica disponível, a aplicação mostra um aviso e só recarrega após a ação do
   usuário. A recarga é bloqueada enquanto houver edição local ou sincronização remota pendente.
 
-- O cache inicial cobre os arquivos da interface; dados remotos, autenticação e sincronização ainda
-  exigem conexão. Edição de dados offline fica para uma etapa própria.
+- O cache inicial cobre os arquivos da interface. Após autenticação, o editor preserva as intenções
+  pendentes no IndexedDB antes de enviá-las, recupera a recarga da mesma sessão da aba e tenta reenviar
+  ao reconectar. Autenticação e confirmação remota exigem conexão; conflitos pedem decisão explícita.
+  Falha de armazenamento local bloqueia o envio e mostra erro. Em outra sessão da aba, o editor pede confirmação para retomar uma fila
+  pendente da mesma conta. Limpar dados do navegador remove essa proteção local.
+
+- O procedimento de [backup e inventário administrativo](docs/OPS-002-backup-storage.md) descreve
+  exportação versionada, reconstituição isolada e dry-run de órfãos, com limites da integração Manus.
 
 ## 🏗️ Arquitetura Atual
 

@@ -7,7 +7,7 @@ adr_number: ADR-003
 decision_mode: previo
 status: accepted
 created: 2026-06-22
-updated: 2026-09-17
+updated: 2026-10-19
 decision_source: "Revisão da decisão original para adoção da autenticação e do banco nativos do Manus"
 tags: [adr, architecture, decision, backend, auth, persistence, manus, drizzle, mysql, trpc, storage]
 aliases: [ADR-003, Backend Remoto Global com Manus Auth e Banco Nativo]
@@ -54,11 +54,13 @@ A mudança para `client/src/` não altera a fronteira arquitetural. O domínio, 
 
 ### Estado da implementação
 
-A implementação fullstack foi incorporada ao repositório. O runtime Express do Manus inicializa OAuth, tRPC sob `/api/trpc` e o proxy `/manus-storage/*`; `drizzle/schema.ts` define `users` e `construction_site_documents`; e a migration `drizzle/0000_late_karnak.sql` foi aplicada ao banco nativo. A tabela de documentos usa `id` da Construção TETO, `scopeKey = rac-designer-teto-global`, `externalCode`, `status`, o payload JSON canônico e `documentVersion` para concorrência otimista.
+A implementação fullstack foi incorporada ao repositório. O runtime Express do Manus inicializa OAuth, tRPC sob `/api/trpc` e a rota privada `/api/private-storage/*` (com compatibilidade de `/manus-storage/*`); `drizzle/schema.ts` define `users` e `construction_site_documents`; e a migration `drizzle/0000_late_karnak.sql` foi aplicada ao banco nativo. A tabela de documentos usa `id` da Construção TETO, `scopeKey = rac-designer-teto-global`, `externalCode`, `status`, o payload JSON canônico e `documentVersion` para concorrência otimista.
 
-No cliente, `RemoteConstructionSiteRepositoryAdapter` implementa `ConstructionSiteRepositoryPort`; `useRemoteConstructionSiteSessionStorage` hidrata a sessão síncrona que o canvas exige e serializa as escritas remotas. A tela do editor passa pelo gate `auth.me`, e os uploads de PNG, JPEG e WEBP são validados no cliente e novamente no servidor antes de `storagePut`. O banco persiste somente URLs `/manus-storage/{key}` e a procedure recusa qualquer `data:image/...` no documento remoto.
+No cliente, `RemoteConstructionSiteRepositoryAdapter` implementa `ConstructionSiteRepositoryPort`; `useRemoteConstructionSiteSessionStorage` hidrata a sessão síncrona que o canvas exige e serializa as escritas remotas. A tela do editor passa pelo gate `auth.me`, e os uploads de PNG, JPEG e WEBP são validados no cliente e novamente no servidor antes de `storagePut`. O banco persiste referências relativas `/api/private-storage/{key}` ou legadas `/manus-storage/{key}` e a procedure recusa qualquer `data:image/...` no documento remoto.
 
-O MVP implementado ainda não oferece confirmação visual para apagar o IndexedDB legado, fila offline persistente, indicador de sincronização por estado, exportação administrativa ou limpeza de objetos órfãos. Esses itens permanecem evolução explícita; IndexedDB não é consultado no caminho remoto implementado.
+O cliente oferece confirmação visual de descarte legado, indicadores de sincronização e resolução explícita de conflitos. A sondagem do legado não altera banco, versão ou stores. A fila persistente separada guarda intenção e base confirmada por usuário e sessão da aba, antes do envio; recupera recarga e retoma ao reconectar, sem contornar autenticação nem conflitos. Intenções ainda não confirmadas não devem ser tratadas como cache descartável.
+
+O suporte administrativo local inclui backup versionado global com binários e hashes, captura opt-in via SELECT e GET assinado, reconstituição isolada e inventário de órfãos em dry-run. A limpeza local exige política e autorização do plano. Limpeza remota depende de listagem/exclusão não disponíveis no Forge atual e de evidência confiável de uploads pendentes. Nenhuma operação real foi executada para validar esta extensão. Ver [OPS-002](../OPS-002-backup-storage.md).
 
 ### Responsabilidades
 
@@ -68,7 +70,7 @@ O MVP implementado ainda não oferece confirmação visual para apagar o Indexed
 - O servidor deriva o escopo global `rac-designer-teto-global`.
 - Drizzle acessa o banco nativo e mantém o schema sincronizado por migrations.
 - O adapter remoto implementa `ConstructionSiteRepositoryPort`.
-- O Storage nativo guarda PNG, JPEG e WEBP de até 5 MiB; o banco guarda a URL `/manus-storage/{key}` no payload canônico. Metadados adicionais e checksum continuam evolução possível.
+- O Storage nativo guarda PNG, JPEG e WEBP de até 7,5 MiB; o banco guarda a referência relativa privada no payload canônico. O backup administrativo registra tamanho, tipo e SHA-256 dos binários referenciados.
 - O editor continua consumindo documentos serializáveis sem conhecer Manus OAuth, tRPC, Drizzle, MySQL/TiDB ou Storage.
 
 ### Fluxo principal
@@ -127,7 +129,7 @@ Um backend Node/Nest.js com banco próprio daria controle máximo, mas adicionar
 
 - Aceitar escopo global e acesso aberto no MVP para reduzir complexidade inicial.
 - Aceitar payloads JSON versionados antes da normalização relacional.
-- Aceitar cache local descartável, sem promover IndexedDB a fonte de verdade.
+- Aceitar cache confirmado reconstruível e intenções pendentes duráveis, sem promover IndexedDB a fonte de verdade remota.
 - Persistir imagens no Storage nativo e referências no banco, mesmo que isso exija um fluxo separado de upload.
 - Aceitar que permissões por papel, allowlists, SSO e MFA sejam evoluções posteriores.
 

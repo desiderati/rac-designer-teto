@@ -1,6 +1,8 @@
 import type {ConstructionSiteRepositoryPort} from '@/domain/construction-site/construction-site-repository.port.ts';
 import {
   createIndexedDbConstructionSiteStorageDriver,
+  inspectLegacyConstructionSiteData,
+  clearConfirmedLegacyConstructionSiteData,
   type ConstructionSiteStorageDriver,
 } from '@/infra/storage/indexed-db-construction-sites.storage.ts';
 import type {ConstructionSiteState} from '@/shared/types/construction-site.ts';
@@ -64,15 +66,9 @@ export class IndexedDbConstructionSiteRepositoryAdapter implements ConstructionS
 }
 
 export async function hasLegacyIndexedDbConstructionSites(): Promise<boolean> {
-  const document = await createIndexedDbConstructionSiteStorageDriver().read();
-  return document.constructionSites.length > 0;
+  return inspectLegacyConstructionSiteData();
 }
 
 export async function clearLegacyIndexedDbConstructionSites(): Promise<void> {
-  const driver = createIndexedDbConstructionSiteStorageDriver();
-  if ('clear' in driver && typeof driver.clear === 'function') {
-    await driver.clear();
-    return;
-  }
-  await driver.write({version: 1, constructionSites: []});
+  await clearConfirmedLegacyConstructionSiteData();
 }
