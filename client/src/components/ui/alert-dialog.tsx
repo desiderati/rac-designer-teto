@@ -51,7 +51,7 @@ AlertDialogHeader.displayName = 'AlertDialogHeader';
 
 const AlertDialogFooter = ({className, ...props}: React.HTMLAttributes<HTMLDivElement>) => (
   <ActionDock testId='alert-dialog-actions' surface='dialog' spacing='flush'>
-    <div className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2', className)} {...props} />
+    <div className={cn('grid grid-cols-1 auto-rows-fr gap-2 sm:grid-cols-2 [&>button]:m-0 [&>button]:h-auto [&>button]:min-h-10 [&>button]:w-full [&>button]:whitespace-normal [&>button]:py-2', className)} {...props} />
   </ActionDock>
 );
 AlertDialogFooter.displayName = 'AlertDialogFooter';
@@ -86,7 +86,7 @@ const AlertDialogCancel = React.forwardRef<
 >(({className, ...props}, ref) => (
   <AlertDialogPrimitive.Cancel
     ref={ref}
-    className={cn(buttonVariants({variant: 'outline'}), 'mt-2 sm:mt-0', className)}
+    className={cn(buttonVariants({variant: 'outline'}), 'm-0', className)}
     {...props}
   />
 ));

@@ -143,6 +143,9 @@ export function HouseDifficultyControls({
   const isToolbarCollapseViewport = useToolbarCollapseViewport();
   const shouldDefaultCollapse = usePhoneToolbarCollapseViewport();
   const [collapsedOverride, setCollapsedOverride] = useState<boolean | null>(null);
+  const [factorMenu, setFactorMenu] = useState<'soil' | 'obstacles' | null>(null);
+  const editable = Boolean(onSiteAssessmentChange);
+  useEffect(() => {if (!editable) setFactorMenu(null);}, [editable]);
   const shouldShowMobileHandle = enableMobileCollapse && isToolbarCollapseViewport;
   const isMobileCollapsed = !landscape && shouldShowMobileHandle && (collapsedOverride ?? shouldDefaultCollapse);
   const dragStartXRef = useRef<number | null>(null);
@@ -207,10 +210,10 @@ export function HouseDifficultyControls({
 
   const hasObstacles = OBSTACLE_OPTIONS.some(({key}) => Boolean(siteAssessment?.[key]));
   const soilControl = (
-    <DropdownMenu>
+    <DropdownMenu open={editable && factorMenu === 'soil'} onOpenChange={open => setFactorMenu(open && editable ? 'soil' : null)}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger asChild disabled={!onSiteAssessmentChange}>
             <button
               type='button'
               aria-label={`Editar perfil do solo. Atual: ${selectedSoil.label}`}
@@ -299,10 +302,10 @@ export function HouseDifficultyControls({
         : <HouseDifficultyGauge orientation={landscape ? 'semicircular' : 'vertical'} indicator={indicator}
           meterClassName='pointer-events-auto' testId='canvas-house-difficulty-gauge'/>)}
 
-      <DropdownMenu>
+      <DropdownMenu open={editable && factorMenu === 'obstacles'} onOpenChange={open => setFactorMenu(open && editable ? 'obstacles' : null)}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger asChild disabled={!onSiteAssessmentChange}>
               <button type='button' aria-label='Obstáculos' aria-pressed={hasObstacles} disabled={!onSiteAssessmentChange}
                 className={cn(showLabels
                   ? 'pointer-events-auto relative flex h-[64px] w-[88px] flex-col items-center justify-center gap-1 rounded-[18px] shadow-sm ring-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'

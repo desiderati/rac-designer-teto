@@ -203,7 +203,7 @@ export function UserMenu({
               </p>
             </div>
             {logoutError ? <p role='alert' className='mt-4 text-sm font-medium text-red-600'>{logoutError}</p> : null}
-            <div className='mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end'>
+            <div className='mt-6 grid grid-cols-2 gap-2 [&>button]:whitespace-normal [&>button]:py-2'>
               <button
                 type='button'
                 onClick={() => setLogoutOpen(false)}

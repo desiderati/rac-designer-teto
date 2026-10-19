@@ -31,7 +31,7 @@ de suas casas.
     - Bloqueia criação, edição, arquivamento, desarquivamento, marcação como construída, retorno para rascunho,
       configuração, materiais extras e edição no Canvas das casas dessa construção.
     - Permite consultar o Canvas das casas em modo somente leitura.
-    - Permite retornar explicitamente para `Em andamento`; as casas permanecem construídas até liberar sua edição individualmente.
+    - Permite retornar explicitamente para `Em andamento`; cada casa retorna ao status preservado antes da conclusão, inclusive arquivadas. Registros legados sem histórico permanecem construídos, sem inferir um status anterior.
     - Permite arquivar a construção.
 
 3. `Arquivada`
@@ -41,7 +41,7 @@ de suas casas.
     - Bloqueia criação, edição, arquivamento, desarquivamento, marcação como construída, retorno para rascunho,
       configuração e materiais extras de casas.
     - Bloqueia abertura de casas dessa construção no Canvas.
-    - Permite desarquivar a construção.
+    - Permite desarquivar a construção, retornando a `Em andamento`. Quando houver histórico de conclusão, restaura também os status anteriores das casas, inclusive após recarga.
     - Permite excluir definitivamente a construção inteira, removendo seus dados filhos em cascata.
 
 ## Exclusão Definitiva

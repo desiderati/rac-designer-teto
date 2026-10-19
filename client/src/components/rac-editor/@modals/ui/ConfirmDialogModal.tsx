@@ -53,7 +53,7 @@ export function ConfirmDialogModal({
     modalBody;
 
   const actionButtons =
-    <div className={cn('flex w-full gap-[16px]', actionButtonsClassName)}>
+    <div className={cn('grid w-full grid-cols-2 gap-4 [&>button]:h-auto [&>button]:min-h-10 [&>button]:min-w-0 [&>button]:whitespace-normal [&>button]:py-2', actionButtonsClassName)}>
       <Button
         variant='outline'
         className='flex-1 bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'

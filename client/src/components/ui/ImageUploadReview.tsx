@@ -228,7 +228,7 @@ export function ImageUploadReview({
   );
 
   const actions = (
-    <div className='grid w-full grid-cols-2 gap-2'>
+    <div className='grid w-full grid-cols-2 gap-2 [&>button]:h-auto [&>button]:min-h-10 [&>button]:min-w-0 [&>button]:whitespace-normal [&>button]:py-2'>
       <Button type='button' variant='outline' className='w-full' onClick={() => handleOpenChange(false)} disabled={isConfirming}>
         Cancelar
       </Button>

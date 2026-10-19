@@ -26,6 +26,7 @@ import {useCanvasFabricSetup} from '@/components/rac-editor/@canvas/ui/adapters/
 import {useCanvasHistory} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasHistory.ts';
 import {useCanvasMinimapObjects} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasMinimapObjects.ts';
 import {useCanvasPointerInteractions} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasPointerInteractions.ts';
+import {useMobileCanvasGestures} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useMobileCanvasGestures.ts';
 import {useCanvasScreenProjection} from '@/components/rac-editor/@canvas/hooks/useCanvasScreenProjection.ts';
 import {useCanvasHouseSelection} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasHouseSelection.ts';
 import {useCanvasViewport} from '@/components/rac-editor/@canvas/hooks/useCanvasViewport.ts';
@@ -80,6 +81,7 @@ interface CanvasProps {
 
   /** Modo ativo da ferramenta do canvas. `pan` desativa a multisseleção do Fabric. */
   canvasToolMode?: CanvasToolMode;
+  onToolModeChange?: (mode: CanvasToolMode) => void;
   /** Notifica o componente pai sempre que o zoom interno muda. */
   onZoomChange?: (zoom: number) => void;
 
@@ -141,6 +143,7 @@ export const Canvas =
       siteAssessment = null,
       onSiteAssessmentChange,
       canvasToolMode = 'select',
+      onToolModeChange,
       onZoomChange,
 
       isContraventamentoMode = false,
@@ -552,7 +555,6 @@ export const Canvas =
         if (!fabric) return;
 
         if (readOnly && canvasToolMode !== 'pan') {
-          fabric.discardActiveObject();
           fabric.selection = true;
           fabric.skipTargetFind = false;
           fabric.isDrawingMode = false;
@@ -687,6 +689,10 @@ export const Canvas =
         setViewportY,
       });
 
+      const shouldSkipLegacyTouch = useMobileCanvasGestures({enabled: landscape && !isContraventamentoMode, houseId: activeHouseId, readOnly, containerRef,
+        fabricCanvasRef, canvasToolMode, onToolModeChange, zoom, minimumZoom, viewportX, viewportY,
+        handleViewportChange, handleZoomChange});
+
       const handleCanvasMouseDown = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
         setImageLayerMenu(null);
         handleMouseDown(event);
@@ -699,20 +705,22 @@ export const Canvas =
 
       const handleCanvasTouchStart = useCallback((event: ReactTouchEvent<HTMLDivElement>) => {
         setImageLayerMenu(null);
+        if (shouldSkipLegacyTouch(event.nativeEvent)) return;
         handleTouchStart(event);
         scheduleImageLongPress(event);
-      }, [handleTouchStart, scheduleImageLongPress]);
+      }, [handleTouchStart, scheduleImageLongPress, shouldSkipLegacyTouch]);
 
       const handleCanvasTouchMove = useCallback((event: ReactTouchEvent<HTMLDivElement>) => {
+        if (shouldSkipLegacyTouch(event.nativeEvent)) return;
         handleTouchMove(event);
         cancelImageLongPressOnMove(event);
-      }, [cancelImageLongPressOnMove, handleTouchMove]);
+      }, [cancelImageLongPressOnMove, handleTouchMove, shouldSkipLegacyTouch]);
 
       const handleCanvasTouchEnd = useCallback((event: ReactTouchEvent<HTMLDivElement>) => {
-        void event;
+        if (shouldSkipLegacyTouch(event.nativeEvent)) return;
         handleTouchEnd();
         clearImageLongPress();
-      }, [clearImageLongPress, handleTouchEnd]);
+      }, [clearImageLongPress, handleTouchEnd, shouldSkipLegacyTouch]);
 
       useEffect(() => () => clearImageLongPress(), [clearImageLongPress]);
 
@@ -747,6 +755,7 @@ export const Canvas =
           onTouchStart={handleCanvasTouchStart}
           onTouchMove={handleCanvasTouchMove}
           onTouchEnd={handleCanvasTouchEnd}
+          onTouchCancel={handleCanvasTouchEnd}
         >
           {/* Canvas */}
           <div

@@ -11,7 +11,7 @@ export function DestructiveConfirmationDialog({open, onOpenChange, onConfirm, ti
     <AlertDialogContent aria-busy={pending} onClick={event => event.stopPropagation()}>
       <AlertDialogHeader><AlertDialogTitle>{title}</AlertDialogTitle><AlertDialogDescription>{description}</AlertDialogDescription></AlertDialogHeader>
       {error ? <p role='alert' className='text-sm text-red-700'>{error}</p> : null}
-      <AlertDialogFooter className='grid grid-cols-2 gap-2 sm:space-x-0'>
+      <AlertDialogFooter className='grid-cols-2'>
         <AlertDialogCancel className='m-0 h-10 w-full' disabled={pending}>Cancelar</AlertDialogCancel>
         <Button className='h-10 w-full' variant='destructive' disabled={pending} onClick={() => {
           setPending(true); setError(null);

@@ -911,6 +911,19 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(houseType).toContainElement(within(row).getByTestId('house-table-updated-at'));
   });
 
+  it('abre a primeira casa não arquivada pelo formulário da construção', async () => {
+    const user = userEvent.setup();
+    const actions = createActions();
+    const onBackToCanvas = vi.fn();
+    renderPanel({actions, onBackToCanvas, canOpenRacEditor: true});
+    await user.click(within(screen.getByRole('row', {name: /CC2603.*Andamento/i})).getByRole('button', {name: 'Editar construção CC2603'}));
+    const button = screen.getByRole('button', {name: 'Abrir Canvas da primeira casa'});
+    expect(button).toBeEnabled();
+    await user.click(button);
+    await waitFor(() => expect(onBackToCanvas).toHaveBeenCalledWith(true));
+    expect(actions.activateHouse).toHaveBeenCalledWith('construction_site_1', 'house_1');
+  });
+
   it('abre o Canvas da casa selecionada e respeita alterações não salvas', async () => {
     const user = userEvent.setup();
     const actions = createActions();

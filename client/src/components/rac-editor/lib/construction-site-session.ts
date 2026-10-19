@@ -393,6 +393,8 @@ function normalizeConstructionSiteState(input: ConstructionSiteState): Construct
         houseType: isHouseType(house.houseType) ? house.houseType : null,
         terrainType: Number.isFinite(house.terrainType) ? house.terrainType : 1,
         status: isPersistedHouseStatus(house.status) ? house.status : 'draft',
+        ...(isPersistedHouseStatus(house.statusBeforeConstructionCompletion)
+          ? {statusBeforeConstructionCompletion: house.statusBeforeConstructionCompletion} : {}),
         houseSize: normalizeHouseSize(house.houseSize),
         leaders: normalizeOptionalText(house.leaders),
         extraMaterials: sanitizeHouseExtraMaterials(house.extraMaterials),
@@ -564,6 +566,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
 
     constructionSite.constructionSite.status = 'in_progress';
     constructionSite.constructionSite.updatedAt = new Date().toISOString();
+    this.restoreHouseStatusesBeforeCompletion(constructionSite);
     this.normalizeConstructionSiteActiveHouse(constructionSite);
 
     if (!this.canOpenRacEditor() || this.state?.constructionSite.id === constructionSiteId) {
@@ -1222,9 +1225,12 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     constructionSite.constructionSite.updatedAt = new Date().toISOString();
     if (status === 'completed') {
       constructionSite.houses.forEach((house) => {
+        house.statusBeforeConstructionCompletion = house.status;
         house.status = 'built';
         house.updatedAt = constructionSite.constructionSite.updatedAt;
       });
+    } else if (status === 'in_progress') {
+      this.restoreHouseStatusesBeforeCompletion(constructionSite);
     }
     this.normalizeConstructionSiteActiveHouse(constructionSite);
 
@@ -1232,6 +1238,15 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
       this.state = constructionSite;
     }
     this.persist();
+  }
+
+  private restoreHouseStatusesBeforeCompletion(constructionSite: ConstructionSiteState): void {
+    constructionSite.houses.forEach((house) => {
+      if (!house.statusBeforeConstructionCompletion) return;
+      house.status = house.statusBeforeConstructionCompletion;
+      delete house.statusBeforeConstructionCompletion;
+      house.updatedAt = constructionSite.constructionSite.updatedAt;
+    });
   }
 
   private normalizeConstructionSiteActiveHouse(constructionSite: ConstructionSiteState): void {

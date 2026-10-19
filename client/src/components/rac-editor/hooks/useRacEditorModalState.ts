@@ -1,6 +1,7 @@
-import {Dispatch, SetStateAction, useState} from 'react';
+import {Dispatch, SetStateAction, useEffect, useRef, useState} from 'react';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {CanvasToolMode, MenuSubmenu} from '@/components/rac-editor/@menus/lib/menu-types.ts';
+import {useCanvasMobileViewport} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
 
 interface UseRacEditorModalStateResult {
   activeSubmenu: MenuSubmenu;
@@ -53,7 +54,15 @@ export function useRacEditorModalState(): UseRacEditorModalStateResult {
   const [nivelDefinitionOpen, setNivelDefinitionOpen] = useState(false);
   const [pilotisSetupOpen, setPilotisSetupOpen] = useState(false);
   const [constructionSiteManagementOpen, setConstructionSiteManagementOpen] = useState(false);
-  const [canvasToolMode, setCanvasToolMode] = useState<CanvasToolMode>('select');
+  const {mobile} = useCanvasMobileViewport();
+  const previousMobile = useRef(mobile);
+  const [canvasToolMode, setCanvasToolMode] = useState<CanvasToolMode>(mobile ? 'pan' : 'select');
+  useEffect(() => {
+    if (mobile !== previousMobile.current) {
+      previousMobile.current = mobile;
+      setCanvasToolMode(mobile ? 'pan' : 'select');
+    }
+  }, [mobile]);
   const [displayZoom, setDisplayZoom] = useState(1);
 
   return {

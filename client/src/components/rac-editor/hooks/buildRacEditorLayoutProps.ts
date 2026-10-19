@@ -161,6 +161,7 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       isPilotiEligibleForContraventamento: args.isPilotiEligibleAsDestination,
       canvasToolMode: args.canvasToolMode,
       onZoomChange: args.setDisplayZoom,
+      onToolModeChange: args.menuActions.setCanvasToolMode,
       onSelectionMessage: args.setInfoMessage,
       onSelectionAuxCleanup: () => {},
       onZoomInteraction: args.handleZoomInteraction,

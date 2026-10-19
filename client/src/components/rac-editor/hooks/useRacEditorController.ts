@@ -525,7 +525,6 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
     setActiveSubmenu(null);
     setIsMenuOpen(false);
     setIsDrawing(false);
-    setCanvasToolMode('select');
     setPilotiSelection(null);
     setIsPilotiEditorOpen(false);
     setPilotisSetupOpen(false);

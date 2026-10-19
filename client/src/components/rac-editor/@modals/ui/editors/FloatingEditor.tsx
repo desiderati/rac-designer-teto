@@ -94,7 +94,7 @@ export function FloatingEditor({
         mobileDocked
         className={scrollWholeEditor ? 'static mx-0 mt-0 w-full shrink-0' : isMobile ? 'mt-0 shrink-0' : undefined}
       >
-        <div className='flex w-full gap-[16px]' data-no-drag>
+        <div className='grid w-full grid-cols-2 gap-4 [&>button]:h-auto [&>button]:min-h-10 [&>button]:min-w-0 [&>button]:whitespace-normal [&>button]:py-2' data-no-drag>
           <Button
             variant='outline'
             className='flex-1 bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'

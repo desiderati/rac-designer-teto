@@ -57,7 +57,7 @@ export function RacPdfExportChecklistModal({
       </div>
 
       <ActionDock testId='rac-pdf-checklist-actions' surface={isMobile ? 'drawer' : 'dialog'} spacing='flush'>
-        <div className='flex w-full gap-3'>
+        <div className='grid w-full grid-cols-2 gap-3 [&>button]:h-auto [&>button]:min-h-10 [&>button]:min-w-0 [&>button]:whitespace-normal [&>button]:py-2'>
           <Button
             variant='outline'
             className='flex-1 bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'

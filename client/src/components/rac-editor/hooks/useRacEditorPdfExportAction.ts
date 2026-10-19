@@ -23,6 +23,7 @@ import {
 import {requestChunkRecovery, recordPdfExportTelemetry} from '@/shared/lib/runtime-resilience.ts';
 import {cacheRacPdf, getCachedRacPdf, getRacPdfFingerprint} from '@/components/rac-editor/lib/rac-pdf-cache.ts';
 import {withPreparedHouseRacView} from '../lib/prepared-house-rac.ts';
+import {preparePdfHouseIllustration} from '../lib/pdf-house-illustration.ts';
 import {renderHouseDrawingCanvasImageDataUrl} from '../@canvas/ui/adapters/render-house-drawing-canvas-image.ts';
 import {
   getHouse3DViewerPreferencesStorageKey,
@@ -251,18 +252,12 @@ export function useRacEditorPdfExportAction({
       }
       if (!house3DScreenshotDataUrl) throw new Error('Não foi possível capturar a visualização 3D da casa.');
       let house3DImageDataUrl = house3DScreenshotDataUrl;
+      let hasIllustration = false;
       try {
         const wallColor = house?.drawingDocument.viewer3D?.wallColor
           ?? (house ? readHouse3DViewerPreferences(getHouse3DViewerPreferencesStorageKey(house.id)).wallColor : undefined);
-        const illustration = houseIllustrationPort?.generateFromDataUrl
-          ? await houseIllustrationPort.generateFromDataUrl(
-            house3DScreenshotDataUrl,
-            {wallColor},
-          )
-          : null;
-        if (illustration?.dataUrl?.startsWith('data:image/')) {
-          house3DImageDataUrl = illustration.dataUrl;
-        }
+        house3DImageDataUrl = await preparePdfHouseIllustration(house3DScreenshotDataUrl, wallColor, houseIllustrationPort);
+        hasIllustration = true;
       } catch (error) {
         console.error('[useRacEditorPdfExportAction] Falha ao gerar ilustração 3D para o PDF; usando captura:', error);
       }
@@ -294,7 +289,7 @@ export function useRacEditorPdfExportAction({
       updateProgressToast('create-preview');
       const url = await blobToPreviewUrl(blob);
       const pageCount = Math.max(1, pdf.getNumberOfPages());
-      if (house && fingerprint && !photos.hasUnresolvedPhotoSources && !hasOmittedRasterSources) cacheRacPdf(constructionSite, house.id, {
+      if (house && fingerprint && hasIllustration && !photos.hasUnresolvedPhotoSources && !hasOmittedRasterSources) cacheRacPdf(constructionSite, house.id, {
         fingerprint,
         blob,
         fileName: report.fileName,

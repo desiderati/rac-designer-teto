@@ -354,6 +354,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
         canExportPdf: () => true,
       }),
       {wrapper: createWrapper({
+        houseIllustrationPort: {generateFromDataUrl: vi.fn().mockResolvedValue({dataUrl: 'data:image/png;base64,illustrated', storageUrl: null})},
         constructionSiteManagementPort: {
           getConstructionSiteSnapshot: vi.fn(() => constructionSite),
           markActiveHouseRacPrinted: vi.fn(),

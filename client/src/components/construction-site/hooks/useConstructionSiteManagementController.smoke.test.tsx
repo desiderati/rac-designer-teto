@@ -27,6 +27,7 @@ const controllerMocks = vi.hoisted(() => ({
   buildRacPdfZipExport: vi.fn(),
   downloadBlob: vi.fn(),
   renderHouseDrawingCanvasImageDataUrl: vi.fn(),
+  renderHouse3D: vi.fn(),
   JSZip: vi.fn(),
   jsPDF: vi.fn(),
   toast: {
@@ -58,6 +59,8 @@ vi.mock('@/components/rac-editor/lib/rac-pdf-zip-export.ts', () => ({
 vi.mock('@/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts', () => ({
   renderHouseDrawingCanvasImageDataUrl: controllerMocks.renderHouseDrawingCanvasImageDataUrl,
 }));
+
+vi.mock('@/components/rac-editor/@viewer-3d/lib/render-house-3d-pdf-snapshot.tsx', () => ({renderHouse3DPdfSnapshotImageDataUrl: controllerMocks.renderHouse3D}));
 
 type CanvasHandle = CanvasDocumentHandle & CanvasHistoryHandle;
 type ConstructionSiteManagementPortMock = EditorPorts['constructionSiteManagementPort'] & {
@@ -602,6 +605,27 @@ describe('useConstructionSiteManagementController.ts', () => {
     ]);
     expect(ports.houseDrawingDocumentPort.importHouseDrawingDocument).toHaveBeenNthCalledWith(1, firstTargetDocument);
     expect(ports.houseDrawingDocumentPort.importHouseDrawingDocument).toHaveBeenNthCalledWith(2, secondTargetDocument);
+  });
+
+  it('gera a ilustração de cada casa do ZIP com seu próprio 3D e sua cor', async () => {
+    const site = createConstructionSiteSnapshot();
+    const houses = site.houses.filter(house => house.status !== 'archived');
+    for (const [index, house] of houses.entries()) {
+      makeHousePrintable(site, house.id);
+      house.drawingDocument.viewer3D = {wallColor: index ? '#aabbcc' : '#112233', hideBelowTerrain: true, cameraPose: null};
+    }
+    controllerMocks.renderHouse3D.mockImplementation(async document => 'data:image/png;base64,scene-' + document.house.id);
+    const generate = vi.fn(async (dataUrl: string) => ({dataUrl: dataUrl.replace('scene-', 'illustration-'), storageUrl: null}));
+    const port = createConstructionSiteManagementPort({getConstructionSiteSnapshots: vi.fn(() => [site])});
+    const ports = createEditorPorts({constructionSiteManagementPort: port, houseIllustrationPort: {generateFromDataUrl: generate}});
+    controllerMocks.buildRacPdfZipExport.mockImplementation(async args => {
+      for (const house of houses) expect(await args.renderHouse3DImageDataUrl(house)).toBe('data:image/png;base64,illustration-' + house.id);
+      return {fileName: 'test.zip', blob: new Blob(), exportedHouseIds: houses.map(house => house.id), failures: []};
+    });
+    const {result} = renderHook(() => useConstructionSiteManagementController({}), {wrapper: createWrapper(ports)});
+    await act(async () => {await result.current.actions.exportConstructionRacsZip(site.constructionSite.id);});
+    expect(generate.mock.calls).toEqual(houses.map(house => ['data:image/png;base64,scene-' + house.id, {wallColor: house.drawingDocument.viewer3D!.wallColor}]));
+    expect(port.activateHouse).not.toHaveBeenCalled();
   });
 
   it('exporta RACs em ZIP para a construção selecionada e marca as casas exportadas', async () => {

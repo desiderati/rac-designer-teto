@@ -1,4 +1,6 @@
 import {withPreparedHouseRacView} from '@/components/rac-editor/lib/prepared-house-rac.ts';
+import {preparePdfHouseIllustration} from '@/components/rac-editor/lib/pdf-house-illustration.ts';
+import {getHouse3DViewerPreferencesStorageKey, readHouse3DViewerPreferences} from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
 import {createElement, type RefObject, useCallback, useEffect, useRef, useState} from 'react';
 import {RacPdfExportProgress, RAC_PDF_EXPORT_STEPS, createInitialRacPdfExportStatuses, type RacPdfExportStepId} from '@/components/rac-editor/@modals/ui/RacPdfExportProgress.tsx';
 import {toast} from '@/components/ui/sonner.tsx';
@@ -41,9 +43,9 @@ interface UseConstructionSiteManagementControllerArgs {
   canvasRef?: RefObject<(CanvasDocumentHandle & CanvasHistoryHandle) | null>;
 }
 
-function renderPersistedHouse3D(persisted: PersistedHouseRecord) {
+async function renderPersistedHouse3D(persisted: PersistedHouseRecord) {
   const house = withPreparedHouseRacView(persisted);
-  if (!house.drawingDocument.house) return Promise.resolve(null);
+  if (!house.drawingDocument.house) return null;
   return renderHouse3DPdfSnapshotImageDataUrl({
     documentType: HOUSE_DRAWING_DOCUMENT_TYPE,
     schemaVersion: HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION,
@@ -61,7 +63,16 @@ export function useConstructionSiteManagementController({
   const {
     houseDrawingDocumentPort,
     constructionSiteManagementPort,
+    houseIllustrationPort,
   } = useEditorPorts();
+
+  const renderPersistedHouseIllustration = useCallback(async (house: PersistedHouseRecord) => {
+    const screenshot = await renderPersistedHouse3D(house);
+    if (!screenshot) return null;
+    const wallColor = house.drawingDocument.viewer3D?.wallColor
+      ?? readHouse3DViewerPreferences(getHouse3DViewerPreferencesStorageKey(house.id)).wallColor;
+    return preparePdfHouseIllustration(screenshot, wallColor, houseIllustrationPort);
+  }, [houseIllustrationPort]);
 
   const emitHouseStoreChange = useHouseStoreEmitter();
   const [version, setVersion] = useState(0);
@@ -222,7 +233,7 @@ export function useConstructionSiteManagementController({
         houseId,
         jsPDF,
         renderCanvasImageDataUrl: renderHouseDrawingCanvasImageDataUrl,
-        renderHouse3DImageDataUrl: renderPersistedHouse3D,
+        renderHouse3DImageDataUrl: renderPersistedHouseIllustration,
       });
 
       if (onPrepared) {
@@ -240,7 +251,7 @@ export function useConstructionSiteManagementController({
         ? error.message
         : 'Falha ao imprimir RAC.');
     }
-  }, [constructionSiteManagementPort, flushActiveHouseDocumentSave]);
+  }, [constructionSiteManagementPort, flushActiveHouseDocumentSave, renderPersistedHouseIllustration]);
 
   const exportConstructionRacsZip = useCallback(async (constructionSiteId?: string) => {
     if (zipExportInFlight.current) return;
@@ -280,7 +291,7 @@ export function useConstructionSiteManagementController({
         JSZip,
         jsPDF,
         renderCanvasImageDataUrl: renderHouseDrawingCanvasImageDataUrl,
-        renderHouse3DImageDataUrl: renderPersistedHouse3D,
+        renderHouse3DImageDataUrl: renderPersistedHouseIllustration,
       });
 
       downloadBlob(result.blob, result.fileName);
@@ -306,7 +317,7 @@ export function useConstructionSiteManagementController({
     } finally {
       zipExportInFlight.current = false;
     }
-  }, [constructionSiteManagementPort, flushActiveHouseDocumentSave]);
+  }, [constructionSiteManagementPort, flushActiveHouseDocumentSave, renderPersistedHouseIllustration]);
 
   const createConstructionSite = useCallback(async (input: CreateConstructionSiteInput) => {
     await runDocumentMutation(() => {

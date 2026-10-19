@@ -77,11 +77,11 @@ function ConfirmationDialogFooter({
   onConfirm(): void;
 }) {
   return (
-    <AlertDialogFooter className='flex-col gap-2 sm:flex-row sm:gap-2 sm:space-x-0'>
-      <AlertDialogCancel className='mt-0 w-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50 sm:w-auto'>
+    <AlertDialogFooter>
+      <AlertDialogCancel className='mt-0 w-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50'>
         Cancelar
       </AlertDialogCancel>
-      <AlertDialogAction onClick={onConfirm} className={`w-full sm:w-auto ${actionClassName}`}>
+      <AlertDialogAction onClick={onConfirm} className={`w-full ${actionClassName}`}>
         {actionLabel}
       </AlertDialogAction>
     </AlertDialogFooter>
@@ -122,13 +122,13 @@ export function UnsavedChangesDialog({
             Você está saindo da página sem salvar as alterações atuais. Se continuar, as alterações serão perdidas.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className='flex-col gap-2 sm:flex-row sm:gap-2 sm:space-x-0'>
-          <AlertDialogCancel className='mt-0 w-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50 sm:w-auto'>
+        <AlertDialogFooter>
+          <AlertDialogCancel className='mt-0 w-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50'>
             Continuar editando
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
-            className='w-full bg-red-600 text-white hover:bg-red-700 sm:w-auto'
+            className='w-full bg-red-600 text-white hover:bg-red-700'
           >
             Sair sem salvar
           </AlertDialogAction>
@@ -231,7 +231,7 @@ function getConstructionStatusDialogContent(action: StatusChangeAction, construc
   if (action === 'markInProgress') {
     return {
       title: 'Voltar construção para andamento?',
-      description: `A construção ${normalizedConstructionCode} voltará a permitir gestão de casas e monitores. As casas continuarão construídas até liberar sua edição individualmente.`,
+      description: `A construção ${normalizedConstructionCode} voltará a permitir gestão de casas e monitores. As casas voltarão ao status que tinham antes da conclusão. Quando o status anterior não estiver disponível, a casa continuará construída.`,
       actionLabel: 'Voltar para andamento',
       actionClassName: 'bg-amber-600 text-white hover:bg-amber-700',
       tone: 'warning' as const,
@@ -395,11 +395,11 @@ export function PermanentDeleteDialog({
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className='flex-col gap-2 sm:flex-row sm:gap-2 sm:space-x-0'>
-          <AlertDialogCancel className='mt-0 w-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50 sm:w-auto'>
+        <AlertDialogFooter>
+          <AlertDialogCancel className='mt-0 w-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50'>
             Cancelar
           </AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className='w-full bg-red-700 text-white hover:bg-red-800 sm:w-auto'>
+          <AlertDialogAction onClick={onConfirm} className='w-full bg-red-700 text-white hover:bg-red-800'>
             {actionLabel}
           </AlertDialogAction>
         </AlertDialogFooter>

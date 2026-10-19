@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import type {SiteAssessment} from '@/shared/types/construction-site.ts';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {cleanup, render, screen} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {HouseDifficultyControls} from '@/components/rac-editor/ui/HouseDifficultyControls.tsx';
 import {TooltipProvider} from '@/components/ui/tooltip.tsx';
@@ -17,6 +17,22 @@ function setViewportWidth(width: number) {
 }
 
 describe('HouseDifficultyControls', () => {
+  it('não abre menus em consulta nem mantém o menu aberto ao bloquear a casa', async () => {
+    const user = userEvent.setup();
+    const view = (editable: boolean) => <TooltipProvider><HouseDifficultyControls indicator={indicator}
+      onSiteAssessmentChange={editable ? vi.fn() : undefined}/></TooltipProvider>;
+    const rendered = render(view(true));
+    await user.click(screen.getByRole('button', {name: 'Obstáculos'}));
+    expect(screen.getByRole('menu')).toBeVisible();
+    rendered.rerender(view(false));
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    for (const button of [screen.getByRole('button', {name: 'Obstáculos'}), screen.getByRole('button', {name: /Editar perfil do solo/})]) {
+      expect(button).toBeDisabled();
+      fireEvent.pointerDown(button, {button: 0, ctrlKey: false});
+      fireEvent.keyDown(button, {key: 'Enter'});
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    }
+  });
   afterEach(() => {
     setViewportWidth(1024);
     vi.clearAllMocks();

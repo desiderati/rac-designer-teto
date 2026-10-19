@@ -159,6 +159,8 @@ export function useCanvasViewport({
   }, [houseId, state.zoom, state.viewportX, state.viewportY]);
 
   const handleViewportChange = useCallback((x: number, y: number) => {
+    viewportXRef.current = x;
+    viewportYRef.current = y;
     dispatch({type: 'setViewport', value: {x, y}});
     onMinimapInteraction?.();
   }, [onMinimapInteraction]);
@@ -180,11 +182,14 @@ export function useCanvasViewport({
 
     const maxX = Math.max(0, CANVAS_WIDTH * newZoom - size.width);
     const maxY = Math.max(0, CANVAS_HEIGHT * newZoom - size.height);
+    zoomRef.current = newZoom;
+    viewportXRef.current = Math.max(0, Math.min(newViewportX, maxX));
+    viewportYRef.current = Math.max(0, Math.min(newViewportY, maxY));
     dispatch({
       type: 'setViewport',
       value: {
-        x: Math.max(0, Math.min(newViewportX, maxX)),
-        y: Math.max(0, Math.min(newViewportY, maxY)),
+        x: viewportXRef.current,
+        y: viewportYRef.current,
       },
     });
 

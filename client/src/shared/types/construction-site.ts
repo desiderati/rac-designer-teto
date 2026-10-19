@@ -155,6 +155,8 @@ export interface PersistedHouseRecord {
   houseType: HouseType;
   terrainType: number;
   status: PersistedHouseStatus;
+  /** Status preservado durante a conclusão da construção, para uma eventual reabertura. */
+  statusBeforeConstructionCompletion?: PersistedHouseStatus;
   houseSize?: HouseSize;
   leaders?: string;
   extraMaterials?: HouseExtraMaterials;

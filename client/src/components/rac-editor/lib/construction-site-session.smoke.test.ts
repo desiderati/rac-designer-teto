@@ -43,7 +43,63 @@ describe('constructionSite-session.ts', () => {
     expect(result.find(site => site.constructionSite.id === first.constructionSite.id)?.houses.map(house => house.status)).toEqual(['built', 'built']);
     expect(result.find(site => site.constructionSite.id === other.constructionSite.id)).toEqual(before);
     session.markConstructionSiteInProgress(first.constructionSite.id);
-    expect(session.getConstructionSiteSnapshots().find(site => site.constructionSite.id === first.constructionSite.id)?.houses.every(house => house.status === 'built')).toBe(true);
+    expect(session.getConstructionSiteSnapshots().find(site => site.constructionSite.id === first.constructionSite.id)?.houses.map(house => house.status)).toEqual(['draft', 'archived']);
+  });
+  it('restaura todos os status anteriores após recarga e em ciclos repetidos', () => {
+    let currentStorage = createStorage();
+    let session = createConstructionSiteSession(currentStorage.storage);
+    const site = session.createConstructionSite({externalCode: 'CC0001', constructionDate: '2026-10-19', communityName: 'Teste'});
+    const draft = session.createHouse({familyName: 'Inicial'});
+    const printed = session.createHouse({familyName: 'Impressa'});
+    session.markHouseRacPrinted(printed.id);
+    const built = session.createHouse({familyName: 'Construída'});
+    session.markHouseBuilt(built.id);
+    const archived = session.createHouse({familyName: 'Arquivada'});
+    session.archiveHouse(archived.id);
+    for (let cycle = 0; cycle < 2; cycle++) {
+      session.markConstructionSiteCompleted(site.constructionSite.id);
+      session.markConstructionSiteCompleted(site.constructionSite.id); // idempotência não sobrescreve o histórico
+      currentStorage = createStorage(structuredClone(currentStorage.writes.at(-1)!));
+      session = createConstructionSiteSession(currentStorage.storage);
+      session.markConstructionSiteInProgress(site.constructionSite.id);
+      const houses = session.getConstructionSiteSnapshots()[0].houses;
+      expect(houses.map(house => [house.id, house.status])).toEqual([[draft.id, 'draft'], [printed.id, 'rac_printed'], [built.id, 'built'], [archived.id, 'archived']]);
+      expect(houses.every(house => !house.statusBeforeConstructionCompletion)).toBe(true);
+    }
+  });
+  it('não inventa status anteriores para construções legadas sem histórico', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    const site = session.createConstructionSite({externalCode: 'CC0001', constructionDate: '2026-10-19', communityName: 'Teste'});
+    session.createHouse({familyName: 'Legada'});
+    session.markConstructionSiteCompleted(site.constructionSite.id);
+    const snapshot = session.getConstructionSiteSnapshots();
+    delete snapshot[0].houses[0].statusBeforeConstructionCompletion;
+    const reloaded = createConstructionSiteSession(createStorage(snapshot).storage);
+    reloaded.markConstructionSiteInProgress(site.constructionSite.id);
+    expect(reloaded.getConstructionSiteSnapshots()[0].houses[0].status).toBe('built');
+  });
+  it.each([false, true])('restaura casas ao desarquivar uma construção concluída (recarga: %s)', (reload) => {
+    let currentStorage = createStorage();
+    let session = createConstructionSiteSession(currentStorage.storage);
+    const site = session.createConstructionSite({externalCode: 'CC0001', constructionDate: '2026-10-19', communityName: 'Teste'});
+    session.createHouse({familyName: 'Inicial'});
+    session.markHouseRacPrinted(session.createHouse({familyName: 'Impressa'}).id);
+    session.markHouseBuilt(session.createHouse({familyName: 'Construída'}).id);
+    session.archiveHouse(session.createHouse({familyName: 'Arquivada'}).id);
+    session.markConstructionSiteCompleted(site.constructionSite.id);
+    session.archiveConstructionSite(site.constructionSite.id);
+    if (reload) {
+      currentStorage = createStorage(structuredClone(currentStorage.writes.at(-1)!));
+      session = createConstructionSiteSession(currentStorage.storage);
+    }
+    const writesBefore = currentStorage.writes.length;
+    session.unarchiveConstructionSite(site.constructionSite.id);
+    const restored = session.getConstructionSiteSnapshots()[0];
+    expect(currentStorage.writes).toHaveLength(writesBefore + 1);
+    expect(restored.constructionSite.status).toBe('in_progress');
+    expect(restored.houses.map(house => house.status)).toEqual(['draft', 'rac_printed', 'built', 'archived']);
+    expect(restored.houses.every(house => !house.statusBeforeConstructionCompletion)).toBe(true);
   });
   it('não cria construção ou casa automaticamente quando o storage está vazio', () => {
     const {storage, writes} = createStorage();
@@ -1210,7 +1266,7 @@ describe('constructionSite-session.ts', () => {
     expect(persistedFamily?.name).toBe('Família Original');
 
     session.markConstructionSiteInProgress(constructionSiteId);
-    expect(session.getActiveHouse().status).toBe('built');
+    expect(session.getActiveHouse().status).toBe('draft');
     session.markHouseDraft(house.id);
     session.updateActiveHouseExtraMaterials({floorBeams: 10});
 
