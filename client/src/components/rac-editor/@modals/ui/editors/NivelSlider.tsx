@@ -28,6 +28,7 @@ interface NivelSliderProps {
   autoMode?: boolean;
   onAutoModeToggle?: () => void;
   showModeTourTarget?: boolean;
+  compactStepper?: boolean;
 }
 
 const NIVEL_MODE_TOUR_TARGET_ID = 'rac-piloti-nivel-mode-toggle';
@@ -47,6 +48,7 @@ export function NivelSlider({
   autoMode,
   onAutoModeToggle,
   showModeTourTarget = false,
+  compactStepper = false,
 }: NivelSliderProps) {
   const [inputDigits, setInputDigits] = useState(() => nivelToInputDigits(nivel));
   const editableNivelRef = useRef<HTMLSpanElement | null>(null);
@@ -168,7 +170,7 @@ export function NivelSlider({
         </div>
       </div>
 
-      <div className={cn('flex items-center justify-center gap-3', disabled && 'opacity-60')}>
+      <div className={cn('flex items-center justify-center', compactStepper ? 'gap-0' : 'gap-3', disabled && 'opacity-60')}>
         <Button
           aria-label='Diminuir nível do piloti'
           variant='outline'

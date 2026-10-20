@@ -20,6 +20,7 @@ import {NivelSlider} from '@/components/rac-editor/@modals/ui/editors/NivelSlide
 import {PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
 import {formatPilotiHeight} from '@/shared/types/piloti.ts';
 import type {HousePilotiReadPort, HousePilotiWritePort} from '@/components/rac-editor/ports/HousePilotiPort.ts';
+import './PilotiEditor.css';
 
 interface PilotiEditorProps {
   presentation?: 'floating' | 'inline';
@@ -118,6 +119,7 @@ export function PilotiEditor({
 
   // ---- Shared content renderers (inline to avoid remount/focus-loss) ----
   const canEditNivel = isCornerPiloti || !autoAdjustPilotiHeightsFromNivel;
+  const isInline = presentation === 'inline';
   const onBraceClick = (side: ContraventamentoSide) => {
     commitDraftChanges();
     if (side === 'left' || side === 'right') onContraventamentoSelect?.(side, pilotiId ?? undefined);
@@ -179,6 +181,8 @@ export function PilotiEditor({
 
           <Separator/>
 
+          <div className={isInline ? 'piloti-inline-layout' : 'space-y-4'}>
+          <section className={isInline ? 'piloti-inline-level' : undefined}>
           <NivelSlider
             disabled={!canEditNivel}
             autoFocusInput={isOpen && canEditNivel && !autoAdjustPilotiHeightsFromNivel}
@@ -193,31 +197,34 @@ export function PilotiEditor({
             autoMode={autoAdjustPilotiHeightsFromNivel}
             onAutoModeToggle={handleNivelModeToggle}
             showModeTourTarget={!isMobile}
+            compactStepper={isInline}
           />
+          </section>
 
-          <Separator/>
-
+          <section className={isInline ? 'piloti-inline-sizes' : undefined}>
+          {!isInline && <Separator className='mb-4'/>}
           <div className='space-y-4'>
-            <p className='text-sm font-medium text-center'>Tamanho dos Pilotis</p>
-            <div className='grid grid-cols-4 justify-items-center gap-2 max-w-[216px] mx-auto'>
+            <p className='piloti-inline-heading text-sm font-medium text-center'>Tamanho dos Pilotis</p>
+            <div className={isInline ? 'piloti-inline-size-choices' : 'grid grid-cols-4 justify-items-center gap-2 max-w-[216px] mx-auto'}>
               {selectedPilotiHeights.map((h) =>
                 <button
                   key={h}
                   onClick={() => handleHeightClick(h)}
                   disabled={clickedHeight !== null}
-                  className={getHeightButtonClasses(h, {compact: true})}
+                  className={`${getHeightButtonClasses(h, {compact: true})}${isInline ? ' !h-[60px] !w-[60px]' : ''}`}
                 >
                   {formatPilotiHeight(h)}
                 </button>
               )}
             </div>
           </div>
+          </section>
 
-          <Separator/>
-
-          <div className='space-y-3'>
-            <p className='text-sm font-medium text-center'>Contraventamento</p>
-            <div className='grid grid-cols-4 justify-items-center gap-2 max-w-[216px] mx-auto'>
+          <section className={isInline ? 'piloti-inline-braces' : undefined}>
+          {!isInline && <Separator className='mb-4'/>}
+          <div className={isInline ? 'space-y-4' : 'space-y-3'}>
+            <p className='piloti-inline-heading text-sm font-medium text-center'>Contraventamento</p>
+            <div className={isInline ? 'piloti-inline-brace-choices' : 'grid grid-cols-4 justify-items-center gap-2 max-w-[216px] mx-auto'}>
               <button
                 type='button'
                 aria-label='Esquerdo'
@@ -227,7 +234,7 @@ export function PilotiEditor({
                 className={
                   getContraventamentoButtonClasses(
                     contraventamentoLeftActive, contraventamentoLeftDisabled
-                  )
+                  ) + (isInline ? ' !h-[60px] !w-[60px]' : '')
                 }>
                 <span aria-hidden='true' className='flex items-center justify-center'>
                   <ContraventamentoSideIcon side='left' size={34}/>
@@ -244,7 +251,7 @@ export function PilotiEditor({
                   getContraventamentoButtonClasses(
                     contraventamentoRightActive,
                     contraventamentoRightDisabled
-                  )
+                  ) + (isInline ? ' !h-[60px] !w-[60px]' : '')
                 }>
                 <span aria-hidden='true' className='flex items-center justify-center'>
                   <ContraventamentoSideIcon side='right' size={34}/>
@@ -261,7 +268,7 @@ export function PilotiEditor({
                   getContraventamentoButtonClasses(
                     contraventamentoTopActive,
                     contraventamentoTopDisabled
-                  )
+                  ) + (isInline ? ' !h-[60px] !w-[60px]' : '')
                 }>
                 <span aria-hidden='true' className='flex items-center justify-center'>
                   <ContraventamentoHorizontalSideIcon side='top' size={34}/>
@@ -278,13 +285,15 @@ export function PilotiEditor({
                   getContraventamentoButtonClasses(
                     contraventamentoBottomActive,
                     contraventamentoBottomDisabled
-                  )
+                  ) + (isInline ? ' !h-[60px] !w-[60px]' : '')
                 }>
                 <span aria-hidden='true' className='flex items-center justify-center'>
                   <ContraventamentoHorizontalSideIcon side='bottom' size={34}/>
                 </span>
               </button>
             </div>
+          </div>
+          </section>
           </div>
         </>
       }

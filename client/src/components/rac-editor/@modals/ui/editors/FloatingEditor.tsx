@@ -82,7 +82,9 @@ export function FloatingEditor({
       <div ref={contentRef} className={isDrawer && !scrollWholeEditor ? 'flex min-h-0 flex-col gap-4 overflow-y-auto overscroll-contain' : 'flex shrink-0 flex-col gap-4'} data-vaul-no-drag>
         {header ? <div className={presentation === 'inline' ? '' : 'cursor-move'} onMouseDown={presentation === 'inline' ? undefined : handleDragStart}>{header}</div> : null}
 
-        <div className='shrink-0 bg-white rounded-xl p-4 space-y-4' data-no-drag>
+        <div className={presentation === 'inline'
+          ? 'piloti-inline-card min-w-0 shrink-0 space-y-4 rounded-xl bg-white p-2'
+          : 'shrink-0 space-y-4 rounded-xl bg-white p-4'} data-no-drag>
           {cardContent}
         </div>
       </div>
@@ -113,7 +115,7 @@ export function FloatingEditor({
 
   if (presentation === 'inline') {
     return isOpen ? (
-      <section aria-label={ariaLabel} className='rounded-2xl bg-slate-100 p-3 text-slate-950 sm:p-4'>
+      <section aria-label={ariaLabel} className='min-w-0 rounded-2xl bg-slate-100 p-2 text-slate-950'>
         {editorBody}
       </section>
     ) : null;
