@@ -119,9 +119,13 @@ que indica a ação de voltar quando houver um nível pai. Não duplicar esses n
 A barra inferior acompanha a seleção. Por padrão, o arrasto move somente os itens selecionados.
 Um item mostra `Item selecionado. Arraste pra movê-lo.`, `Editar` e `Escalar`.
 Editar e o botão que alterna entre Escalar e Mover têm 80 × 44 px em todos os estados.
-`Editar` fica habilitado apenas para uma vista planta de casa editável; outros componentes e vistas
-mantêm a ação desabilitada.
+`Editar` fica habilitado para um objeto com editor associado: planta/pilotis, terreno da elevação,
+muro e formas geométricas, linha/seta/distância, texto, desenho livre, cerca, entrada de terreno,
+casa desenhada e construção desenhada. Componentes sem editor mantêm a ação desabilitada.
 Vários mostram `Itens selecionados. Arraste pra movê-los.` e `Escalar`, sem edição múltipla.
+Ao lado das ações, Excluir seleção aparece somente como ícone de lixeira vermelho, com alvo de toque
+de 44 × 44 px e nome acessível. A ação usa o comando de exclusão existente para um ou vários itens;
+sem seleção, a barra desaparece, e casas construídas continuam sem ações de modificação.
 
 `Escalar` revela alças circulares brancas com contorno azul e alvos de toque de 44 px.
 A barra passa a orientar o arrasto dos pontos e oferece `Mover` para retornar. As alças respeitam
@@ -164,6 +168,27 @@ por toda a largura disponível, com recuos laterais de 12 px e espaçamento de 8
 Conservam os ícones próprios do produto. O editor inline da Análise de Campo mantém seus 60 × 60 px.
 As edições usam os comandos e a persistência existentes; não introduzem uma cópia independente
 das regras ou um novo significado de desfazer/cancelar. A seleção múltipla continua sem edição.
+
+### Edição compacta dos demais objetos no mobile horizontal
+
+Os editores genéricos e de terreno usam a mesma superfície lateral dos pilotis: largura de 288 px,
+direita colada, cantos esquerdos de 12 px, centro vertical e recuo vertical mínimo de 8 px. Sua altura
+acompanha o conteúdo, limitada a 425 px e à viewport visual disponível; a planta/pilotis conserva
+altura de 425 px. Todo o painel rola, com ações no rodapé e acesso preservado quando o teclado abre,
+conforme a [UI-006](UI-006-editores-flutuantes-e-teclado-mobile.md).
+
+Dispensar cabeçalho, ícone e labels visuais redundantes. Manter nomes acessíveis; centralizar o texto
+dos campos e usar recuos de 12 px e espaços de 8 px na paleta e nas ações. A paleta conserva as cores
+existentes e destaca a selecionada. Confirmar aplica o rascunho; Cancelar, toque fora e Escape fecham
+sem aplicar o rascunho genérico. O terreno conserva a aplicação ao alterar o slider e seus dados
+reais de rachão e volumes, sem título nem label/badge superior. Fechar não desfaz valores já aplicados.
+As apresentações desktop continuam usando o editor flutuante existente.
+
+Cada tipo editável tem orientação de primeira inserção, com progresso persistido próprio. Cerca,
+entrada de terreno, casa desenhada, construção desenhada e as três formas têm dicas independentes.
+As orientações da entrada e da construção compartilham o tipo lógico entre suas variantes, evitando
+repetição por direção. Os tours existentes de planta, elevação, texto, desenho livre e elementos
+lineares descrevem também o acesso explícito Editar no mobile, sem reiniciar progresso já salvo.
 
 ### Geometria e movimento
 

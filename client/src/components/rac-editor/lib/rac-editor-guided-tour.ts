@@ -16,6 +16,7 @@ const RAC_CONSTRUCTION_ACTIONS_STORAGE_REVISION = 'construction-actions-v2';
 const RAC_CONSTRUCTION_BACK_TO_CANVAS_STORAGE_REVISION = 'construction-back-to-canvas-v1';
 const RAC_HOUSE_ADD_STORAGE_REVISION = 'house-add-v1';
 const RAC_HOUSE_ACTIONS_STORAGE_REVISION = 'house-actions-v3';
+const CANVAS_OBJECT_EDITOR_TIP = 'No celular na horizontal, selecione o elemento e toque em Editar. No computador, dê dois cliques para editar texto e cor.';
 
 export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
   tours: [
@@ -129,7 +130,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           targetId: 'house-top-view-piloti',
           placement: 'top',
           alignment: 'center',
-          text: 'Na planta superior, selecione um piloti para abrir o editor e ajustar altura, nível e contraventamento quando necessário.',
+          text: 'Na planta superior, ajuste altura, nível e contraventamento dos pilotis. No celular na horizontal, selecione a planta e toque em Editar; no computador, selecione o piloti.',
           persistKey: 'guided-tour:rac-house-top-view:piloti',
           kind: 'flow',
         },
@@ -150,7 +151,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           placement: 'top',
           alignment: 'center',
           title: 'Vista Elevada',
-          text: 'A vista elevada mostra a fachada posicionada sobre o terreno e reflete os níveis definidos nos pilotis. Ao clicar duas vezes sobre o terreno é possível editar o nível de dificuldade para cálculo de pedras.',
+          text: 'A vista elevada reflete os níveis dos pilotis. Para ajustar o terreno e o cálculo de pedras, selecione a vista e toque em Editar no celular na horizontal; no computador, dê dois cliques sobre o terreno.',
           persistKey: 'guided-tour:rac-house-elevation-view:elevation-view',
           kind: 'flow',
         },
@@ -389,12 +390,30 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
     },
   ],
   tips: [
+    ...([
+      ['fence', 'Cerca'],
+      ['terrainEntry', 'Entrada de terreno'],
+      ['siteHouse', 'Casa desenhada'],
+      ['siteBuilding', 'Construção desenhada'],
+      ['square', 'Quadrado'],
+      ['triangle', 'Triângulo'],
+      ['circle', 'Círculo'],
+    ] as const).map(([kind, title]) => ({
+      id: `rac-tip-${kind}`,
+      triggerEvent: {name: RAC_CANVAS_OBJECT_INSERTED_EVENT, objectKind: kind},
+      placement: 'left' as const,
+      alignment: 'middle' as const,
+      title,
+      text: CANVAS_OBJECT_EDITOR_TIP,
+      persistKey: `guided-tour:rac-tip:${kind}`,
+      kind: 'tip' as const,
+    })),
     {
       id: 'rac-tip-text-color',
       triggerEvent: {name: RAC_CANVAS_OBJECT_INSERTED_EVENT, objectKind: 'text'},
       placement: 'left',
       alignment: 'middle',
-      text: 'Para alterar a cor deste texto, clique nele com o botão direito e escolha a cor no editor.',
+      text: 'No celular na horizontal, selecione o texto e toque em Editar. No computador, clique nele com o botão direito para alterar sua cor.',
       persistKey: 'guided-tour:rac-tip:text-color-v1',
       kind: 'tip',
     },
@@ -403,7 +422,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
       triggerEvent: {name: RAC_CANVAS_OBJECT_INSERTED_EVENT, objectKind: 'freehand'},
       placement: 'left',
       alignment: 'middle',
-      text: 'Depois de terminar o desenho, dê dois cliques no traço para alterar sua cor.',
+      text: 'Depois de terminar o desenho, selecione o traço e toque em Editar no celular na horizontal. No computador, dê dois cliques no traço para alterar sua cor.',
       persistKey: 'guided-tour:rac-tip:freehand-color-v1',
       kind: 'tip',
     },
@@ -412,7 +431,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
       triggerEvent: {name: RAC_CANVAS_OBJECT_INSERTED_EVENT, objectKind: 'wall'},
       placement: 'left',
       alignment: 'middle',
-      text: 'Depois de inserir um objeto ou muro, dê dois cliques nele para editar nome e aparência.',
+      text: CANVAS_OBJECT_EDITOR_TIP,
       persistKey: 'guided-tour:rac-tip:wall',
       kind: 'tip',
     },
@@ -421,7 +440,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
       triggerEvent: {name: RAC_CANVAS_OBJECT_INSERTED_EVENT, objectKind: 'line'},
       placement: 'left',
       alignment: 'middle',
-      text: 'Linhas podem receber texto e cor pelo editor do próprio objeto. Dê dois cliques nele para editar nome e aparência.',
+      text: `Linhas podem receber texto e cor. ${CANVAS_OBJECT_EDITOR_TIP}`,
       persistKey: 'guided-tour:rac-tip:line',
       kind: 'tip',
     },
@@ -430,7 +449,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
       triggerEvent: {name: RAC_CANVAS_OBJECT_INSERTED_EVENT, objectKind: 'arrow'},
       placement: 'left',
       alignment: 'middle',
-      text: 'Setas simples ajudam a indicar direção ou observações na planta. Dê dois cliques nele para editar nome e aparência.',
+      text: `Setas indicam direção ou observações na planta. ${CANVAS_OBJECT_EDITOR_TIP}`,
       persistKey: 'guided-tour:rac-tip:arrow',
       kind: 'tip',
     },
@@ -439,7 +458,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
       triggerEvent: {name: RAC_CANVAS_OBJECT_INSERTED_EVENT, objectKind: 'distance'},
       placement: 'left',
       alignment: 'middle',
-      text: 'Use distância para registrar medidas visuais de apoio no desenho. Dê dois cliques nele para editar nome e aparência.',
+      text: `Use distância para registrar medidas visuais de apoio. ${CANVAS_OBJECT_EDITOR_TIP}`,
       persistKey: 'guided-tour:rac-tip:distance',
       kind: 'tip',
     },

@@ -195,12 +195,13 @@ test('painel permanece utilizável em 667x375 e altura reduzida', async ({page})
   await expect(editor).toHaveCount(0);
 });
 
-test('vista frontal não habilita edição de pilotis pelo novo acesso', async ({page}) => {
+test('vista frontal abre o editor de terreno pelo acesso explícito', async ({page}) => {
   const {editor, screenshot} = await fixture(page, {front: true});
   await expect.poll(() => selectCanvasObjectByMyTypeByDebug(page, 'house', true)).toBe(true);
-  await expect(page.getByRole('button', {name: 'Editar', exact: true})).toBeDisabled();
+  await page.getByRole('button', {name: 'Editar', exact: true}).click();
+  await expect(page.getByRole('dialog', {name: 'Editar Terreno', exact: true})).toBeVisible();
   await expect(editor).toHaveCount(0);
-  await screenshot('frontal-editar-bloqueado');
+  await screenshot('frontal-editar-terreno');
 });
 
 test('casa construída mantém o novo painel de edição indisponível', async ({page}) => {

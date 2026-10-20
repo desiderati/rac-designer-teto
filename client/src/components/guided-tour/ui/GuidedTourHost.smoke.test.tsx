@@ -127,6 +127,23 @@ describe('GuidedTourHost', () => {
     expect(await screen.findByRole('dialog', {name: 'Barra de Ferramentas'})).toBeVisible();
   });
 
+  it.each(['fence', 'terrainEntry', 'siteHouse', 'siteBuilding', 'square', 'triangle', 'circle'])(
+    'orienta a edição de %s somente na primeira inserção', async kind => {
+      const user = userEvent.setup();
+      localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
+      render(<TestGuidedTourHost/>);
+      const insert = () => act(() => document.dispatchEvent(new CustomEvent('rac:canvas-object-inserted', {
+        detail: {kind, rect: {left: 420, top: 120, width: 80, height: 40}},
+      })));
+      insert();
+      expect(await screen.findByRole('dialog')).toHaveAccessibleDescription(/selecione o elemento e toque em Editar/i);
+      await user.click(screen.getByRole('button', {name: 'OK'}));
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+      expect(localStorage.getItem(`guided-tour:rac-tip:${kind}`)).toBe('true');
+      insert();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
   it('starts contextual tips from canvas object events and persists them after close', async () => {
     const user = userEvent.setup();
     localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
@@ -148,8 +165,8 @@ describe('GuidedTourHost', () => {
 
     const tipDialog = await screen.findByRole('dialog', {name: 'Dica do editor RAC'});
     expect(tipDialog).toBeVisible();
-    expect(tipDialog).toHaveAccessibleDescription(/objeto ou muro/i);
-    expect(screen.getByText(/objeto ou muro/i)).toBeVisible();
+    expect(tipDialog).toHaveAccessibleDescription(/selecione o elemento e toque em Editar/i);
+    expect(screen.getByText(/selecione o elemento e toque em Editar/i)).toBeVisible();
     expect(screen.queryByTestId('guided-tour-progress-dot')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', {name: 'OK'}));
 
@@ -504,7 +521,7 @@ describe('GuidedTourHost', () => {
 
     const pilotiDialog = await screen.findByRole('dialog', {name: 'Dica do editor RAC'});
     expect(pilotiDialog).toBeVisible();
-    expect(pilotiDialog).toHaveAccessibleDescription(/na planta superior, selecione um piloti/i);
+    expect(pilotiDialog).toHaveAccessibleDescription(/selecione a planta e toque em Editar/i);
     expect(screen.queryByText('Editar Piloti')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', {name: 'OK'}));
 

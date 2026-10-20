@@ -1,4 +1,4 @@
-import {useEffect, useState, type ReactNode} from 'react';
+import {useState, type ReactNode} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faChevronLeft, faChevronRight} from '@fortawesome/free-solid-svg-icons';
 import {Button} from '@/components/ui/button.tsx';
@@ -17,6 +17,7 @@ import type {
   ContraventamentoVerticalSide,
 } from '@/shared/types/contraventamento.ts';
 import {FloatingEditor} from '@/components/rac-editor/@modals/ui/editors/FloatingEditor.tsx';
+import {CanvasSideEditorPanel} from '../CanvasSideEditorPanel.tsx';
 import {NivelSlider} from '@/components/rac-editor/@modals/ui/editors/NivelSlider.tsx';
 import {PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
 import {formatPilotiHeight} from '@/shared/types/piloti.ts';
@@ -294,28 +295,9 @@ function PilotiMobilePanel({
 }) {
   const [tab, setTab] = useState<MobilePilotiTab>('nivel');
   const selectingDestination = destinationPilotiIds !== undefined;
-  useEffect(() => {
-    const onEscape = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      if (selectingDestination) onCancelDestination?.(); else onClose();
-    };
-    window.addEventListener('keydown', onEscape, true);
-    return () => window.removeEventListener('keydown', onEscape, true);
-  }, [selectingDestination, onCancelDestination, onClose]);
-
-  return <>
-    <div aria-hidden='true' className='piloti-mobile-dismiss' onPointerDown={(event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      onClose();
-    }}/>
-    <aside role='dialog' aria-label='Editar pilotis da planta' aria-modal='false'
-      data-tab={tab} className='piloti-mobile-panel'
-      onMouseDown={(event) => event.stopPropagation()}
-      onTouchStart={(event) => event.stopPropagation()}
-      onClick={(event) => event.stopPropagation()}>
+  return <CanvasSideEditorPanel ariaLabel='Editar pilotis da planta' fixedHeight
+    data-tab={tab} className='piloti-mobile-panel' onClose={onClose}
+    onEscape={selectingDestination ? () => onCancelDestination?.() : onClose}>
     <div className='piloti-mobile-preview'>
       {previewDraft ? <HouseFieldAnalysisPreview compact draft={previewDraft} selectedPilotiId={selectedPilotiId ?? undefined}
         onSelectPiloti={onSelectPiloti} destinationPilotiIds={destinationPilotiIds}/> : null}
@@ -339,6 +321,5 @@ function PilotiMobilePanel({
         </button>
       </div> : null}
     </div>
-    </aside>
-  </>;
+  </CanvasSideEditorPanel>;
 }

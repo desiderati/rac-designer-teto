@@ -5,6 +5,13 @@ export const RAC_HOUSE_INITIAL_VIEWS_ELEVATION_INSERTED_EVENT = 'rac:house-eleva
 
 export type RacCanvasObjectEventKind =
   | 'wall'
+  | 'square'
+  | 'triangle'
+  | 'circle'
+  | 'fence'
+  | 'terrainEntry'
+  | 'siteHouse'
+  | 'siteBuilding'
   | 'line'
   | 'arrow'
   | 'distance'

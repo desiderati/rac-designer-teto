@@ -23,11 +23,12 @@ interface UseCanvasToolsArgs {
   setInfoMessage: Dispatch<SetStateAction<string>>;
 }
 
-type CanvasInsertedObjectKind = Extract<RacCanvasObjectEventKind, ElementStrategyKey>;
+const GUIDED_TIP_OBJECT_KINDS = new Set<string>([
+  'wall', 'square', 'triangle', 'circle', 'fence', 'terrainEntry', 'siteHouse', 'siteBuilding',
+  'line', 'arrow', 'distance', 'text',
+]);
 
-const GUIDED_TIP_OBJECT_KINDS = new Set<ElementStrategyKey>(['wall', 'line', 'arrow', 'distance', 'text']);
-
-function isGuidedTipObjectKind(kind: ElementStrategyKey): kind is CanvasInsertedObjectKind {
+function isGuidedTipObjectKind(kind: string): kind is RacCanvasObjectEventKind {
   return GUIDED_TIP_OBJECT_KINDS.has(kind);
 }
 
@@ -54,7 +55,7 @@ function getObjectScreenRect(
   return center ? new DOMRect(center.x - 24, center.y - 24, 48, 48) : null;
 }
 
-function dispatchObjectInsertedEvent(kind: ElementStrategyKey, rect: DOMRect | null): void {
+function dispatchObjectInsertedEvent(kind: string, rect: DOMRect | null): void {
   if (!rect || !isGuidedTipObjectKind(kind)) return;
 
   dispatchRacCanvasObjectEvent(RAC_CANVAS_OBJECT_INSERTED_EVENT, {
@@ -85,7 +86,8 @@ export function useCanvasTools({
 
     if (!addObjectToCanvas(object)) return null;
     window.setTimeout(() => {
-      dispatchObjectInsertedEvent(kind, getObjectScreenRect(canvasRef, object));
+      // As variantes de entrada/construção compartilham o tour do tipo lógico do objeto.
+      dispatchObjectInsertedEvent(object.myType ?? kind, getObjectScreenRect(canvasRef, object));
     }, 0);
     return object;
   }, [addObjectToCanvas, canvasRef, closeAllMenus]);

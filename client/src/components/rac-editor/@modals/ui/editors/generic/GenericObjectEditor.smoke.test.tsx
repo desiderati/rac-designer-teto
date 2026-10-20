@@ -12,6 +12,29 @@ vi.mock('@/components/rac-editor/@modals/ui/editors/FloatingEditor.tsx', () => (
 describe('limite dos rótulos de elementos', () => {
   const longText = 'A'.repeat(65);
 
+  it('usa o painel compacto com texto centralizado, rascunho e confirmação sem labels redundantes', () => {
+    const onApply = vi.fn(), onClose = vi.fn();
+    const {rerender} = render(<GenericObjectEditor presentation='mobile-panel' editorType='fence' currentValue='Vizinho' currentColor='#333333'
+      isOpen isMobile={false} onApply={onApply} onClose={onClose}/>);
+    expect(screen.getByRole('dialog', {name: 'Editar Cerca'})).toBeInTheDocument();
+    const input = screen.getByRole('textbox', {name: 'Cerca'});
+    expect(input).toHaveClass('text-center');
+    expect(input).not.toHaveFocus();
+    expect(screen.queryByText('Cerca')).not.toBeInTheDocument();
+    expect(screen.queryByText('Nome do objeto')).not.toBeInTheDocument();
+    fireEvent.change(input, {target: {value: 'Descartar'}});
+    fireEvent.click(screen.getByRole('button', {name: 'Cancelar'}));
+    expect(onApply).not.toHaveBeenCalled();
+    rerender(<GenericObjectEditor presentation='mobile-panel' editorType='fence' currentValue='Vizinho' currentColor='#333333'
+      isOpen={false} isMobile onApply={onApply} onClose={onClose}/>);
+    rerender(<GenericObjectEditor presentation='mobile-panel' editorType='fence' currentValue='Vizinho' currentColor='#333333'
+      isOpen isMobile onApply={onApply} onClose={onClose}/>);
+    expect(screen.getByRole('textbox')).toHaveValue('Vizinho');
+    fireEvent.change(screen.getByRole('textbox'), {target: {value: 'Confirmado'}});
+    fireEvent.click(screen.getByRole('button', {name: 'Confirmar'}));
+    expect(onApply).toHaveBeenCalledWith('Confirmado', '#333333');
+  });
+
   it('abre a edição mobile sem focar o texto opcional e disparar o teclado', () => {
     render(<GenericObjectEditor editorType='fence' currentValue='' currentColor='#333333'
       isOpen isMobile onApply={vi.fn()} onClose={vi.fn()}/>);

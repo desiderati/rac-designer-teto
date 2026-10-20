@@ -87,42 +87,6 @@
   }
 }
 
-.piloti-mobile-dismiss {
-  position: fixed;
-  z-index: 69;
-  inset: 0;
-  background: transparent;
-}
-
-.piloti-mobile-panel {
-  position: fixed;
-  z-index: 70;
-  top: 50dvh;
-  right: 0;
-  transform: translateY(-50%);
-  width: 288px;
-  max-width: calc(100vw - 8px);
-  height: 425px;
-  max-height: calc(100dvh - 16px);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
-  padding-top: env(safe-area-inset-top);
-  padding-right: env(safe-area-inset-right);
-  padding-bottom: env(safe-area-inset-bottom);
-  background: #fff;
-  border-radius: 12px 0 0 12px;
-  border-right: 0;
-  color: #0f172a;
-  box-shadow: -8px 0 24px rgb(15 23 42 / .16);
-  font-family: Inter, sans-serif;
-}
-
-body:has(.piloti-mobile-panel) .mobile-top-bar-handle { display: none; }
-
 .piloti-mobile-preview {
   flex: 0 0 clamp(192px, calc(43dvh + 16px), 200px);
   min-height: 0;

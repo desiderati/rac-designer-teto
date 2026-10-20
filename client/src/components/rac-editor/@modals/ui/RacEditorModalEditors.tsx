@@ -118,7 +118,7 @@ export function RacEditorModalEditors({
   onTerrainEditorClose,
   onTerrainApply,
 }: RacEditorModalEditorsProps) {
-  const {mobile, portrait} = useCanvasMobileViewport();
+  const {mobile, portrait, landscape} = useCanvasMobileViewport();
   const blockEditors = mobile && portrait;
   const previousMobile = useRef(mobile);
   useEffect(() => {
@@ -194,6 +194,7 @@ export function RacEditorModalEditors({
       />
 
       <GenericObjectEditor
+        presentation={landscape ? 'mobile-panel' : 'floating'}
         editorType={wallSelection?.editorType ?? 'wall'}
         currentValue={wallSelection?.currentLabel ?? ''}
         currentColor={wallEditorColor ?? CANVAS_ELEMENT_STYLE.strokeColor.wallElement}
@@ -205,6 +206,7 @@ export function RacEditorModalEditors({
       />
 
       <GenericObjectEditor
+        presentation={landscape ? 'mobile-panel' : 'floating'}
         editorType={linearEditorType}
         currentValue={linearSelection?.currentLabel ?? ''}
         currentColor={linearSelection?.currentColor ?? CANVAS_ELEMENT_STYLE.strokeColor.linearElement}
@@ -216,6 +218,7 @@ export function RacEditorModalEditors({
       />
 
       <TerrainEditor
+        presentation={landscape ? 'mobile-panel' : 'floating'}
         isOpen={isTerrainEditorOpen && !blockEditors}
         isMobile={isMobile}
         currentTerrainType={terrainSelection?.terrainType ?? 1}

@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState, type RefObject} from 'react';
 import type {Canvas, FabricObject} from 'fabric';
-import {getPilotiIdsFromGroup, toCanvasGroup, type CanvasGroup} from '@/components/rac-editor/@canvas/lib';
+import {getPilotiIdsFromGroup, toCanvasGroup, toCanvasObject, type CanvasGroup, type CanvasObject} from '@/components/rac-editor/@canvas/lib';
+import {getCanvasObjectEditorKind} from '../../../lib/canvas-object-editor-selection.ts';
 
 interface MobileCanvasSelectionArgs {
   enabled: boolean;
@@ -15,13 +16,14 @@ export function useMobileCanvasSelection({enabled, houseId, fabricCanvasRef, zoo
   const [resizing, setResizing] = useState(false);
   const [canResize, setCanResize] = useState(false);
   const [selectedTopView, setSelectedTopView] = useState<CanvasGroup | null>(null);
+  const [selectedEditableObject, setSelectedEditableObject] = useState<CanvasObject | null>(null);
   const appearance = useRef({resizing, zoom});
   appearance.current = {resizing, zoom};
   const refresh = useRef<() => void>(() => undefined);
 
   useEffect(() => {
     const canvas = fabricCanvasRef.current;
-    if (!enabled || !canvas) {setCount(0); setResizing(false); setSelectedTopView(null); return;}
+    if (!enabled || !canvas) {setCount(0); setResizing(false); setSelectedTopView(null); setSelectedEditableObject(null); return;}
     let active: FabricObject | undefined;
     let restore: (() => void) | undefined;
     let controls: FabricObject['controls'] = {};
@@ -88,6 +90,8 @@ export function useMobileCanvasSelection({enabled, houseId, fabricCanvasRef, zoo
       setCount(selected.length);
       const group = selected.length === 1 ? toCanvasGroup(selected[0]) : null;
       setSelectedTopView(group?.houseView === 'top' && getPilotiIdsFromGroup(group).length > 0 ? group : null);
+      const object = selected.length === 1 ? toCanvasObject(selected[0]) : null;
+      setSelectedEditableObject(object && getCanvasObjectEditorKind(object) ? object : null);
       paint();
     };
     canvas.on('selection:created', sync);
@@ -105,5 +109,5 @@ export function useMobileCanvasSelection({enabled, houseId, fabricCanvasRef, zoo
   }, [enabled, houseId, fabricCanvasRef]);
 
   useEffect(() => {refresh.current();}, [resizing, zoom]);
-  return {count, resizing, canResize, selectedTopView, toggleResizing: () => setResizing(value => !value)};
+  return {count, resizing, canResize, selectedTopView, selectedEditableObject, toggleResizing: () => setResizing(value => !value)};
 }

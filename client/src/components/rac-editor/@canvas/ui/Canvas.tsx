@@ -22,6 +22,7 @@ import {
 import {CanvasOverlays} from './CanvasOverlays.tsx';
 import {MobileCanvasSelectionBar} from './MobileCanvasSelectionBar.tsx';
 import {useMobileCanvasSelection} from './adapters/hooks/useMobileCanvasSelection.ts';
+import {createCanvasObjectEditorSelection} from '../lib/canvas-object-editor-selection.ts';
 import type {CanvasToolMode} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 import {useCanvasClipboard} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasClipboard.ts';
 import {useCanvasContainerLifecycle} from '@/components/rac-editor/@canvas/hooks/useCanvasContainerLifecycle.ts';
@@ -166,7 +167,7 @@ export const Canvas =
       const imageLongPressRef = useRef<ImageLongPressState | null>(null);
       const [imageLayerMenu, setImageLayerMenu] = useState<ImageLayerMenuState | null>(null);
       const noop = useCallback(() => {}, []);
-      const {houseDrawingDocumentPort} = useEditorPorts();
+      const {houseDrawingDocumentPort, houseReadPort} = useEditorPorts();
 
       const {
         zoom,
@@ -578,6 +579,20 @@ export const Canvas =
         });
       };
 
+      const openSelectedEditor = () => {
+        if (!landscape || readOnly || isAnyEditorOpen) return;
+        if (selection.selectedTopView) {openSelectedTopViewPilotis(); return;}
+        const object = selection.selectedEditableObject;
+        if (!object) return;
+        const center = object.getCenterPoint();
+        const point = getCurrentScreenPoint({x: center.x, y: center.y});
+        if (!point) return;
+        const editor = createCanvasObjectEditorSelection(object, point, houseReadPort.getTerrainType());
+        if (editor?.kind === 'wall') onWallSelect?.(editor.selection);
+        if (editor?.kind === 'linear') onLinearSelect?.(editor.selection);
+        if (editor?.kind === 'terrain') onTerrainSelect?.(editor.selection);
+      };
+
       // Apply tool-mode side effects to the fabric canvas.
       // 'pan' disables multi-selection and switches to a grab cursor;
       // 'select' restores fabric defaults.
@@ -807,8 +822,8 @@ export const Canvas =
           </CanvasOverlays>
           {landscape && !readOnly && !isAnyEditorOpen ? <MobileCanvasSelectionBar
             count={selection.count} resizing={selection.resizing} canResize={selection.canResize}
-            canEditPilotis={Boolean(selection.selectedTopView)} onEditPilotis={openSelectedTopViewPilotis}
-            onToggleResize={selection.toggleResizing}/> : null}
+            canEdit={Boolean(selection.selectedTopView || selection.selectedEditableObject)} onEdit={openSelectedEditor}
+            onToggleResize={selection.toggleResizing} onDelete={onDelete}/> : null}
           {imageLayerMenu
             ? <div
                 role='menu'

@@ -2,11 +2,13 @@ import React from 'react';
 import {Input} from '@/components/ui/input.tsx';
 import {Separator} from '@/components/ui/separator.tsx';
 import {FloatingEditor} from '@/components/rac-editor/@modals/ui/editors/FloatingEditor.tsx';
+import {CanvasSideEditorPanel} from '../CanvasSideEditorPanel.tsx';
 import type {GenericCanvasObjectEditorType} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import {GENERIC_OBJECT_EDITOR_COLOR_PALETTE} from '@/shared/config.ts';
 import {useGenericObjectEditorDraft} from '@/components/rac-editor/@modals/hooks/useGenericObjectEditorDraft.ts';
 
 interface GenericObjectEditorProps {
+  presentation?: 'floating' | 'mobile-panel';
   editorType: GenericCanvasObjectEditorType;
   currentValue: string;
   currentColor: string;
@@ -18,6 +20,7 @@ interface GenericObjectEditorProps {
 }
 
 export function GenericObjectEditor({
+  presentation = 'floating',
   editorType,
   currentValue,
   currentColor,
@@ -107,17 +110,21 @@ export function GenericObjectEditor({
   if (!isOpen) return null;
 
   const title = getTitle();
+  const mobilePanel = presentation === 'mobile-panel';
 
   const colorPalette =
     <div className='grid grid-cols-4 gap-2 justify-items-center'>
       {GENERIC_OBJECT_EDITOR_COLOR_PALETTE.map((c) =>
         <button
           key={c.value}
+          type='button'
+          aria-label={c.name}
+          aria-pressed={tempColor === c.value}
           onClick={
             () => setDraft((prev) => ({...prev, color: c.value}))
           }
-          className={`w-14 h-14 rounded-xl border-[3px] transition-all flex items-center justify-center ${
-            tempColor === c.value ? 'border-primary scale-105' : 'border-border'}`
+          className={`${mobilePanel ? 'w-full aspect-square' : 'w-14 h-14'} rounded-xl border-[3px] transition-all flex items-center justify-center ${
+            tempColor === c.value ? mobilePanel ? 'border-blue-600 ring-2 ring-inset ring-white' : 'border-primary scale-105' : 'border-border'}`
           }
           style={{backgroundColor: c.value}}
           title={c.name}>
@@ -132,11 +139,7 @@ export function GenericObjectEditor({
       )}
     </div>;
 
-  return (
-    <FloatingEditor
-      ariaLabel={`Editar ${title}`}
-      cardContent={
-        <>
+  const editorContent = <>
           {editorType !== 'freehand' && <Input
             type='text'
             aria-label={title}
@@ -147,15 +150,23 @@ export function GenericObjectEditor({
                 setDraft((prev) => ({...prev, value: editorType === 'text' ? e.target.value : e.target.value.slice(0, 50)}))
             }
             onKeyDown={handleKeyDown}
-            className='text-center placeholder:text-muted-foreground/50'
+            className={`text-center placeholder:text-muted-foreground/50${mobilePanel ? ' h-11 bg-blue-50 text-base' : ''}`}
             placeholder={getPlaceholder()}
-            autoFocus={!isMobile}/>}
+            autoFocus={!isMobile && !mobilePanel}/>}
 
-          {editorType !== 'freehand' && <Separator/>}
+          {editorType !== 'freehand' && !mobilePanel && <Separator/>}
 
           {colorPalette}
-        </>
-      }
+        </>;
+
+  if (mobilePanel) return <CanvasSideEditorPanel ariaLabel={`Editar ${title}`} onClose={handleCancel} onConfirm={handleApply}>
+    <div className='canvas-side-editor-content space-y-3'>{editorContent}</div>
+  </CanvasSideEditorPanel>;
+
+  return (
+    <FloatingEditor
+      ariaLabel={`Editar ${title}`}
+      cardContent={editorContent}
       isOpen={isOpen}
       isMobile={isMobile}
       anchorPosition={anchorPosition}

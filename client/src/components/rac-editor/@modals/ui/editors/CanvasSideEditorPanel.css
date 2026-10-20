@@ -1,0 +1,45 @@
+.canvas-side-editor-dismiss {
+  position: fixed;
+  z-index: 69;
+  inset: 0;
+  background: transparent;
+}
+
+.canvas-side-editor-panel {
+  position: fixed;
+  z-index: 70;
+  right: 0;
+  transform: translateY(-50%);
+  width: 288px;
+  max-width: calc(100vw - 8px);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #fff;
+  border-radius: 12px 0 0 12px;
+  border-right: 0;
+  color: #0f172a;
+  box-shadow: -8px 0 24px rgb(15 23 42 / .16);
+  font-family: Inter, sans-serif;
+}
+
+.canvas-side-editor-fixed { height: 425px; }
+.canvas-side-editor-content { flex: 0 0 auto; padding: 12px; }
+.canvas-side-editor-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  flex: 0 0 auto;
+  padding: 12px;
+  border-top: 1px solid #dce5ef;
+  background: #fff;
+}
+.canvas-side-editor-actions-scroll { position: static; }
+
+body:has(.canvas-side-editor-panel) .mobile-top-bar-handle { display: none; }

@@ -62,7 +62,7 @@ for (const mode of ['Seleção', 'Panning'] as const) {
     if (mode === 'Panning') await expect.poll(async () => (await getActiveCanvasObjectSummaryByDebug(page))?.myType).toBe('square');
     await touch('touchEnd', []);
     await expect(page.getByText('Item selecionado. Arraste pra movê-lo.')).toBeVisible();
-    await expect(page.getByRole('button', {name: 'Editar', exact: true})).toBeDisabled();
+    await expect(page.getByRole('button', {name: 'Editar', exact: true})).toBeEnabled();
     for (const name of ['Editar', 'Escalar']) {
       const box = (await page.getByRole('button', {name, exact: true}).boundingBox())!;
       expect(box.width).toBe(80);

@@ -16,7 +16,7 @@ tags: [mobile, teclado, correction-pattern]
 ## Contexto e escopo
 
 Definir o acesso aos campos e às ações dos editores de propriedades do Canvas apresentados como
-painel flutuante mobile por FloatingEditor. Os formulários do gerenciador seguem a
+painel flutuante por FloatingEditor ou painel lateral por CanvasSideEditorPanel. Os formulários do gerenciador seguem a
 [UI-003](UI-003-acoes-responsivas-de-formularios.md).
 
 O caso de referência é o texto opcional da cerca: foco automático abria o teclado e o painel ficava
@@ -56,13 +56,16 @@ quando essa API não está disponível.
 
 - Manter o campo focado alcançável por rolagem quando o teclado ou a orientação mudar.
 
-- Com altura suficiente, permitir rolagem do conteúdo e manter as ações separadas.
+- Com altura suficiente, permitir rolagem do painel e manter as ações no rodapé.
 
 - Abaixo de 160 px de altura visual, colocar conteúdo e ações no mesmo fluxo rolável. Nesse caso,
   reservar um rodapé pode consumir o espaço necessário para tocar no campo.
 
-A margem atual do painel é de 8 px em relação à altura visual. Esses limites ficam localizados em
-FloatingEditor; não redefinem o comportamento do Drawer global ou dos formulários do gerenciador. O
+A margem atual do painel é de 8 px em relação à altura visual. A superfície lateral do Canvas mobile
+horizontal compartilha essa leitura da viewport, usa altura de conteúdo até 425 px para objetos e
+terreno e altura de 425 px para pilotis, sempre limitada à área disponível. A direita fica colada e
+somente os cantos esquerdos são arredondados; conteúdo e abas rolam com o painel inteiro.
+Esses limites ficam localizados nos editores; não redefinem o comportamento do Drawer global ou dos formulários do gerenciador. O
 reposicionamento automático de inputs do Vaul fica desativado somente nesse painel, evitando duas
 estratégias concorrentes de deslocamento.
 
@@ -80,6 +83,8 @@ teclado Android real depende de teste no aparelho. O roteiro e as camadas de tes
 ## Fontes duráveis
 
 - [FloatingEditor](../../client/src/components/rac-editor/@modals/ui/editors/FloatingEditor.tsx).
+
+- [Superfície lateral compartilhada](../../client/src/components/rac-editor/@modals/ui/editors/CanvasSideEditorPanel.tsx).
 
 - [Leitura da viewport
   visual](../../client/src/components/rac-editor/@modals/hooks/useFloatingEditorViewport.ts).

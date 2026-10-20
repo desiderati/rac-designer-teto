@@ -36,6 +36,20 @@ function setup(locked = false) {
 }
 
 describe('seleção mobile com modo mover e resize', () => {
+  it('oferece editor somente para um objeto suportado e limpa ao sair do modo mobile', () => {
+    const {result, select, rerender, first} = setup();
+    const fence = new Group([new Rect({width: 20, height: 20})]) as CanvasGroup;
+    fence.myType = 'fence';
+    select(fence);
+    expect(result.current.selectedEditableObject).toBe(fence);
+    select(fence, 2);
+    expect(result.current.selectedEditableObject).toBeNull();
+    select(first);
+    expect(result.current.selectedEditableObject).toBeNull();
+    select(fence);
+    rerender({enabled: false, houseId: 'a'});
+    expect(result.current.selectedEditableObject).toBeNull();
+  });
   it('começa em mover, destaca alças no resize e não grava aparência no documento', () => {
     const {result, first, port, before, original, unmount} = setup();
     expect(result.current.count).toBe(1);

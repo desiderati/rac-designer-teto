@@ -57,6 +57,34 @@ function renderCanvasTools(
 }
 
 describe('useCanvasTools guided tour events', () => {
+  it.each([
+    ['fence', 'fence'], ['siteHouse', 'siteHouse'],
+    ['entryUp', 'terrainEntry'], ['entryDown', 'terrainEntry'], ['entryLeft', 'terrainEntry'], ['entryRight', 'terrainEntry'],
+    ['buildingTop', 'siteBuilding'], ['buildingBottom', 'siteBuilding'], ['buildingLeft', 'siteBuilding'], ['buildingRight', 'siteBuilding'],
+    ['square', 'square'], ['triangle', 'triangle'], ['circle', 'circle'],
+  ] as const)('emite o tipo lógico de %s para o tour %s', (key, kind) => {
+    const listener = vi.fn();
+    const object = createCanvasObject();
+    object.myType = kind;
+    const {result} = renderCanvasTools(object);
+    document.addEventListener(INSERTED_EVENT, listener as EventListener);
+    try {
+      act(() => { result.current.handleAddSiteElement(key); vi.runOnlyPendingTimers(); });
+      expect(listener).toHaveBeenCalledOnce();
+      expect((listener.mock.calls[0][0] as CustomEvent).detail).toEqual({kind, rect: {left: 110, top: 220, width: 30, height: 40}});
+    } finally { document.removeEventListener(INSERTED_EVENT, listener as EventListener); }
+  });
+
+  it('não dispara tour se a inserção falhar', () => {
+    const listener = vi.fn();
+    const {result, addObjectToCanvas} = renderCanvasTools(createCanvasObject());
+    addObjectToCanvas.mockReturnValue(false);
+    document.addEventListener(INSERTED_EVENT, listener as EventListener);
+    try {
+      act(() => { result.current.handleAddWall(); vi.runOnlyPendingTimers(); });
+      expect(listener).not.toHaveBeenCalled();
+    } finally { document.removeEventListener(INSERTED_EVENT, listener as EventListener); }
+  });
   beforeEach(() => {
     vi.useFakeTimers();
   });

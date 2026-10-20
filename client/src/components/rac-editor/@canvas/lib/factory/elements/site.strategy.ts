@@ -38,13 +38,13 @@ function group(canvas: FabricCanvas, objects: FabricObject[], kind: string): Can
 }
 
 function createHouse(canvas: FabricCanvas): CanvasGroup {
-  const roof = mark(new Rect({left: 0, top: 0, width: 240, height: 110,
+  const roof = mark(new Rect({left: 0, top: 0, width: 240, height: 160,
     ...strokeOptions, fill: '#d9a27d', stroke: '#80563e'}), 'siteBody');
   const lines = roofSegments.map(points => mark(new Line(points, {...strokeOptions, stroke: '#80563e', strokeWidth: 2})));
   const courses = roofCourses.map(y =>
     mark(new Line([0, y, 240, y], {...strokeOptions, stroke: '#ae7956', strokeWidth: 0.5})),
   );
-  const name = label('Casa', 120, 82);
+  const name = label('Casa', 120, 120);
   name.set({backgroundColor: 'rgba(255,255,255,0.55)'});
   const house = group(canvas, [roof, ...courses, ...lines, name], 'siteHouse');
   fitSiteLabel(house);
