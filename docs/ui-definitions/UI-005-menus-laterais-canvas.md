@@ -138,11 +138,14 @@ prolongado; arrastar uma alça em Escalar transforma o item sem deslocar a viewp
 O acesso explícito `Editar` abre o painel lateral de pilotis. Ele reaproveita a estética da Análise
 de Campo: planta com pilotis maiores, destaque azul da seleção, mestre em tom de madeira, níveis
 nos cantos, porta e contraventamentos. A planta permanece acima das abas `Nível`, `Tamanho` e
-`Contraventar`; apenas os ajustes precisam rolar quando a altura disponível for pequena.
+`Contraventar`; planta, abas e controles rolam juntos quando o conteúdo excede a altura do painel.
 O espaço externo da planta acrescenta 8 px acima e abaixo, sem reduzir seu desenho ou os alvos de toque.
 O painel dispensa título e X. Sua largura de 288 px acomoda quatro botões por linha e mantém espaço
-para os alvos de toque da planta, sem reservar metade da viewport. Tocar fora ou pressionar Escape
-fecha a edição; durante a escolha de destino, Escape primeiro cancela essa escolha.
+para os alvos de toque da planta, sem reservar metade da viewport. Tem altura de 425 px, centralizada
+verticalmente e encostada à lateral direita, sem margem ou borda nesse lado. Apenas os dois cantos
+da esquerda têm raio de 12 px. Em telas menores, limita a altura à viewport dinâmica menos 16 px,
+preservando recuos verticais de pelo menos 8 px. A rolagem pertence ao painel inteiro, sem seção rolável separada.
+Tocar fora ou pressionar Escape fecha a edição; durante a escolha de destino, Escape primeiro cancela essa escolha.
 As três abas têm larguras iguais e altura de 36 px. A aba ativa combina texto azul, fundo azul-claro e linha inferior
 azul; as inativas mantêm texto escuro sobre a superfície branca e a mesma linha de base clara.
 
