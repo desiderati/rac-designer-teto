@@ -7,6 +7,7 @@ import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {describe, expect, it} from 'vitest';
 import type {Canvas as FabricCanvas} from 'fabric';
 import {createHouseTop} from '../lib/factory/house/house-top.strategy.ts';
+import {applyFieldAnalysisContraventamentos} from '../lib/field-analysis-contraventamentos.ts';
 import {styleFieldAnalysisPilotis} from './HouseFieldAnalysisPreview.tsx';
 
 describe('A-008 projeção isolada da Análise de Campo', () => {
@@ -20,12 +21,18 @@ describe('A-008 projeção isolada da Análise de Campo', () => {
       expect(label.top + label.height / 2).toBeLessThan(circle.top - Number(circle.radius));
       const nivel = objects.find((object) => object.isPilotiNivelText && object.pilotiId === circle.pilotiId)!;
       if (nivel.visible) {
-        const gap = nivel.top - nivel.height / 2 - circle.top - Number(circle.radius);
-        expect(gap).toBeGreaterThan(0);
-        expect(gap).toBeLessThanOrEqual(4);
+        const row = Number(circle.pilotiId!.split('_')[2]);
+        const gap = row === 0
+          ? circle.top - Number(circle.radius) - nivel.top - nivel.height / 2
+          : nivel.top - nivel.height / 2 - circle.top - Number(circle.radius);
+        expect(gap).toBeCloseTo(4);
+        if (row === 0) expect(label.top + label.height / 2).toBeLessThan(nivel.top - nivel.height / 2);
       }
       expect(height).toHaveProperty('fontWeight', 'bold');
     }
+    const rowA = objects.filter(o => o.isPilotiNameLabel && o.pilotiId!.endsWith('_0'));
+    expect(rowA).toHaveLength(4);
+    rowA.forEach(label => expect(label.top).toBeCloseTo(rowA[0].top));
   });
 
   it('A-002/A-010 atualiza os pilotis de vistas existentes sem mover o grupo ou objetos externos', () => {
@@ -60,4 +67,31 @@ describe('A-008 projeção isolada da Análise de Campo', () => {
     expect(circles.find((circle) => circle.pilotiId === 'piloti_3_2')!.stroke).toBe('#3b82f6');
     expect(before.every((circle) => circle.radius === before[0].radius)).toBe(true);
   });
+  it('desenha as vigas tangentes aos círculos ampliados e deslocados da prévia', () => {
+    const group = createHouseTop({width: 960, height: 600} as FabricCanvas);
+    const circles = styleFieldAnalysisPilotis(group, 'piloti_0_0');
+    applyFieldAnalysisContraventamentos(group, [
+      {originPilotiId: 'piloti_0_0', destinationPilotiId: 'piloti_0_2', side: 'left', isAuto: false},
+      {originPilotiId: 'piloti_0_0', destinationPilotiId: 'piloti_0_2', side: 'right', isAuto: true},
+      {originPilotiId: 'piloti_0_0', destinationPilotiId: 'piloti_3_0', side: 'bottom', isAuto: false},
+      {originPilotiId: 'piloti_0_2', destinationPilotiId: 'piloti_3_2', side: 'top', isAuto: false},
+    ]);
+    const beams = (group.getObjects() as CanvasObject[]).filter(o => o.isContraventamento);
+    expect(beams).toHaveLength(4);
+    for (const beam of beams) {
+      const origin = circles.find(o => o.pilotiId === beam.contraventamentoAnchorPilotiId)!;
+      const center = origin.getRelativeCenterPoint();
+      const radius = Number(origin.radius);
+      if (beam.contraventamentoOrientation === 'vertical') {
+        const end = circles.find(o => o.pilotiId === 'piloti_0_2')!.getRelativeCenterPoint();
+        expect(beam.left).toBeCloseTo(center.x + (beam.contraventamentoSide === 'left' ? -radius - beam.width : radius));
+        expect(beam.top).toBeCloseTo(center.y);
+        expect(beam.height).toBeCloseTo(end.y - center.y);
+      } else {
+        expect(beam.left).toBeCloseTo(center.x);
+        expect(beam.top).toBeCloseTo(center.y + (beam.contraventamentoSide === 'top' ? -radius - beam.height : radius));
+      }
+    }
+  });
+
 });

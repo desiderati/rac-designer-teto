@@ -12,12 +12,21 @@ interface Target {id: string; x: number; y: number; diameter: number}
 
 function layoutFieldAnalysisLabels(group: ReturnType<typeof createConfiguredHouseViewGroup>) {
   const objects = group.getObjects() as CanvasObject[];
+  const gap = 4;
+  const topLevelHeight = Math.max(0, ...objects
+    .filter((object) => object.isPilotiNivelText && object.visible && object.pilotiId?.endsWith('_0'))
+    .map((object) => object.height));
   for (const circle of objects.filter((object) => object.isPilotiCircle && object instanceof Circle)) {
     const radius = (circle as unknown as Circle).radius;
+    const isRowA = circle.pilotiId?.endsWith('_0');
     const name = objects.find((object) => object.isPilotiNameLabel && object.pilotiId === circle.pilotiId);
-    if (name) name.set({top: circle.top - radius - name.height / 2 - 8});
+    // Reservar a faixa do nível em toda a linha A mantém os quatro IDs alinhados.
+    const nameBottom = circle.top - radius - (isRowA ? gap + topLevelHeight + 2 : 8);
+    if (name) name.set({top: nameBottom - name.height / 2});
     const nivel = objects.find((object) => object.isPilotiNivelText && object.pilotiId === circle.pilotiId);
-    if (nivel?.visible) nivel.set({top: circle.top + radius + nivel.height / 2 + 4});
+    if (nivel?.visible) nivel.set({top: isRowA
+      ? circle.top - radius - gap - nivel.height / 2
+      : circle.top + radius + gap + nivel.height / 2});
   }
   objects.forEach((object) => object.setCoords());
 }
@@ -48,8 +57,9 @@ export function styleFieldAnalysisPilotis(group: ReturnType<typeof createConfigu
 }
 
 /** Projeção isolada: nunca altera o documento nem a geometria real da casa. */
-export function HouseFieldAnalysisPreview({draft, selectedPilotiId, onSelectPiloti}: {
+export function HouseFieldAnalysisPreview({draft, selectedPilotiId, onSelectPiloti, destinationPilotiIds}: {
   draft: HouseFieldAnalysisDraft; selectedPilotiId?: string; onSelectPiloti?(id: string): void;
+  destinationPilotiIds?: readonly string[];
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [targets, setTargets] = useState<Target[]>([]);
@@ -64,10 +74,10 @@ export function HouseFieldAnalysisPreview({draft, selectedPilotiId, onSelectPilo
       pilotis: draft.house.pilotis, terrainType: draft.house.terrainType});
     refreshTopDoorMarkersInViews({houseType: draft.house.houseType, sideMappings: draft.house.sideMappings,
       preAssignedSides: draft.house.preAssignedSides, topViews: [{instanceId: 'field-analysis-preview', group}]});
-    applyFieldAnalysisContraventamentos(group, draft.contraventamentos);
     const circles = styleFieldAnalysisPilotis(group, selectedPilotiId);
+    applyFieldAnalysisContraventamentos(group, draft.contraventamentos);
     const objects = group.getObjects() as CanvasObject[];
-    const labels = objects.filter((object) => object.isPilotiNameLabel || object.isPilotiText)
+    const labels = objects.filter((object) => object.isPilotiNameLabel || object.isPilotiText || (object.isPilotiNivelText && object.visible))
       .map((label) => ({label, fontSize: Number((label as CanvasObject & {fontSize: number}).fontSize)}));
     const visibleBounds = () => {
       const bounds = objects.filter((object) => object.visible).map((object) => object.getBoundingRect());
@@ -115,8 +125,9 @@ export function HouseFieldAnalysisPreview({draft, selectedPilotiId, onSelectPilo
   }, [draft, selectedPilotiId]);
   return <div ref={containerRef} aria-label='Planta da casa: selecione um piloti' className='relative w-full min-w-0 overflow-hidden'>
     {targets.map(({id, x, y, diameter}) => <button key={id} type='button' aria-label={`Selecionar piloti ${getPilotiName(id)}`}
-      aria-pressed={id === selectedPilotiId} onClick={() => onSelectPiloti?.(id)}
+      aria-pressed={id === selectedPilotiId}
+      disabled={destinationPilotiIds !== undefined && !destinationPilotiIds.includes(id)} onClick={() => onSelectPiloti?.(id)}
       style={{left: x, top: y, width: diameter, height: diameter, transform: 'translate(-50%, -50%)'}}
-      className='absolute z-10 touch-manipulation rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600'/>) }
+      className={`absolute z-10 touch-manipulation rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 ${destinationPilotiIds?.includes(id) ? 'ring-2 ring-blue-500 bg-blue-100/30' : ''}`} />) }
   </div>;
 }

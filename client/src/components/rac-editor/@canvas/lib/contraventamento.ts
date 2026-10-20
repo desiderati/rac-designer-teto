@@ -38,11 +38,23 @@ const CONTRAVENTAMENTO_RADIUS = HOUSE_DIMENSIONS.piloti.radius * CONTRAVENTAMENT
 const CONTRAVENTAMENTO_BEAM_WIDTH = HOUSE_DIMENSIONS.contraventamento.topWidth;
 const CONTRAVENTAMENTO_ELEVATION_WIDTH = HOUSE_DIMENSIONS.contraventamento.squareWidth;
 
-// Setas e legendas podem recentralizar o grupo Fabric sem mover o corpo da planta.
-// As coordenadas da malha são relativas ao corpo, não à origem variável do grupo.
-function getTopViewBodyCenter(group: CanvasGroup): {x: number; y: number} {
-  const body = getCanvasGroupObjects(group).find((object) => object.isHouseBody);
-  return body?.getRelativeCenterPoint?.() ?? {x: body?.left ?? 0, y: body?.top ?? 0};
+// Usar a geometria renderizada também atende à prévia com pilotis ampliados.
+// Grupos legados sem círculos preservam a malha relativa ao corpo da planta.
+function getTopViewPilotiGeometry(group: CanvasGroup, col: number, row: number) {
+  const gridX = CONTRAVENTAMENTO_COLUMN_X[col], gridY = CONTRAVENTAMENTO_ROW_Y[row];
+  if (!Number.isFinite(gridX) || !Number.isFinite(gridY)) return null;
+  const objects = getCanvasGroupObjects(group);
+  const circle = objects.find((object) => object.isPilotiCircle && object.pilotiId === `piloti_${col}_${row}`);
+  if (circle) {
+    const center = circle.getRelativeCenterPoint();
+    return {x: center.x, y: center.y,
+      radiusX: circle.width * Math.abs(circle.scaleX) / 2,
+      radiusY: circle.height * Math.abs(circle.scaleY) / 2};
+  }
+  const body = objects.find((object) => object.isHouseBody);
+  const center = body?.getRelativeCenterPoint?.() ?? {x: body?.left ?? 0, y: body?.top ?? 0};
+  return {x: center.x + gridX, y: center.y + gridY,
+    radiusX: CONTRAVENTAMENTO_RADIUS, radiusY: CONTRAVENTAMENTO_RADIUS};
 }
 
 /**
@@ -216,22 +228,17 @@ export function addContraventamentoBeam(
 ): string | null {
 
   const col = piloti1.col;
-  const gridX = CONTRAVENTAMENTO_COLUMN_X[col];
-  if (!Number.isFinite(gridX)) return null;
-  const center = getTopViewBodyCenter(group);
-  const colX = center.x + gridX;
-
-  const y1 = CONTRAVENTAMENTO_ROW_Y[piloti1.row];
-  const y2 = CONTRAVENTAMENTO_ROW_Y[piloti2.row];
-  if (!Number.isFinite(y1) || !Number.isFinite(y2)) return null;
-
-  const topY = center.y + Math.min(y1, y2);
-  const botY = center.y + Math.max(y1, y2);
+  const origin = getTopViewPilotiGeometry(group, col, piloti1.row);
+  const destination = getTopViewPilotiGeometry(group, col, piloti2.row);
+  if (!origin || !destination) return null;
+  const colX = origin.x;
+  const topY = Math.min(origin.y, destination.y);
+  const botY = Math.max(origin.y, destination.y);
   const beamHeight = botY - topY;
   if (beamHeight <= 0) return null; // Isso é possível?
 
   const side: ContraventamentoVerticalSide = options?.side === 'left' ? 'left' : 'right';
-  const tangentX = side === 'right' ? colX + CONTRAVENTAMENTO_RADIUS : colX - CONTRAVENTAMENTO_RADIUS;
+  const tangentX = side === 'right' ? colX + origin.radiusX : colX - origin.radiusX;
   const beamLeft = side === 'right' ? tangentX : tangentX - CONTRAVENTAMENTO_BEAM_WIDTH;
 
   const beam = new Rect({
@@ -278,19 +285,16 @@ export function addHorizontalContraventamentoBeam(
   if (piloti1.row !== piloti2.row) return null;
 
   const row = piloti1.row;
-  const rowY = CONTRAVENTAMENTO_ROW_Y[row];
-  const startX = CONTRAVENTAMENTO_COLUMN_X[piloti1.col];
-  const endX = CONTRAVENTAMENTO_COLUMN_X[piloti2.col];
-  if (!Number.isFinite(rowY) || !Number.isFinite(startX) || !Number.isFinite(endX)) return null;
-
-  const center = getTopViewBodyCenter(group);
-  const left = center.x + Math.min(startX, endX);
-  const width = Math.abs(endX - startX);
+  const origin = getTopViewPilotiGeometry(group, piloti1.col, row);
+  const destination = getTopViewPilotiGeometry(group, piloti2.col, row);
+  if (!origin || !destination) return null;
+  const left = Math.min(origin.x, destination.x);
+  const width = Math.abs(destination.x - origin.x);
   if (width <= 0) return null;
 
   const side: ContraventamentoHorizontalSide = options?.side === 'top' ? 'top' : 'bottom';
-  const tangentY = side === 'top' ? rowY - CONTRAVENTAMENTO_RADIUS : rowY + CONTRAVENTAMENTO_RADIUS;
-  const beamTop = center.y + (side === 'top' ? tangentY - CONTRAVENTAMENTO_BEAM_WIDTH : tangentY);
+  const tangentY = side === 'top' ? origin.y - origin.radiusY : origin.y + origin.radiusY;
+  const beamTop = side === 'top' ? tangentY - CONTRAVENTAMENTO_BEAM_WIDTH : tangentY;
 
   const beam = new Rect({
     width,

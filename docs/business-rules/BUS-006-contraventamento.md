@@ -49,6 +49,18 @@ ocupação dos lados e bloqueios de casas construídas. A preferência persiste 
 O recálculo preserva as ligações manuais proporcionais enquanto a opção estiver ativa;
 a criação automática continua exclusiva dos pilotis fora da proporção.
 
+## Análise de Campo
+
+A Análise de Campo usa o mesmo fluxo do Canvas: escolher o lado no editor do piloti de
+origem e tocar o piloti de destino diretamente na planta. A prévia destaca os destinos
+válidos, bloqueia os demais e mantém a origem selecionada. Cancelar ou pressionar Escape
+encerra a escolha sem criar uma ligação. Selecionar um lado já ocupado remove a ligação
+conforme as regras existentes. Não há seletor de destino nem botão adicional de inclusão.
+
+As vigas da prévia devem ficar tangentes aos círculos ampliados e acompanhar seus centros
+renderizados. Essa ampliação é apenas ilustrativa: o documento e a inserção no Canvas
+preservam a geometria normal da casa.
+
 ## Regras de capacidade por coluna
 
 1. Uma coluna pode ter até dois contraventamentos verticais:

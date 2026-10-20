@@ -1,3 +1,5 @@
+import {mkdirSync} from 'node:fs';
+import {resolve} from 'node:path';
 import {expect, test, type Page} from '@playwright/test';
 import type {PersistedHouseRecord} from '../client/src/shared/types/construction-site';
 import type {HouseDrawingElementDocument} from '../client/src/shared/types/house-drawing-document';
@@ -75,14 +77,18 @@ for (const scenario of [
           .toMatchObject({height: 1.2, nivel: 0.5, isMaster: true});
 
         await page.getByRole('button', {name: 'Superior', exact: true}).tap();
-        await page.getByRole('button', {name: 'Piloti de destino do contraventamento'}).tap();
-        // A linha C é válida; a origem e as demais linhas não são destinos horizontais.
-        await expect(page.getByRole('menuitemradio')).toHaveText(['Piloti C1', 'Piloti C2', 'Piloti C3']);
-        await page.getByRole('menuitemradio', {name: 'Piloti C1', exact: true}).tap();
-        await page.getByRole('button', {name: 'Adicionar contraventamento', exact: true}).tap();
+        // O destino é escolhido diretamente na planta; origem e outras linhas ficam bloqueadas.
+        await expect(page.getByRole('button', {name: 'Selecionar piloti C1', exact: true})).toBeEnabled();
+        await expect(page.getByRole('button', {name: 'Selecionar piloti A1', exact: true})).toBeDisabled();
+        await expect(page.getByRole('button', {name: 'Selecionar piloti C4', exact: true})).toBeDisabled();
+        const evidence = resolve('outputs/contraventamento-analise-campo-20261019');
+        mkdirSync(evidence, {recursive: true});
+        await page.screenshot({path: resolve(evidence, `destinos-${scenario.width}.png`), animations: 'disabled'});
+        await page.getByRole('button', {name: 'Selecionar piloti C1', exact: true}).tap();
         await expect.poll(async () => (await readHouse(page))?.fieldAnalysis?.contraventamentos)
           .toEqual(expect.arrayContaining([manualBrace]));
         await expectAnalysisReady(page);
+        await page.screenshot({path: resolve(evidence, `contraventamento-${scenario.width}.png`), animations: 'disabled'});
       });
 
       const prepared = (await readHouse(page))!;

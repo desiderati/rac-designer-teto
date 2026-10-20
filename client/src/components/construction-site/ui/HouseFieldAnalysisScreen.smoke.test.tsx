@@ -2,6 +2,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {EditorPortsContext, EditorStoreContext, createEditorStore, type EditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {APP_SETTINGS_DEFAULTS} from '@/shared/config.ts';
+import {getAllPilotiIds} from '@/shared/types/piloti.ts';
 import {DEFAULT_HOUSE_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
 import type {AppSettings} from '@/shared/types/settings.ts';
 import type {ConstructionSiteState, PersistedHouseRecord} from '@/shared/types/construction-site.ts';
@@ -10,7 +11,9 @@ import {HouseFieldAnalysisScreen} from './HouseFieldAnalysisScreen.tsx';
 import {toast} from '@/components/ui/sonner.tsx';
 
 vi.mock('@/components/rac-editor/@canvas/ui/HouseFieldAnalysisPreview.tsx', () => ({
-  HouseFieldAnalysisPreview: () => <div data-testid='field-analysis-preview'>Planta</div>,
+  HouseFieldAnalysisPreview: ({onSelectPiloti, destinationPilotiIds}: {onSelectPiloti(id: string): void; destinationPilotiIds?: readonly string[]}) => <div data-testid='field-analysis-preview'>
+    {getAllPilotiIds().map(id => <button key={id} aria-label={id} disabled={destinationPilotiIds !== undefined && !destinationPilotiIds.includes(id)} onClick={() => onSelectPiloti(id)}>{id}</button>)}
+  </div>,
 }));
 vi.mock('@/components/ui/sonner.tsx', () => ({toast: {success: vi.fn()}}));
 
@@ -178,4 +181,29 @@ describe('HouseFieldAnalysisScreen', () => {
     await waitFor(() => expect(onBack).toHaveBeenCalledTimes(1));
     expect(onSave).not.toHaveBeenCalled();
   });
+  it('escolhe destino na planta, cancela sem salvar e remove lado existente sem seletor legado', async () => {
+    const {onSave} = renderScreen({settings: {...APP_SETTINGS_DEFAULTS, allowContraventamentoWithinProportion: true}});
+    fireEvent.click(screen.getByRole('button', {name: 'Inferior'}));
+    expect(screen.getByText('Selecione na planta o piloti de destino do contraventamento.')).toBeVisible();
+    expect(screen.getByRole('button', {name: 'piloti_3_0'})).toBeEnabled();
+    expect(screen.getByRole('button', {name: 'piloti_0_2'})).toBeDisabled();
+    const saves = vi.mocked(onSave).mock.calls.length;
+    fireEvent.click(screen.getByRole('button', {name: 'Cancelar seleção do contraventamento'}));
+    expect(vi.mocked(onSave).mock.calls).toHaveLength(saves);
+    fireEvent.click(screen.getByRole('button', {name: 'Inferior'}));
+    fireEvent.keyDown(screen.getByRole('region', {name: 'Análise de Campo da casa Família Souza'}), {key: 'Escape'});
+    expect(screen.queryByText('Selecione na planta o piloti de destino do contraventamento.')).not.toBeInTheDocument();
+    expect(vi.mocked(onSave).mock.calls).toHaveLength(saves);
+    fireEvent.click(screen.getByRole('button', {name: 'Inferior'}));
+    fireEvent.click(screen.getByRole('button', {name: 'piloti_3_0'}));
+    await waitFor(() => expect(onSave).toHaveBeenCalled());
+    const last = vi.mocked(onSave).mock.calls.at(-1)![0];
+    expect(last.contraventamentos).toEqual(expect.arrayContaining([expect.objectContaining({originPilotiId: 'piloti_0_0', destinationPilotiId: 'piloti_3_0', side: 'bottom', isAuto: false})]));
+    expect(screen.getByRole('heading', {name: 'Piloti A1'})).toBeVisible();
+    expect(screen.queryByRole('button', {name: 'Piloti de destino do contraventamento'})).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: 'Adicionar contraventamento'})).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', {name: 'Inferior'}));
+    await waitFor(() => expect(vi.mocked(onSave).mock.calls.at(-1)![0].contraventamentos).toEqual([]));
+  });
+
 });

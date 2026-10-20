@@ -15,20 +15,16 @@ import type {
   ContraventamentoHorizontalSide,
   ContraventamentoVerticalSide,
 } from '@/shared/types/contraventamento.ts';
-import React, {useEffect, useState} from 'react';
 import {FloatingEditor} from '@/components/rac-editor/@modals/ui/editors/FloatingEditor.tsx';
 import {NivelSlider} from '@/components/rac-editor/@modals/ui/editors/NivelSlider.tsx';
 import {PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
-import {formatPilotiHeight, getPilotiName} from '@/shared/types/piloti.ts';
+import {formatPilotiHeight} from '@/shared/types/piloti.ts';
 import type {HousePilotiReadPort, HousePilotiWritePort} from '@/components/rac-editor/ports/HousePilotiPort.ts';
-import {VisualSelect} from '@/components/construction-site/ui/lib/shared-controls.tsx';
 
 interface PilotiEditorProps {
   presentation?: 'floating' | 'inline';
   pilotiReadPort?: HousePilotiReadPort;
   pilotiWritePort?: HousePilotiWritePort;
-  getInlineContraventamentoDestinations?: (side: ContraventamentoSide) => readonly string[];
-  onInlineContraventamentoChange?: (side: ContraventamentoSide, destinationPilotiId?: string) => void;
   isOpen: boolean;
   onClose: () => void;
   pilotiId: string | null;
@@ -58,8 +54,6 @@ export function PilotiEditor({
   presentation = 'floating',
   pilotiReadPort,
   pilotiWritePort,
-  getInlineContraventamentoDestinations,
-  onInlineContraventamentoChange,
   isOpen,
   onClose,
   pilotiId,
@@ -83,14 +77,6 @@ export function PilotiEditor({
   onContraventamentoSelect,
   onHorizontalContraventamentoSelect
 }: PilotiEditorProps) {
-  const [pendingSide, setPendingSide] = useState<ContraventamentoSide | null>(null);
-  const [selectedDestination, setSelectedDestination] = useState('');
-
-  useEffect(() => {
-    setPendingSide(null);
-    setSelectedDestination('');
-  }, [pilotiId]);
-
   const {
     tempIsMaster,
     setTempIsMaster,
@@ -132,21 +118,8 @@ export function PilotiEditor({
 
   // ---- Shared content renderers (inline to avoid remount/focus-loss) ----
   const canEditNivel = isCornerPiloti || !autoAdjustPilotiHeightsFromNivel;
-  const inlineDestinations = pendingSide ? getInlineContraventamentoDestinations?.(pendingSide) ?? [] : [];
-  const destination = inlineDestinations.includes(selectedDestination)
-    ? selectedDestination : inlineDestinations[0] ?? '';
-  const onBraceClick = (side: ContraventamentoSide, active: boolean) => {
+  const onBraceClick = (side: ContraventamentoSide) => {
     commitDraftChanges();
-    if (presentation === 'inline') {
-      if (active) {
-        onInlineContraventamentoChange?.(side);
-        setPendingSide(null);
-      } else {
-        setPendingSide(side);
-        setSelectedDestination('');
-      }
-      return;
-    }
     if (side === 'left' || side === 'right') onContraventamentoSelect?.(side, pilotiId ?? undefined);
     else onHorizontalContraventamentoSelect?.(side, pilotiId ?? undefined);
   };
@@ -250,7 +223,7 @@ export function PilotiEditor({
                 aria-label='Esquerdo'
                 title='Esquerdo'
                 disabled={contraventamentoLeftDisabled}
-                onClick={() => onBraceClick('left', contraventamentoLeftActive)}
+                onClick={() => onBraceClick('left')}
                 className={
                   getContraventamentoButtonClasses(
                     contraventamentoLeftActive, contraventamentoLeftDisabled
@@ -266,7 +239,7 @@ export function PilotiEditor({
                 aria-label='Direito'
                 title='Direito'
                 disabled={contraventamentoRightDisabled}
-                onClick={() => onBraceClick('right', contraventamentoRightActive)}
+                onClick={() => onBraceClick('right')}
                 className={
                   getContraventamentoButtonClasses(
                     contraventamentoRightActive,
@@ -283,7 +256,7 @@ export function PilotiEditor({
                 aria-label='Superior'
                 title='Superior'
                 disabled={contraventamentoTopDisabled}
-                onClick={() => onBraceClick('top', contraventamentoTopActive)}
+                onClick={() => onBraceClick('top')}
                 className={
                   getContraventamentoButtonClasses(
                     contraventamentoTopActive,
@@ -300,7 +273,7 @@ export function PilotiEditor({
                 aria-label='Inferior'
                 title='Inferior'
                 disabled={contraventamentoBottomDisabled}
-                onClick={() => onBraceClick('bottom', contraventamentoBottomActive)}
+                onClick={() => onBraceClick('bottom')}
                 className={
                   getContraventamentoButtonClasses(
                     contraventamentoBottomActive,
@@ -312,29 +285,6 @@ export function PilotiEditor({
                 </span>
               </button>
             </div>
-            {presentation === 'inline' && pendingSide ? (
-              <div className='space-y-2 rounded-xl bg-blue-50 p-3'>
-                <VisualSelect
-                  label='Destino'
-                  ariaLabel='Piloti de destino do contraventamento'
-                  value={destination}
-                  options={inlineDestinations.map((id) => ({value: id, label: `Piloti ${getPilotiName(id)}`}))}
-                  onChange={setSelectedDestination}
-                  disabled={!inlineDestinations.length}
-                  className='bg-white'
-                />
-                <button type='button' disabled={!destination}
-                  onClick={() => {
-                    if (!destination) return;
-                    onInlineContraventamentoChange?.(pendingSide, destination);
-                    setPendingSide(null);
-                  }}
-                  className='min-h-10 w-full rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50'>
-                  Adicionar contraventamento
-                </button>
-                {!inlineDestinations.length ? <p className='text-xs text-slate-600'>Nenhum piloti de destino disponível para este lado.</p> : null}
-              </div>
-            ) : null}
           </div>
         </>
       }

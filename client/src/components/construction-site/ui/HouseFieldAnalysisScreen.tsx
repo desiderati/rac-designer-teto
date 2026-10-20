@@ -77,6 +77,8 @@ export function HouseFieldAnalysisScreen({
   const [houseType, setHouseType] = useState<Exclude<HouseType, null> | null>(persistedSetupSelection.houseType);
   const [selectedSide, setSelectedSide] = useState<HouseSide | null>(persistedSetupSelection.side);
   const [selectedPilotiId, setSelectedPilotiId] = useState(() => getAllPilotiIds()[0]);
+  const [pendingBraceSide, setPendingBraceSide] = useState<ContraventamentoSide | null>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const saveErrorRef = useRef<string | null>(null);
@@ -90,6 +92,9 @@ export function HouseFieldAnalysisScreen({
   const constructionSiteId = constructionSite.constructionSite.id;
   const pilotiIds = useMemo(() => getAllPilotiIds().filter((id) => Boolean(draft.house.pilotis[id])), [draft.house.pilotis]);
   const selectedPiloti = draft.house.pilotis[selectedPilotiId] ?? DEFAULT_HOUSE_PILOTI;
+  const destinationPilotiIds = pendingBraceSide
+    ? getFieldAnalysisDestinations(draft, selectedPilotiId, pendingBraceSide, settings.allowContraventamentoWithinProportion)
+    : undefined;
   const braceState = stage === 'ready' ? getFieldAnalysisContraventamentoState(draft, selectedPilotiId, settings.allowContraventamentoWithinProportion) : null;
 
   useEffect(() => {
@@ -205,6 +210,7 @@ export function HouseFieldAnalysisScreen({
   }), []);
   const pilotiWritePort = useMemo<HousePilotiWritePort>(() => ({
     updatePiloti: (id, patch) => {
+      setPendingBraceSide(null);
       const next = updateFieldAnalysisPiloti(draftRef.current, id, patch, settings.allowContraventamentoWithinProportion);
       applyDraft(next);
       return next.house.pilotis[id];
@@ -219,13 +225,32 @@ export function HouseFieldAnalysisScreen({
         ? addFieldAnalysisContraventamento(draftRef.current, selectedPilotiId, destinationPilotiId, side, settings.allowContraventamentoWithinProportion)
         : removeFieldAnalysisContraventamento(draftRef.current, selectedPilotiId, side);
       applyDraft(next);
+      setPendingBraceSide(null);
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : 'Não foi possível atualizar o contraventamento.');
     }
   };
 
+  const selectBraceSide = (side: ContraventamentoSide) => {
+    const state = getFieldAnalysisContraventamentoState(draftRef.current, selectedPilotiId, settings.allowContraventamentoWithinProportion)[side];
+    if (state.active) changeContraventamento(side);
+    else if (!state.disabled) {
+      setPendingBraceSide(side);
+      previewRef.current?.scrollIntoView?.({block: 'start', behavior: 'smooth'});
+    }
+  };
+
+  const selectPiloti = (id: string) => {
+    if (pendingBraceSide) {
+      if (destinationPilotiIds?.includes(id)) changeContraventamento(pendingBraceSide, id);
+      return;
+    }
+    setSelectedPilotiId(id);
+  };
+
   return (
     <section aria-label={`Análise de Campo da casa ${familyName}`} aria-busy={isSaving}
+      onKeyDown={(event) => {if (event.key === 'Escape' && pendingBraceSide) {setPendingBraceSide(null); event.stopPropagation();}}}
       className='min-w-0 space-y-4 pb-8'>
       <div className='flex min-w-0 items-center gap-3'>
         <button type='button' aria-label='Voltar às casas' onClick={() => void leave()} disabled={isLeaving || isSaving || stage === 'saving-setup'}
@@ -253,8 +278,14 @@ export function HouseFieldAnalysisScreen({
       {stage === 'ready' ? (
         <>
           <div>
-            <div className='min-w-0 overflow-hidden' aria-label='Prévia ilustrativa da casa'>
-              <HouseFieldAnalysisPreview draft={draft} selectedPilotiId={selectedPilotiId} onSelectPiloti={setSelectedPilotiId}/>
+            <div ref={previewRef} className='min-w-0 overflow-hidden scroll-mt-4' aria-label='Prévia ilustrativa da casa'>
+              {pendingBraceSide ? <div className='mb-2 flex items-center gap-3 rounded-xl bg-blue-50 p-3 text-sm text-blue-800'>
+                <p role='status' className='flex-1'>Selecione na planta o piloti de destino do contraventamento.</p>
+                <button type='button' aria-label='Cancelar seleção do contraventamento' onClick={() => setPendingBraceSide(null)}
+                  className='min-h-11 rounded-lg px-3 font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600'>Cancelar</button>
+              </div> : null}
+              <HouseFieldAnalysisPreview draft={draft} selectedPilotiId={selectedPilotiId} onSelectPiloti={selectPiloti}
+                destinationPilotiIds={destinationPilotiIds}/>
             </div>
           </div>
           <div>
@@ -273,7 +304,7 @@ export function HouseFieldAnalysisScreen({
               pilotiReadPort={pilotiReadPort}
               pilotiWritePort={pilotiWritePort}
               onHeightChange={() => undefined}
-              onNavigate={(id) => setSelectedPilotiId(id)}
+              onNavigate={(id) => {setPendingBraceSide(null); setSelectedPilotiId(id);}}
               contraventamentoLeftActive={braceState?.left.active}
               contraventamentoRightActive={braceState?.right.active}
               contraventamentoTopActive={braceState?.top.active}
@@ -282,8 +313,8 @@ export function HouseFieldAnalysisScreen({
               contraventamentoRightDisabled={braceState?.right.disabled}
               contraventamentoTopDisabled={braceState?.top.disabled}
               contraventamentoBottomDisabled={braceState?.bottom.disabled}
-              getInlineContraventamentoDestinations={(side) => getFieldAnalysisDestinations(draftRef.current, selectedPilotiId, side, settings.allowContraventamentoWithinProportion)}
-              onInlineContraventamentoChange={changeContraventamento}
+              onContraventamentoSelect={selectBraceSide}
+              onHorizontalContraventamentoSelect={selectBraceSide}
             />
           </div>
         </>
