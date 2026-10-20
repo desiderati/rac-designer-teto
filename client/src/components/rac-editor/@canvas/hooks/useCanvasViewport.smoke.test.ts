@@ -100,10 +100,17 @@ describe('useCanvasViewport.ts', () => {
     });
     expect(result.current.viewportX).toBe(380);
 
+    act(() => {
+      result.current.setIsPanning(true);
+      result.current.setIsSingleFingerPanning(true);
+    });
+
     rerender({houseId: 'house-b'});
 
     expect(result.current.zoom).toBe(0.6);
     expect(result.current.viewportX).toBe(0);
     expect(result.current.viewportY).toBe(0);
+    expect(result.current.isPanning).toBe(false);
+    expect(result.current.isSingleFingerPanning).toBe(false);
   });
 });

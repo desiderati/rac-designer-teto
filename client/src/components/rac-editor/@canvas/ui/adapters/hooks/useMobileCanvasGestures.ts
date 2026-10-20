@@ -19,6 +19,8 @@ interface MobileCanvasGesturesArgs {
   viewportY: number;
   handleViewportChange: (x: number, y: number) => void;
   handleZoomChange: (zoom: number, gesture?: CanvasZoomGesture) => void;
+  onPanningChange?: (panning: boolean) => void;
+  onObjectMovingChange?: (moving: boolean) => void;
 }
 
 /** Captura antes do Fabric: cada sequência pertence à viewport ou a um objeto, nunca aos dois. */
@@ -42,6 +44,18 @@ export function useMobileCanvasGestures(args: MobileCanvasGesturesArgs) {
     let pinch: {distance: number; zoom: number; center: {x: number; y: number}} | undefined;
     let waitingForRelease = false;
     let pan = {x: 0, y: 0};
+    let panning = false;
+    let objectMoving = false;
+    const setObjectMoving = (value: boolean) => {
+      if (objectMoving === value) return;
+      objectMoving = value;
+      latest.current.onObjectMovingChange?.(value);
+    };
+    const setPanning = (value: boolean) => {
+      if (panning === value) return;
+      panning = value;
+      latest.current.onPanningChange?.(value);
+    };
     const clearHold = () => {clearTimeout(held); held = undefined;};
     // Fabric escuta touchend, mas não touchcancel. Finalizar pelo evento público também
     // libera seus listeners/mainTouchId sem depender de métodos privados da biblioteca.
@@ -56,6 +70,7 @@ export function useMobileCanvasGestures(args: MobileCanvasGesturesArgs) {
     };
     const point = (touch: Touch) => ({x: touch.clientX, y: touch.clientY});
     const finishObject = () => {
+      setObjectMoving(false);
       if (drag && moved && !latest.current.readOnly) {
         drag.setCoords();
         latest.current.fabricCanvasRef.current?.fire('object:modified', {target: drag});
@@ -63,7 +78,10 @@ export function useMobileCanvasGestures(args: MobileCanvasGesturesArgs) {
       drag = undefined;
       moved = false;
     };
-    const stop = (event: TouchEvent) => {event.preventDefault(); event.stopPropagation();};
+    const stop = (event: TouchEvent) => {
+      if (event.cancelable) event.preventDefault();
+      event.stopPropagation();
+    };
     const onStart = (event: TouchEvent) => {
       const current = latest.current;
       const canvas = current.fabricCanvasRef.current;
@@ -71,6 +89,7 @@ export function useMobileCanvasGestures(args: MobileCanvasGesturesArgs) {
       owned = true;
       handledEvents.current.add(event);
       clearHold();
+      setPanning(false);
       if (event.touches.length >= 2) {
         stop(event);
         finishObject();
@@ -134,6 +153,7 @@ export function useMobileCanvasGestures(args: MobileCanvasGesturesArgs) {
         const center = {x: (a.x + b.x) / 2, y: (a.y + b.y) / 2};
         const distance = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
         const zoom = Math.max(current.minimumZoom, Math.min(ZOOM_LIMITS.max, pinch.zoom * distance / pinch.distance));
+        if (center.x !== pinch.center.x || center.y !== pinch.center.y) setPanning(true);
         const rect = container.getBoundingClientRect();
         current.handleZoomChange(zoom, {
           from: {x: pinch.center.x - rect.left, y: pinch.center.y - rect.top},
@@ -148,6 +168,7 @@ export function useMobileCanvasGestures(args: MobileCanvasGesturesArgs) {
       if (Math.hypot(next.x - start.x, next.y - start.y) <= INTERACTION_THRESHOLDS.mobilePanActivation) return;
       clearHold();
       if (drag && canvas && !current.readOnly) {
+        if (!drag.lockMovementX || !drag.lockMovementY) setObjectMoving(true);
         const rect = canvas.upperCanvasEl.getBoundingClientRect();
         if (!drag.lockMovementX) drag.set('left', drag.left + dx * canvas.getWidth() / rect.width);
         if (!drag.lockMovementY) drag.set('top', drag.top + dy * canvas.getHeight() / rect.height);
@@ -155,6 +176,7 @@ export function useMobileCanvasGestures(args: MobileCanvasGesturesArgs) {
         moved = true;
         canvas.requestRenderAll();
       } else if (!canvas?.getActiveObject()) {
+        setPanning(true);
         const rect = container.getBoundingClientRect();
         pan = {
           x: Math.max(0, Math.min(pan.x - dx, Math.max(0, CANVAS_WIDTH * current.zoom - rect.width))),
@@ -166,6 +188,7 @@ export function useMobileCanvasGestures(args: MobileCanvasGesturesArgs) {
     };
     const onEnd = (event: TouchEvent) => {
       if (!owned) return;
+      setPanning(false);
       handledEvents.current.add(event);
       if (!nativeCanvas || event.type === 'touchcancel') stop(event);
       clearHold();
@@ -191,6 +214,8 @@ export function useMobileCanvasGestures(args: MobileCanvasGesturesArgs) {
     document.addEventListener('touchcancel', onEnd, options);
     return () => {
       clearHold();
+      setPanning(false);
+      setObjectMoving(false);
       cancelNativeGesture();
       container.removeEventListener('touchstart', onStart, options);
       document.removeEventListener('touchmove', onMove, options);

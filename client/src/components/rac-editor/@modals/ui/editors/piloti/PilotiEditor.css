@@ -18,9 +18,14 @@
 .piloti-inline-card .piloti-inline-heading,
 .piloti-inline-card .piloti-inline-level > div > div:first-child {
   display: flex;
-  min-height: 40px;
+  min-height: 24px;
   align-items: center;
   justify-content: center;
+}
+
+.piloti-inline-card .piloti-inline-layout .piloti-inline-heading + div,
+.piloti-inline-card .piloti-inline-level > div > div:first-child + div {
+  margin-top: 12px;
 }
 
 .piloti-inline-size-choices,
@@ -43,13 +48,13 @@
     grid-template-columns: minmax(0, 1fr) 264px
       clamp(8px, calc(8px + (100cqi - 408px) * 24 / 197), 32px)
       136px minmax(0, 1fr);
-    row-gap: 20px;
+    row-gap: 16px;
     column-gap: 0;
   }
 
   .piloti-inline-level {
     grid-column: 1 / -1;
-    padding-bottom: 20px;
+    padding-bottom: 16px;
     border-bottom: 1px solid hsl(var(--border));
   }
 
@@ -73,7 +78,7 @@
   }
 
   .piloti-inline-sizes {
-    padding-bottom: 20px;
+    padding-bottom: 16px;
     border-bottom: 1px solid hsl(var(--border));
   }
 

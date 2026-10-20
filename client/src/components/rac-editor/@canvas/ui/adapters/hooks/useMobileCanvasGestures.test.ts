@@ -18,23 +18,73 @@ function setup(readOnly = false, canvasToolMode: 'select' | 'pan' = 'pan') {
     discardActiveObject: () => {active = undefined;}, getWidth: () => 1200, getHeight: () => 800,
     requestRenderAll: vi.fn(), fire: vi.fn()};
   const onToolModeChange = vi.fn();
+  const panningChanges = vi.fn();
+  const objectMovingChanges = vi.fn();
   const containerRef = {current: container};
   const fabricCanvasRef = {current: canvas as unknown as Canvas};
   const hook = renderHook(() => {
     const viewport = useCanvasViewport({});
     const shouldSkipLegacyTouch = useMobileCanvasGestures({...viewport, enabled: true, readOnly, containerRef, fabricCanvasRef,
-      canvasToolMode, onToolModeChange});
+      canvasToolMode, onToolModeChange, onObjectMovingChange: objectMovingChanges, onPanningChange: (panning) => {
+        viewport.setIsPanning(panning);
+        panningChanges(panning);
+      }});
     return {...viewport, shouldSkipLegacyTouch};
   });
   act(() => {hook.result.current.setContainerSize({width: 800, height: 340});});
   act(() => {hook.result.current.handleViewportChange(300, 200);});
   const send = (type: 'touchStart' | 'touchMove' | 'touchEnd' | 'touchCancel', points: number[][]) =>
     fireEvent[type](upperCanvasEl, {touches: points.map(([clientX, clientY]) => ({clientX, clientY})), changedTouches: []});
-  return {...hook, canvas, target, onToolModeChange, send, container, upperCanvasEl};
+  return {...hook, canvas, target, onToolModeChange, panningChanges, objectMovingChanges, send, container, upperCanvasEl};
 }
 afterEach(() => {vi.useRealTimers(); localStorage.clear(); document.body.innerHTML = '';});
 
 describe('gestos mobile com dono único', () => {
+  it.each(['touchEnd', 'touchCancel'] as const)('sinaliza panning apenas após deslocar e encerra em %s', (end) => {
+    const {send, result} = setup();
+    send('touchStart', [[400, 170]]);
+    expect(result.current.isPanning).toBe(false);
+    send('touchMove', [[399, 170]]);
+    expect(result.current.isPanning).toBe(false);
+    send('touchMove', [[350, 150]]);
+    expect(result.current.isPanning).toBe(true);
+    send(end, []);
+    expect(result.current.isPanning).toBe(false);
+  });
+
+  it('encerra o panning ao desmontar a captura de gestos', () => {
+    const {send, unmount, panningChanges} = setup();
+    send('touchStart', [[400, 170]]);
+    send('touchMove', [[350, 150]]);
+    expect(panningChanges).toHaveBeenLastCalledWith(true);
+    unmount();
+    expect(panningChanges).toHaveBeenLastCalledWith(false);
+  });
+
+  it('encerra o panning em touchcancel não cancelável sem tentar prevenir o evento', () => {
+    const {send, upperCanvasEl, result} = setup();
+    send('touchStart', [[400, 170]]);
+    send('touchMove', [[350, 150]]);
+    const event = new TouchEvent('touchcancel', {bubbles: true, cancelable: false, touches: [], changedTouches: []});
+    const prevent = vi.spyOn(event, 'preventDefault');
+    act(() => {upperCanvasEl.dispatchEvent(event);});
+    expect(result.current.isPanning).toBe(false);
+    expect(prevent).not.toHaveBeenCalled();
+  });
+
+  it('sinaliza deslocamento com dois dedos, sem confundir com pinça parada', () => {
+    const {send, result} = setup();
+    send('touchStart', [[350, 170], [450, 170]]);
+    send('touchMove', [[300, 170], [500, 170]]);
+    expect(result.current.isPanning).toBe(false);
+    send('touchMove', [[250, 150], [450, 150]]);
+    expect(result.current.isPanning).toBe(true);
+    send('touchEnd', [[250, 150]]);
+    expect(result.current.isPanning).toBe(false);
+    send('touchMove', [[200, 130]]);
+    expect(result.current.isPanning).toBe(false);
+    send('touchEnd', []);
+  });
   it('delega o gesto de Seleção ao Fabric e impede processamento duplicado pela viewport', () => {
     const {send, upperCanvasEl, result, target, canvas} = setup(false, 'select');
     const received: string[] = [];
@@ -45,6 +95,7 @@ describe('gestos mobile com dono único', () => {
     ['touchstart', 'touchmove', 'touchend'].forEach(type => upperCanvasEl.addEventListener(type, listener));
     send('touchStart', [[400, 170]]);
     send('touchMove', [[450, 190]]);
+    expect(result.current.isPanning).toBe(false);
     send('touchEnd', []);
     expect(received).toEqual(['touchstart', 'touchmove', 'touchend']);
     expect(target.set).not.toHaveBeenCalled(); // resize/rotação/arrasto pertencem ao Fabric
@@ -81,14 +132,17 @@ describe('gestos mobile com dono único', () => {
   });
   it('seleciona por toque prolongado partindo de Pan e move apenas o objeto', () => {
     vi.useFakeTimers();
-    const {send, result, target, canvas, onToolModeChange} = setup();
+    const {send, result, target, canvas, onToolModeChange, objectMovingChanges} = setup();
     send('touchStart', [[400, 170]]);
     expect(canvas.getActiveObject()).toBeUndefined();
     act(() => {vi.advanceTimersByTime(500);});
     expect(canvas.getActiveObject()).toBe(target);
     expect(onToolModeChange).not.toHaveBeenCalled();
+    expect(objectMovingChanges).not.toHaveBeenCalled();
     send('touchMove', [[450, 190]]);
+    expect(objectMovingChanges).toHaveBeenLastCalledWith(true);
     send('touchEnd', []);
+    expect(objectMovingChanges).toHaveBeenLastCalledWith(false);
     expect(target.left).toBe(250);
     expect(target.top).toBe(220);
     expect(result.current.viewportX).toBe(300);
@@ -163,9 +217,21 @@ describe('gestos mobile com dono único', () => {
     expect(result.current.viewportX).toBeCloseTo(1000);
     send('touchEnd', []);
   });
+  it.each(['touchCancel', 'pinch', 'unmount'])('encerra feedback do arrasto manual em %s', (end) => {
+    vi.useFakeTimers();
+    const {send, unmount, objectMovingChanges} = setup();
+    send('touchStart', [[400, 170]]);
+    act(() => {vi.advanceTimersByTime(500);});
+    send('touchMove', [[450, 190]]);
+    expect(objectMovingChanges).toHaveBeenLastCalledWith(true);
+    if (end === 'touchCancel') send('touchCancel', []);
+    else if (end === 'pinch') send('touchStart', [[450, 190], [550, 190]]);
+    else unmount();
+    expect(objectMovingChanges).toHaveBeenLastCalledWith(false);
+  });
   it('consulta permite seleção, pinça e pan sem mover nem salvar objetos', () => {
     vi.useFakeTimers();
-    const {send, target, canvas} = setup(true);
+    const {send, target, canvas, objectMovingChanges} = setup(true);
     send('touchStart', [[400, 170]]);
     act(() => {vi.advanceTimersByTime(500);});
     expect(canvas.getActiveObject()).toBe(target);
@@ -173,6 +239,7 @@ describe('gestos mobile com dono único', () => {
     send('touchEnd', []);
     expect(target.left).toBe(200);
     expect(canvas.fire).not.toHaveBeenCalled();
+    expect(objectMovingChanges).not.toHaveBeenCalled();
   });
   it('cancelamento e desmontagem cancelam a seleção agendada', () => {
     vi.useFakeTimers();

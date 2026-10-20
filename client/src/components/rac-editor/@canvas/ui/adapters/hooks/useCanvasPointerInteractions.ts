@@ -139,6 +139,7 @@ export function useCanvasPointerInteractions({
       draggingObjectRef.current = false;
       event.preventDefault();
       setIsSingleFingerPanning(false);
+      setIsPanning(false);
       singleFingerStartPoint.current = null;
       singleFingerMoved.current = false;
 
@@ -191,6 +192,7 @@ export function useCanvasPointerInteractions({
     lastPinchDistance,
     pinchTimeoutRef,
     setIsPinching,
+    setIsPanning,
     setIsSingleFingerPanning,
     singleFingerMoved,
     singleFingerStartPoint,
@@ -207,6 +209,10 @@ export function useCanvasPointerInteractions({
         x: (event.touches[0].clientX + event.touches[1].clientX) / 2,
         y: (event.touches[0].clientY + event.touches[1].clientY) / 2,
       };
+
+      if (currentCenter.x !== lastPinchCenter.current.x || currentCenter.y !== lastPinchCenter.current.y) {
+        setIsPanning(true);
+      }
 
       const delta = (currentDistance - lastPinchDistance.current) * ZOOM_LIMITS.pinchScaleFactor;
       const newZoom = Math.max(minimumZoom, Math.min(ZOOM_LIMITS.max, zoom + delta));
@@ -252,6 +258,7 @@ export function useCanvasPointerInteractions({
     lastPinchCenter,
     lastPinchDistance,
     minimumZoom,
+    setIsPanning,
     setIsSingleFingerPanning,
     setViewportX,
     setViewportY,
@@ -272,6 +279,7 @@ export function useCanvasPointerInteractions({
     }
 
     setIsSingleFingerPanning(false);
+    setIsPanning(false);
     singleFingerMoved.current = false;
 
     pinchTimeoutRef.current = setTimeout(() => {
@@ -283,6 +291,7 @@ export function useCanvasPointerInteractions({
     lastPinchDistance,
     pinchTimeoutRef,
     setIsPinching,
+    setIsPanning,
     setIsSingleFingerPanning,
     singleFingerMoved,
     singleFingerStartPoint,

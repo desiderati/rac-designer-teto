@@ -34,6 +34,8 @@ describe('gestos do Canvas em celular na horizontal', () => {
     act(() => result.current.handleViewportChange(300, 200));
     act(() => result.current.handleTouchStart(touch([[500, 180]])));
     act(() => result.current.handleTouchMove(touch([[430, 140]])));
+    expect(result.current.isPanning).toBe(false);
+    expect(result.current.isSingleFingerPanning).toBe(false);
     expect(result.current.viewportX).toBe(300);
     expect(result.current.viewportY).toBe(200);
   });
@@ -45,6 +47,9 @@ describe('gestos do Canvas em celular na horizontal', () => {
     act(() => result.current.handleTouchMove(touch([[430, 140]])));
     expect(result.current.viewportX).toBeCloseTo(370);
     expect(result.current.viewportY).toBeCloseTo(240);
+    expect(result.current.isSingleFingerPanning).toBe(true);
+    act(() => result.current.handleTouchEnd());
+    expect(result.current.isSingleFingerPanning).toBe(false);
   });
 
   it('combina zoom e deslocamento sem perder o ponto sob os dedos', () => {
@@ -67,5 +72,8 @@ describe('gestos do Canvas em celular na horizontal', () => {
     expect(result.current.zoom).toBe(1);
     expect(result.current.viewportX).toBeCloseTo(350);
     expect(result.current.viewportY).toBeCloseTo(230);
+    expect(result.current.isPanning).toBe(true);
+    act(() => result.current.handleTouchEnd());
+    expect(result.current.isPanning).toBe(false);
   });
 });

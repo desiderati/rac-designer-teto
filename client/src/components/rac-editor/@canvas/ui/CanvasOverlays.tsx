@@ -10,6 +10,8 @@ interface CanvasOverlaysProps {
   showZoomControls: boolean;
   showToolMenuLabels?: boolean;
   isPinching: boolean;
+  isPanning?: boolean;
+  isObjectMoving?: boolean;
   zoom: number;
   onZoomChange: (value: number) => void;
   containerWidth: number;
@@ -43,6 +45,8 @@ export function CanvasOverlays({
   showZoomControls,
   showToolMenuLabels = false,
   isPinching,
+  isPanning = false,
+  isObjectMoving = false,
   zoom,
   onZoomChange: _onZoomChange,
   containerWidth,
@@ -57,7 +61,8 @@ export function CanvasOverlays({
   onSiteAssessmentChange,
   children,
 }: CanvasOverlaysProps) {
-  const {landscape} = useCanvasMobileViewport();
+  const {mobile, landscape} = useCanvasMobileViewport();
+  const showMinimap = showZoomControls || (mobile && (isPanning || isObjectMoving));
 
   return (
     <>
@@ -72,7 +77,7 @@ export function CanvasOverlays({
       )}
 
       {/* Desktop: minimapa em posição fixa */}
-      {showZoomControls && (
+      {showMinimap && (
         <div
           className='absolute left-2.5 bottom-2.5 z-10 flex-col items-start gap-1 transition-all duration-200 hidden sm:flex'>
           <Minimap
@@ -117,7 +122,7 @@ export function CanvasOverlays({
       {/* Mobile: minimapa e InfoBar empilhados no contêiner flex */}
       <div
         className='absolute left-2.5 bottom-2.5 right-2.5 z-10 flex flex-col items-start gap-2 sm:hidden'>
-        {showZoomControls && (
+        {showMinimap && (
           <Minimap
             canvasWidth={CANVAS_WIDTH}
             canvasHeight={CANVAS_HEIGHT}

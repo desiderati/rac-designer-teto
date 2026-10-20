@@ -27,6 +27,7 @@ import {useCanvasHistory} from '@/components/rac-editor/@canvas/ui/adapters/hook
 import {useCanvasMinimapObjects} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasMinimapObjects.ts';
 import {useCanvasPointerInteractions} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasPointerInteractions.ts';
 import {useMobileCanvasGestures} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useMobileCanvasGestures.ts';
+import {useCanvasObjectMovement} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasObjectMovement.ts';
 import {useCanvasScreenProjection} from '@/components/rac-editor/@canvas/hooks/useCanvasScreenProjection.ts';
 import {useCanvasHouseSelection} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasHouseSelection.ts';
 import {useCanvasViewport} from '@/components/rac-editor/@canvas/hooks/useCanvasViewport.ts';
@@ -152,7 +153,7 @@ export const Canvas =
       onContraventamentoCancel,
       onFreeDrawPathCreated,
     }, ref) => {
-      const {landscape} = useCanvasMobileViewport();
+      const {mobile, landscape} = useCanvasMobileViewport();
       const [landscapeSelection, setLandscapeSelection] = useState(false);
 
       const containerRef = useRef<HTMLDivElement>(null);
@@ -177,6 +178,7 @@ export const Canvas =
         setIsPanning,
         isPinching,
         setIsPinching,
+        isSingleFingerPanning,
         setIsSingleFingerPanning,
         lastPanPoint,
         lastPinchDistance,
@@ -689,9 +691,10 @@ export const Canvas =
         setViewportY,
       });
 
+      const {isObjectMoving, onObjectMovingChange} = useCanvasObjectMovement({fabricCanvasRef, enabled: mobile && !readOnly, houseId: activeHouseId});
       const shouldSkipLegacyTouch = useMobileCanvasGestures({enabled: landscape && !isContraventamentoMode, houseId: activeHouseId, readOnly, containerRef,
         fabricCanvasRef, canvasToolMode, onToolModeChange, zoom, minimumZoom, viewportX, viewportY,
-        handleViewportChange, handleZoomChange});
+        handleViewportChange, handleZoomChange, onPanningChange: setIsPanning, onObjectMovingChange});
 
       const handleCanvasMouseDown = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
         setImageLayerMenu(null);
@@ -773,6 +776,8 @@ export const Canvas =
 
           <CanvasOverlays
             isPinching={isPinching}
+            isPanning={isPanning || isSingleFingerPanning}
+            isObjectMoving={isObjectMoving}
 
             containerHeight={containerSize.height}
             containerWidth={containerSize.width}
