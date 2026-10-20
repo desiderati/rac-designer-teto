@@ -101,7 +101,7 @@ function getMapControlsOptions(compact: boolean): Pick<google.maps.MapOptions,
     mapTypeControl: !compact,
     streetViewControl: false,
     zoomControl: true,
-    zoomControlOptions: {position: google.maps.ControlPosition.LEFT_CENTER},
+    zoomControlOptions: {position: google.maps.ControlPosition.RIGHT_CENTER},
   };
 }
 

@@ -68,7 +68,7 @@ describe('MapView', () => {
 
     vi.stubGlobal('google', {
       maps: {
-        ControlPosition: {LEFT_CENTER: 4},
+        ControlPosition: {LEFT_CENTER: 4, RIGHT_CENTER: 8},
         Map: FakeMap,
         marker: {AdvancedMarkerElement: FakeAdvancedMarkerElement},
       },
@@ -88,7 +88,7 @@ describe('MapView', () => {
         mapTypeControl: true,
         streetViewControl: false,
         zoomControl: true,
-        zoomControlOptions: {position: 4},
+        zoomControlOptions: {position: 8},
       }),
     );
     expect(markerConstructor).toHaveBeenCalledWith({
@@ -99,7 +99,7 @@ describe('MapView', () => {
     expect(onMapReady).toHaveBeenCalledWith(mapInstance);
   });
 
-  it('mantém zoom à esquerda e atalhos removidos ao alternar entre mobile e desktop', async () => {
+  it('mantém zoom à direita e atalhos removidos ao alternar entre mobile e desktop', async () => {
     const mapConstructor = vi.fn();
     const setOptions = vi.fn();
     const mapInstance = {setCenter: vi.fn(), setOptions};
@@ -123,7 +123,7 @@ describe('MapView', () => {
 
     vi.stubGlobal('google', {
       maps: {
-        ControlPosition: {LEFT_CENTER: 4},
+        ControlPosition: {LEFT_CENTER: 4, RIGHT_CENTER: 8},
         Map: FakeMap,
         event: {clearInstanceListeners: vi.fn()},
       },
@@ -143,7 +143,7 @@ describe('MapView', () => {
         mapTypeControl: false,
         streetViewControl: false,
         zoomControl: true,
-        zoomControlOptions: {position: 4},
+        zoomControlOptions: {position: 8},
       }),
     );
 
@@ -155,7 +155,7 @@ describe('MapView', () => {
       mapTypeControl: true,
       streetViewControl: false,
       zoomControl: true,
-      zoomControlOptions: {position: 4},
+      zoomControlOptions: {position: 8},
     });
   });
 
@@ -172,7 +172,7 @@ describe('MapView', () => {
 
     vi.stubGlobal('google', {
       maps: {
-        ControlPosition: {LEFT_CENTER: 4},
+        ControlPosition: {LEFT_CENTER: 4, RIGHT_CENTER: 8},
         Map: FakeMap,
         event: {clearInstanceListeners: vi.fn()},
       },

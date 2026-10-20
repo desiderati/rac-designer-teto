@@ -1,0 +1,13 @@
+{
+  "provenance": "Resultado direto de experimento node --import tsx via stdin, executado pelo support-analyst antes do patch do agente principal; transcrito da saída da ferramenta.",
+  "sourceSha256": null,
+  "hashLimitation": "O hash não foi capturado no experimento inicial. A matriz posterior já observou o patch concorrente e identifica seu próprio hash em evidence.json.",
+  "boundary": "createHouseTop, refreshHouseViewReferenceMarkersInViews e addContraventamentoBeam reais, Fabric em JSDOM; sem UI, controlador e autosave.",
+  "scenario": {"houseType": "tipo6", "sideMappings": {"top": "front", "left": "side1", "bottom": null, "right": null}, "beam": "coluna 0, linha 0 até linha 2, lados left e right"},
+  "beforeMarkers": {"body": {"left": 0, "top": 0}, "pilotiA1": {"left": -116.25, "top": -67.5}},
+  "afterMarkers": {"body": {"left": 9.5, "top": 7.430000000000007}, "pilotiA1": {"left": -106.75, "top": -60.06999999999999}},
+  "afterBeams": [
+    {"side": "left", "left": -128.75, "top": -67.5, "width": 5, "height": 135, "expectedLeft": -119.25, "expectedTop": -60.06999999999999},
+    {"side": "right", "left": -108.75, "top": -67.5, "width": 5, "height": 135, "expectedLeft": -99.25, "expectedTop": -60.06999999999999}
+  ]
+}

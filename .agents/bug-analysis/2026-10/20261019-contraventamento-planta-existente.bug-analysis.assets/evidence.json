@@ -1,0 +1,173 @@
+{
+  "capturedAt": "2026-10-19T23:24:35.594Z",
+  "boundary": "Factory e geometria reais do Fabric em JSDOM, sem UI/controle/autosave",
+  "source": "client/src/components/rac-editor/@canvas/lib/contraventamento.ts",
+  "sourceSha256": "e49fd6b1fe2098f99e317011914aa17d4a3045ee8ef01002fce71e6780775073",
+  "cases": [
+    {
+      "name": "controle: sem marcadores",
+      "bodyCenter": {
+        "x": 0,
+        "y": 0
+      },
+      "pilotiCenter": {
+        "x": -116.25,
+        "y": -67.5
+      },
+      "beams": [
+        {
+          "side": "left",
+          "left": -128.75,
+          "top": -67.5,
+          "expectedLeft": -128.75,
+          "expectedTop": -67.5,
+          "dx": 0,
+          "dy": 0,
+          "aligned": true
+        },
+        {
+          "side": "right",
+          "left": -108.75,
+          "top": -67.5,
+          "expectedLeft": -108.75,
+          "expectedTop": -67.5,
+          "dx": 0,
+          "dy": 0,
+          "aligned": true
+        }
+      ]
+    },
+    {
+      "name": "vertical: marcadores antes da inserção",
+      "bodyCenter": {
+        "x": 9.5,
+        "y": 7.430000000000007
+      },
+      "pilotiCenter": {
+        "x": -106.75,
+        "y": -60.06999999999999
+      },
+      "beams": [
+        {
+          "side": "left",
+          "left": -119.25,
+          "top": -60.06999999999999,
+          "expectedLeft": -119.25,
+          "expectedTop": -60.06999999999999,
+          "dx": 0,
+          "dy": 0,
+          "aligned": true
+        },
+        {
+          "side": "right",
+          "left": -99.25,
+          "top": -60.06999999999999,
+          "expectedLeft": -99.25,
+          "expectedTop": -60.06999999999999,
+          "dx": 0,
+          "dy": 0,
+          "aligned": true
+        }
+      ]
+    },
+    {
+      "name": "controle: marcadores depois da inserção",
+      "bodyCenter": {
+        "x": 9.5,
+        "y": 7.430000000000007
+      },
+      "pilotiCenter": {
+        "x": -106.75,
+        "y": -60.06999999999999
+      },
+      "beams": [
+        {
+          "side": "left",
+          "left": -119.25,
+          "top": -60.06999999999999,
+          "expectedLeft": -119.25,
+          "expectedTop": -60.06999999999999,
+          "dx": 0,
+          "dy": 0,
+          "aligned": true
+        },
+        {
+          "side": "right",
+          "left": -99.25,
+          "top": -60.06999999999999,
+          "expectedLeft": -99.25,
+          "expectedTop": -60.06999999999999,
+          "dx": 0,
+          "dy": 0,
+          "aligned": true
+        }
+      ]
+    },
+    {
+      "name": "horizontal: marcadores antes da inserção",
+      "bodyCenter": {
+        "x": 9.5,
+        "y": 7.430000000000007
+      },
+      "pilotiCenter": {
+        "x": -106.75,
+        "y": 7.430000000000007
+      },
+      "beams": [
+        {
+          "side": "top",
+          "left": -106.75,
+          "top": -5.069999999999993,
+          "expectedLeft": -106.75,
+          "expectedTop": -5.069999999999993,
+          "dx": 0,
+          "dy": 0,
+          "aligned": true
+        },
+        {
+          "side": "bottom",
+          "left": -106.75,
+          "top": 14.930000000000007,
+          "expectedLeft": -106.75,
+          "expectedTop": 14.930000000000007,
+          "dx": 0,
+          "dy": 0,
+          "aligned": true
+        }
+      ]
+    },
+    {
+      "name": "vertical: escala e rotação após marcadores",
+      "bodyCenter": {
+        "x": 9.5,
+        "y": 7.430000000000007
+      },
+      "pilotiCenter": {
+        "x": -106.75,
+        "y": -60.06999999999999
+      },
+      "beams": [
+        {
+          "side": "left",
+          "left": -119.25,
+          "top": -60.06999999999999,
+          "expectedLeft": -119.25,
+          "expectedTop": -60.06999999999999,
+          "dx": 0,
+          "dy": 0,
+          "aligned": true
+        },
+        {
+          "side": "right",
+          "left": -99.25,
+          "top": -60.06999999999999,
+          "expectedLeft": -99.25,
+          "expectedTop": -60.06999999999999,
+          "dx": 0,
+          "dy": 0,
+          "aligned": true
+        }
+      ]
+    }
+  ]
+}
