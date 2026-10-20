@@ -61,7 +61,7 @@ export function HamburgerMenu({actions, constructionGroups, documentTransitionin
         align='start'
         avoidCollisions={false}
         sideOffset={8}
-        className='w-[14.5rem] min-w-[14.5rem] p-1 rounded-xl bg-white/95 backdrop-blur-xl border border-slate-200 shadow-xl'
+        className='w-[16.5rem] min-w-[16.5rem] p-1 rounded-xl bg-white/95 backdrop-blur-xl border border-slate-200 shadow-xl'
       >
         <MenuItem
           icon={TOP_BAR_ICONS.constructionSites}
@@ -87,10 +87,10 @@ export function HamburgerMenu({actions, constructionGroups, documentTransitionin
                 aria-expanded={expanded}
                 onClick={() => toggleConstruction(construction.id)}
                 className={cn(
-                  'min-w-0 flex-1 flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm font-semibold',
+                  'min-w-0 flex-1 flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm font-medium',
                   'transition-colors',
                   construction.active
-                    ? 'bg-slate-100 text-slate-950'
+                    ? 'bg-blue-50 text-slate-950'
                     : 'text-slate-700 hover:bg-slate-100',
                 )}
               >

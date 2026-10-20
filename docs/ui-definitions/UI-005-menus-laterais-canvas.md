@@ -114,7 +114,66 @@ Os nomes dos itens ficam sempre visíveis junto aos botões: à direita no menu 
 no direito. Tocar no nome aciona o mesmo botão. O centro mantém somente o ícone, com nome acessível
 que indica a ação de voltar quando houver um nível pai. Não duplicar esses nomes com tooltips.
 
+### Seleção de itens no mobile horizontal
+
+A barra inferior acompanha a seleção. Por padrão, o arrasto move somente os itens selecionados.
+Um item mostra `Item selecionado. Arraste pra movê-lo.`, `Editar` e `Escalar`.
+Editar e o botão que alterna entre Escalar e Mover têm 80 × 44 px em todos os estados.
+`Editar` fica habilitado apenas para uma vista planta de casa editável; outros componentes e vistas
+mantêm a ação desabilitada.
+Vários mostram `Itens selecionados. Arraste pra movê-los.` e `Escalar`, sem edição múltipla.
+
+`Escalar` revela alças circulares brancas com contorno azul e alvos de toque de 44 px.
+A barra passa a orientar o arrasto dos pontos e oferece `Mover` para retornar. As alças respeitam
+as restrições de cada componente; rotação não integra essa ação. Ao mudar a seleção, volta a mover.
+Na seleção múltipla, um eixo bloqueado em qualquer membro fica bloqueado para o conjunto.
+Esse estado é transitório e não altera as flags salvas no desenho. Casas construídas não mostram
+as ações de modificação. Os editores automáticos permanecem bloqueados no mobile horizontal.
+
+A ferramenta Seleção conserva toque e seleção por área. Panning conserva a seleção por toque
+prolongado; arrastar uma alça em Escalar transforma o item sem deslocar a viewport.
+
+### Edição de pilotis da planta no mobile horizontal
+
+O acesso explícito `Editar` abre o painel lateral de pilotis. Ele reaproveita a estética da Análise
+de Campo: planta com pilotis maiores, destaque azul da seleção, mestre em tom de madeira, níveis
+nos cantos, porta e contraventamentos. A planta permanece acima das abas `Nível`, `Tamanho` e
+`Contraventar`; apenas os ajustes precisam rolar quando a altura disponível for pequena.
+O espaço externo da planta acrescenta 8 px acima e abaixo, sem reduzir seu desenho ou os alvos de toque.
+O painel dispensa título e X. Sua largura de 288 px acomoda quatro botões por linha e mantém espaço
+para os alvos de toque da planta, sem reservar metade da viewport. Tocar fora ou pressionar Escape
+fecha a edição; durante a escolha de destino, Escape primeiro cancela essa escolha.
+As três abas têm larguras iguais e altura de 36 px. A aba ativa combina texto azul, fundo azul-claro e linha inferior
+azul; as inativas mantêm texto escuro sobre a superfície branca e a mesma linha de base clara.
+
+Selecionar um piloti na planta do painel atualiza seus controles. As regras de mestre, nível,
+modo automático, alturas disponíveis e elegibilidade do contraventamento continuam sendo as do
+editor existente. Ao escolher um lado de contraventamento, os destinos válidos são selecionados
+diretamente nessa planta, sem transformar o gesto em panning do Canvas.
+A orientação para escolher o destino e a ação Cancelar seleção ficam abaixo dos botões de
+contraventamento, somente na aba Contraventar e durante a escolha de destino. Cancelar seleção tem
+alvo de toque de 40 px. Trocar de aba oculta essa orientação sem cancelar a escolha em andamento.
+No painel mobile, o nível usa valor de 30 px e círculos −/+ de 32 px, com área de toque ampliada
+para 44 px e espaçamento vertical compacto. As demais apresentações mantêm a escala anterior.
+
+Os botões de tamanho e contraventamento deste painel são quadrados e ocupam quatro colunas iguais
+por toda a largura disponível, com recuos laterais de 12 px e espaçamento de 8 px entre botões.
+Conservam os ícones próprios do produto. O editor inline da Análise de Campo mantém seus 60 × 60 px.
+As edições usam os comandos e a persistência existentes; não introduzem uma cópia independente
+das regras ou um novo significado de desfazer/cancelar. A seleção múltipla continua sem edição.
+
 ### Geometria e movimento
+
+- A área do minimapa deve manter a proporção entre largura e altura da área total do Canvas,
+  com 75 px no maior lado. Limitar o retângulo da viewport aos dois eixos dessa área proporcional
+  e descontar a borda na projeção do clique ou toque.
+- A alça recolhida da barra superior mobile usa indicador cinza de 192 × 12 px dentro de um
+  alvo de 256 × 28 px, centralizado no topo. A largura duplicada preserva as alturas anteriores.
+- Durante o arraste, atualizar a posição dos itens no minimapa a cada quadro de animação,
+  incluindo seleção múltipla e movimento por toque prolongado. Projetar os itens em coordenadas
+  do Canvas, considerando o grupo temporário de seleção. Essa prévia não grava histórico;
+  a gravação continua no término do movimento. Preservar a preferência de visibilidade do minimapa
+  e sua exibição temporária no mobile durante pan ou movimento de objetos.
 
 - Centro de 48 × 48 px e itens de 44 × 44 px; ícones de 16 × 16 px. Afastamento lateral da raiz
   de 12 px. Manter foco visível e alvos de toque de pelo menos 44 px.

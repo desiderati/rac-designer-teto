@@ -9,6 +9,7 @@ interface MobileCanvasGesturesArgs {
   enabled: boolean;
   houseId?: string | null;
   readOnly: boolean;
+  resizing?: boolean;
   containerRef: RefObject<HTMLDivElement | null>;
   fabricCanvasRef: RefObject<Canvas | null>;
   canvasToolMode: CanvasToolMode;
@@ -21,6 +22,7 @@ interface MobileCanvasGesturesArgs {
   handleZoomChange: (zoom: number, gesture?: CanvasZoomGesture) => void;
   onPanningChange?: (panning: boolean) => void;
   onObjectMovingChange?: (moving: boolean) => void;
+  onObjectMove?: () => void;
 }
 
 /** Captura antes do Fabric: cada sequência pertence à viewport ou a um objeto, nunca aos dois. */
@@ -107,7 +109,9 @@ export function useMobileCanvasGestures(args: MobileCanvasGesturesArgs) {
       if (!canvas || waitingForRelease) {stop(event); return;}
       start = last = point(event.touches[0]);
       pan = {x: current.viewportX, y: current.viewportY};
-      if (current.canvasToolMode === 'select') {
+      const resizeControl = current.resizing && !current.readOnly
+        && canvas.getActiveObject()?.findControl(canvas.getViewportPoint(event as TPointerEvent), true);
+      if (current.canvasToolMode === 'select' || resizeControl) {
         // Inclui a área vazia: o Fabric usa esse gesto para seleção múltipla
         // por retângulo. Seleção nunca transforma um dedo em pan da viewport.
         nativeCanvas = canvas;
@@ -173,6 +177,7 @@ export function useMobileCanvasGestures(args: MobileCanvasGesturesArgs) {
         if (!drag.lockMovementX) drag.set('left', drag.left + dx * canvas.getWidth() / rect.width);
         if (!drag.lockMovementY) drag.set('top', drag.top + dy * canvas.getHeight() / rect.height);
         drag.setCoords();
+        if (!drag.lockMovementX || !drag.lockMovementY) current.onObjectMove?.();
         moved = true;
         canvas.requestRenderAll();
       } else if (!canvas?.getActiveObject()) {

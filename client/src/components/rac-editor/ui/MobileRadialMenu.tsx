@@ -23,7 +23,7 @@ export function MobileRadialMenu({side, children, label, items, ...desktopProps}
   if (items) return <RadialTreeMenu side={side} label={label} items={items}/>;
   const legacyItems = Children.toArray(children).flatMap((child) => isValidElement<{children?: ReactNode; 'data-radial-group'?: boolean}>(child) && child.props['data-radial-group'] ? Children.toArray(child.props.children) : [child]);
   const positions = getRadialMenuPositions(legacyItems.length, side, window.innerHeight);
-  return <div ref={ref} className={`pointer-events-auto fixed top-1/2 z-50 -translate-y-1/2 ${side === 'left' ? 'left-3' : 'right-3'}`}>
+  return <div ref={ref} className={`pointer-events-auto fixed top-1/2 z-40 -translate-y-1/2 ${side === 'left' ? 'left-3' : 'right-3'}`}>
     <button type='button' aria-label={label} aria-expanded={open} onClick={() => setOpen((value) => !value)}
       className='relative z-10 grid h-12 w-12 place-items-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500'><FontAwesomeIcon icon={faSliders} className='h-4 w-4'/></button>
     {open ? <div role='toolbar' aria-label={label} className='pointer-events-none absolute inset-0'>

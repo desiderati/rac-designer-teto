@@ -57,9 +57,10 @@ export function styleFieldAnalysisPilotis(group: ReturnType<typeof createConfigu
 }
 
 /** Projeção isolada: nunca altera o documento nem a geometria real da casa. */
-export function HouseFieldAnalysisPreview({draft, selectedPilotiId, onSelectPiloti, destinationPilotiIds}: {
+export function HouseFieldAnalysisPreview({draft, selectedPilotiId, onSelectPiloti, destinationPilotiIds, compact = false}: {
   draft: HouseFieldAnalysisDraft; selectedPilotiId?: string; onSelectPiloti?(id: string): void;
   destinationPilotiIds?: readonly string[];
+  compact?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [targets, setTargets] = useState<Target[]>([]);
@@ -92,7 +93,7 @@ export function HouseFieldAnalysisPreview({draft, selectedPilotiId, onSelectPilo
     const fit = () => {
       if (disposed) return;
       const width = Math.max(1, container.clientWidth);
-      const height = Math.min(400, Math.max(220, width * .62));
+      const height = compact ? Math.max(1, container.clientHeight) : Math.min(400, Math.max(220, width * .62));
       canvas.setDimensions({width, height});
       let bounds = visibleBounds();
       let scale = Math.min((width - 16) / bounds.width, (height - 16) / bounds.height);
@@ -122,7 +123,7 @@ export function HouseFieldAnalysisPreview({draft, selectedPilotiId, onSelectPilo
       scheduler.cancel();
       void canvas.dispose().then(() => element.remove());
     };
-  }, [draft, selectedPilotiId]);
+  }, [compact, draft, selectedPilotiId]);
   return <div ref={containerRef} aria-label='Planta da casa: selecione um piloti' className='relative w-full min-w-0 overflow-hidden'>
     {targets.map(({id, x, y, diameter}) => <button key={id} type='button' aria-label={`Selecionar piloti ${getPilotiName(id)}`}
       aria-pressed={id === selectedPilotiId}

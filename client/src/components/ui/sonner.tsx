@@ -1,15 +1,14 @@
 import {useEffect} from 'react';
 import {toast as sonnerToast, Toaster as Sonner, useSonner, type ExternalToast} from 'sonner';
 import {CircleAlert, CircleCheck, Info, LoaderCircle, TriangleAlert} from 'lucide-react';
-import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
-import {VIEWPORT} from '@/shared/config.ts';
+import {CANVAS_MOBILE_QUERY, useCanvasMobileViewport} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
 import {ToastMessage} from './ToastMessage.tsx';
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 export const ERROR_TOAST_DURATION = 30_000;
 function responsiveOptions(options?: ExternalToast): ExternalToast | undefined {
-  return typeof window !== 'undefined' && window.matchMedia(VIEWPORT.mobileMaxWidthQuery).matches
+  return typeof window !== 'undefined' && window.matchMedia(CANVAS_MOBILE_QUERY).matches
     ? {...options, position: 'top-center'}
     : options;
 }
@@ -62,7 +61,7 @@ export function beginToastTask(id: string, loadingTitle: Parameters<typeof toast
 }
 
 const Toaster = ({...props}: ToasterProps) => {
-  const isMobile = useIsMobile();
+  const {mobile: isMobile} = useCanvasMobileViewport();
   const {toasts} = useSonner();
 
   useEffect(() => {
@@ -81,6 +80,7 @@ const Toaster = ({...props}: ToasterProps) => {
       style={{'--width': '360px'} as React.CSSProperties}
       closeButton
       position={isMobile ? 'top-center' : 'bottom-right'}
+      offset={isMobile ? {top: 'max(16px, env(safe-area-inset-top))', left: 16, right: 16} : undefined}
       mobileOffset={{top: 'max(16px, env(safe-area-inset-top))', left: 16, right: 16}}
       visibleToasts={isMobile ? 2 : 3}
       icons={{

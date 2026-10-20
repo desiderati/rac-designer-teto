@@ -180,13 +180,16 @@ export function useContraventamentoCommands({
     first: ContraventamentoOrigin,
     side: ContraventamentoSide,
   ) => {
-    setIsPilotiEditorOpen(false);
-    setPilotiSelection(null);
+    if (!pilotiSelection?.mobilePanel) {
+      setIsPilotiEditorOpen(false);
+      setPilotiSelection(null);
+    }
     setActiveSubmenu(null);
     setIsContraventamentoMode(true);
     enterSecondContraventamentoSelection(first, side);
   }, [
     enterSecondContraventamentoSelection,
+    pilotiSelection?.mobilePanel,
     setActiveSubmenu,
     setIsContraventamentoMode,
     setIsPilotiEditorOpen,
@@ -224,7 +227,6 @@ export function useContraventamentoCommands({
     if (topGroup) resetHighlightContraventamentoPilotis(topGroup);
 
     resetContraventamentoFlow();
-    toast.error(TOAST_MESSAGES.contraventamentoNotSelected);
   }, [getTopViewGroup, resetContraventamentoFlow]);
 
   const handleContraventamentoPilotiClick = useCallback((col: number, row: number) => {

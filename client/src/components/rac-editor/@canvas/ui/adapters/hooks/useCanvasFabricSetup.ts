@@ -22,6 +22,7 @@ import {queueCompletedFreehandTip} from '@/components/rac-editor/@canvas/lib/can
 
 interface UseCanvasFabricSetupArgs {
   readOnly?: boolean;
+  inlineEditingDisabled?: boolean;
   canvasRef: MutableRefObject<HTMLCanvasElement | null>;
   containerRef: MutableRefObject<HTMLDivElement | null>;
   fabricCanvasRef: MutableRefObject<FabricCanvas | null>;
@@ -47,6 +48,7 @@ interface UseCanvasFabricSetupArgs {
 
 export function useCanvasFabricSetup({
   readOnly,
+  inlineEditingDisabled,
   canvasRef,
   containerRef,
   fabricCanvasRef,
@@ -73,6 +75,7 @@ export function useCanvasFabricSetup({
 
   const latestArgsRef = useRef<UseCanvasFabricSetupArgs>({
     readOnly,
+    inlineEditingDisabled,
     canvasRef,
     containerRef,
     fabricCanvasRef,
@@ -98,6 +101,7 @@ export function useCanvasFabricSetup({
 
   latestArgsRef.current = {
     readOnly,
+    inlineEditingDisabled,
     canvasRef,
     containerRef,
     fabricCanvasRef,
@@ -277,7 +281,7 @@ export function useCanvasFabricSetup({
       onSelectionChange: emitSelectionChange,
       getCurrentScreenPoint: (canvasPoint) =>
         latestArgsRef.current.getCurrentScreenPoint(canvasPoint),
-      isAnyEditorOpen: () => latestArgsRef.current.isAnyEditorOpenRef.current || Boolean(latestArgsRef.current.readOnly),
+      isAnyEditorOpen: () => latestArgsRef.current.isAnyEditorOpenRef.current || Boolean(latestArgsRef.current.readOnly) || Boolean(latestArgsRef.current.inlineEditingDisabled),
     });
 
     return () => {

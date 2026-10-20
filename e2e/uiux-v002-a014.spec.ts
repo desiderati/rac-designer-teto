@@ -71,7 +71,7 @@ test('V002 A014: espera seleciona em Pan, arrasta só o objeto e pinça cancela 
   expect(await getActiveCanvasObjectSummaryByDebug(page)).toBeNull();
   await page.waitForTimeout(600); // Tempo do gesto solicitado, não espera de preparação da página.
   await expect.poll(async () => (await getActiveCanvasObjectSummaryByDebug(page))?.myType).toBe('square');
-  await expect(page.getByText('Item selecionado · arraste para mover apenas o item')).toBeVisible();
+  await expect(page.getByText('Item selecionado. Arraste pra movê-lo.')).toBeVisible();
   await page.screenshot({path: resolve(evidence, 'screenshots/a014-hold-panning.png'), animations: 'disabled'});
   await touch('touchMove', [{...start, x: start.x + 40, y: start.y + 20}]);
   await touch('touchEnd', []);

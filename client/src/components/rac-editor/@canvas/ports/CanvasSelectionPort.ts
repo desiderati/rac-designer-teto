@@ -16,6 +16,8 @@ export interface ContraventamentoCanvasSelection {
 }
 
 export interface PilotiCanvasSelection {
+  /** Acesso contextual pelo painel da vista planta no Canvas mobile horizontal. */
+  mobilePanel?: boolean;
   /** Identificador lógico do piloti selecionado. */
   pilotiId: string;
 

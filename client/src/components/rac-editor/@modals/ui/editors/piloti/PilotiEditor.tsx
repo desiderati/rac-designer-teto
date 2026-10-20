@@ -1,3 +1,4 @@
+import {useEffect, useState, type ReactNode} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faChevronLeft, faChevronRight} from '@fortawesome/free-solid-svg-icons';
 import {Button} from '@/components/ui/button.tsx';
@@ -20,10 +21,16 @@ import {NivelSlider} from '@/components/rac-editor/@modals/ui/editors/NivelSlide
 import {PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
 import {formatPilotiHeight} from '@/shared/types/piloti.ts';
 import type {HousePilotiReadPort, HousePilotiWritePort} from '@/components/rac-editor/ports/HousePilotiPort.ts';
+import {HouseFieldAnalysisPreview} from '@/components/rac-editor/@canvas/ui/HouseFieldAnalysisPreview.tsx';
+import type {HouseFieldAnalysisDraft} from '@/shared/types/house-field-analysis.ts';
 import './PilotiEditor.css';
 
 interface PilotiEditorProps {
-  presentation?: 'floating' | 'inline';
+  presentation?: 'floating' | 'inline' | 'mobile-panel';
+  previewDraft?: HouseFieldAnalysisDraft | null;
+  destinationPilotiIds?: readonly string[];
+  onDestinationPilotiSelect?: (id: string) => void;
+  onCancelDestination?: () => void;
   pilotiReadPort?: HousePilotiReadPort;
   pilotiWritePort?: HousePilotiWritePort;
   isOpen: boolean;
@@ -53,6 +60,10 @@ interface PilotiEditorProps {
 
 export function PilotiEditor({
   presentation = 'floating',
+  previewDraft,
+  destinationPilotiIds,
+  onDestinationPilotiSelect,
+  onCancelDestination,
   pilotiReadPort,
   pilotiWritePort,
   isOpen,
@@ -79,6 +90,7 @@ export function PilotiEditor({
   onHorizontalContraventamentoSelect
 }: PilotiEditorProps) {
   const {
+    tempHeight,
     tempIsMaster,
     setTempIsMaster,
     tempNivel,
@@ -92,6 +104,7 @@ export function PilotiEditor({
     autoAdjustPilotiHeightsFromNivel,
     handleNivelModeToggle,
     handleNavigate,
+    handleSelectPiloti,
     handleApply,
     handleCancel,
     handleNivelChange,
@@ -113,6 +126,7 @@ export function PilotiEditor({
     onNavigate,
     pilotiReadPort,
     pilotiWritePort,
+    autoNavigateOnHeightClick: presentation !== 'mobile-panel',
   });
 
   if (!isOpen) return null;
@@ -120,11 +134,102 @@ export function PilotiEditor({
   // ---- Shared content renderers (inline to avoid remount/focus-loss) ----
   const canEditNivel = isCornerPiloti || !autoAdjustPilotiHeightsFromNivel;
   const isInline = presentation === 'inline';
+  const isMobilePanel = presentation === 'mobile-panel';
+  const choiceGridClasses = isMobilePanel ? 'grid w-full grid-cols-4 gap-2'
+    : 'grid grid-cols-4 justify-items-center gap-2 max-w-[216px] mx-auto';
+  const choiceSizeClasses = isInline ? ' !h-[60px] !w-[60px]'
+    : isMobilePanel ? ' !h-auto !w-full aspect-square' : '';
   const onBraceClick = (side: ContraventamentoSide) => {
     commitDraftChanges();
     if (side === 'left' || side === 'right') onContraventamentoSelect?.(side, pilotiId ?? undefined);
     else onHorizontalContraventamentoSelect?.(side, pilotiId ?? undefined);
   };
+
+  const editorContent = (
+    <>
+      <div className='piloti-master-control flex items-center justify-between'>
+        <Label htmlFor='is-master' className='text-sm font-medium select-none'>Definir como Mestre?</Label>
+        <Switch id='is-master' checked={tempIsMaster} disabled={!isCornerPiloti}
+          onCheckedChange={(checked) => {
+            setTempIsMaster(checked);
+            commitDraftChanges({isMasterOverride: checked});
+          }}/>
+      </div>
+      <Separator className='piloti-master-separator'/>
+      <div className={isInline ? 'piloti-inline-layout' : isMobilePanel ? 'piloti-mobile-sections' : 'space-y-4'}>
+        <section id={isMobilePanel ? 'piloti-mobile-tab-nivel' : undefined} role={isMobilePanel ? 'tabpanel' : undefined}
+          aria-labelledby={isMobilePanel ? 'piloti-mobile-trigger-nivel' : undefined}
+          className={isInline ? 'piloti-inline-level' : undefined}>
+          <NivelSlider
+            disabled={!canEditNivel}
+            autoFocusInput={isOpen && canEditNivel && !autoAdjustPilotiHeightsFromNivel && !isMobilePanel}
+            focusKey={pilotiId}
+            nivel={tempNivel}
+            minNivel={0.20}
+            maxNivel={maxNivel}
+            onNivelIncrement={handleNivelIncrement}
+            onNivelChange={handleNivelChange}
+            onNivelCommit={handleNivelCommit}
+            enableInput autoMode={autoAdjustPilotiHeightsFromNivel}
+            onAutoModeToggle={handleNivelModeToggle}
+            showModeTourTarget={!isMobile && !isMobilePanel}
+            compactStepper={isInline || isMobilePanel} compactLayout={isMobilePanel}/>
+        </section>
+        <section id={isMobilePanel ? 'piloti-mobile-tab-tamanho' : undefined} role={isMobilePanel ? 'tabpanel' : undefined}
+          aria-labelledby={isMobilePanel ? 'piloti-mobile-trigger-tamanho' : undefined}
+          className={isInline ? 'piloti-inline-sizes' : undefined}>
+          {!isInline && !isMobilePanel && <Separator className='mb-4'/>}
+          <div className='space-y-4'>
+            <p className='piloti-inline-heading text-sm font-medium text-center'>Tamanho dos Pilotis</p>
+            <div className={isInline ? 'piloti-inline-size-choices' : choiceGridClasses}>
+              {selectedPilotiHeights.map((h) => <button key={h} type='button'
+                aria-label={isMobilePanel ? `Piloti de ${formatPilotiHeight(h)} metros` : undefined}
+                aria-pressed={tempHeight === h}
+                onClick={() => handleHeightClick(h)} disabled={clickedHeight !== null}
+                className={`${getHeightButtonClasses(h, {compact: true})}${choiceSizeClasses}`}>
+                {formatPilotiHeight(h)}
+              </button>)}
+            </div>
+          </div>
+        </section>
+        <section id={isMobilePanel ? 'piloti-mobile-tab-contraventamento' : undefined}
+          role={isMobilePanel ? 'tabpanel' : undefined}
+          aria-labelledby={isMobilePanel ? 'piloti-mobile-trigger-contraventamento' : undefined}
+          className={isInline ? 'piloti-inline-braces' : undefined}>
+          {!isInline && !isMobilePanel && <Separator className='mb-4'/>}
+          <div className={isInline ? 'space-y-4' : 'space-y-3'}>
+            <p className='piloti-inline-heading text-sm font-medium text-center'>{isMobilePanel ? 'Inserir Contraventamento' : 'Contraventamento'}</p>
+            <div className={isInline ? 'piloti-inline-brace-choices' : choiceGridClasses}>
+              {([
+                ['left', 'Esquerdo', contraventamentoLeftDisabled, contraventamentoLeftActive],
+                ['right', 'Direito', contraventamentoRightDisabled, contraventamentoRightActive],
+                ['top', 'Superior', contraventamentoTopDisabled, contraventamentoTopActive],
+                ['bottom', 'Inferior', contraventamentoBottomDisabled, contraventamentoBottomActive],
+              ] as const).map(([side, label, disabled, active]) => <button key={side} type='button'
+                aria-label={label} title={label} aria-pressed={active} disabled={disabled} onClick={() => onBraceClick(side)}
+                className={getContraventamentoButtonClasses(active, disabled) + choiceSizeClasses}>
+                <span aria-hidden='true' className='flex items-center justify-center'>
+                  {side === 'left' || side === 'right'
+                    ? <ContraventamentoSideIcon side={side} size={34}/>
+                    : <ContraventamentoHorizontalSideIcon side={side} size={34}/>}
+                </span>
+              </button>)}
+            </div>
+          </div>
+        </section>
+      </div>
+    </>
+  );
+
+  if (isMobilePanel) {
+    return <PilotiMobilePanel
+      selectedPilotiId={pilotiId} previewDraft={previewDraft}
+      destinationPilotiIds={destinationPilotiIds} onCancelDestination={onCancelDestination}
+      onSelectPiloti={(id) => destinationPilotiIds !== undefined
+        ? onDestinationPilotiSelect?.(id) : handleSelectPiloti(id)}
+      onClose={() => {if (destinationPilotiIds !== undefined) onCancelDestination?.(); handleApply();}}
+      content={editorContent}/>;
+  }
 
   return (
     <FloatingEditor
@@ -161,142 +266,7 @@ export function PilotiEditor({
           </div>
         </div>
       }
-      cardContent={
-        <>
-          <div className='flex items-center justify-between'>
-            <Label htmlFor='is-master' className='text-sm font-medium select-none'>
-              Definir como Mestre?
-            </Label>
-            <Switch
-              id='is-master'
-              checked={tempIsMaster}
-              disabled={!isCornerPiloti}
-              onCheckedChange={(checked) => {
-                // Aplica imediatamente ao alternar on/off do mestre.
-                setTempIsMaster(checked);
-                commitDraftChanges({isMasterOverride: checked});
-              }}
-            />
-          </div>
-
-          <Separator/>
-
-          <div className={isInline ? 'piloti-inline-layout' : 'space-y-4'}>
-          <section className={isInline ? 'piloti-inline-level' : undefined}>
-          <NivelSlider
-            disabled={!canEditNivel}
-            autoFocusInput={isOpen && canEditNivel && !autoAdjustPilotiHeightsFromNivel}
-            focusKey={pilotiId}
-            nivel={tempNivel}
-            minNivel={0.20}
-            maxNivel={maxNivel}
-            onNivelIncrement={handleNivelIncrement}
-            onNivelChange={handleNivelChange}
-            onNivelCommit={handleNivelCommit}
-            enableInput
-            autoMode={autoAdjustPilotiHeightsFromNivel}
-            onAutoModeToggle={handleNivelModeToggle}
-            showModeTourTarget={!isMobile}
-            compactStepper={isInline}
-          />
-          </section>
-
-          <section className={isInline ? 'piloti-inline-sizes' : undefined}>
-          {!isInline && <Separator className='mb-4'/>}
-          <div className='space-y-4'>
-            <p className='piloti-inline-heading text-sm font-medium text-center'>Tamanho dos Pilotis</p>
-            <div className={isInline ? 'piloti-inline-size-choices' : 'grid grid-cols-4 justify-items-center gap-2 max-w-[216px] mx-auto'}>
-              {selectedPilotiHeights.map((h) =>
-                <button
-                  key={h}
-                  onClick={() => handleHeightClick(h)}
-                  disabled={clickedHeight !== null}
-                  className={`${getHeightButtonClasses(h, {compact: true})}${isInline ? ' !h-[60px] !w-[60px]' : ''}`}
-                >
-                  {formatPilotiHeight(h)}
-                </button>
-              )}
-            </div>
-          </div>
-          </section>
-
-          <section className={isInline ? 'piloti-inline-braces' : undefined}>
-          {!isInline && <Separator className='mb-4'/>}
-          <div className={isInline ? 'space-y-4' : 'space-y-3'}>
-            <p className='piloti-inline-heading text-sm font-medium text-center'>Contraventamento</p>
-            <div className={isInline ? 'piloti-inline-brace-choices' : 'grid grid-cols-4 justify-items-center gap-2 max-w-[216px] mx-auto'}>
-              <button
-                type='button'
-                aria-label='Esquerdo'
-                title='Esquerdo'
-                disabled={contraventamentoLeftDisabled}
-                onClick={() => onBraceClick('left')}
-                className={
-                  getContraventamentoButtonClasses(
-                    contraventamentoLeftActive, contraventamentoLeftDisabled
-                  ) + (isInline ? ' !h-[60px] !w-[60px]' : '')
-                }>
-                <span aria-hidden='true' className='flex items-center justify-center'>
-                  <ContraventamentoSideIcon side='left' size={34}/>
-                </span>
-              </button>
-
-              <button
-                type='button'
-                aria-label='Direito'
-                title='Direito'
-                disabled={contraventamentoRightDisabled}
-                onClick={() => onBraceClick('right')}
-                className={
-                  getContraventamentoButtonClasses(
-                    contraventamentoRightActive,
-                    contraventamentoRightDisabled
-                  ) + (isInline ? ' !h-[60px] !w-[60px]' : '')
-                }>
-                <span aria-hidden='true' className='flex items-center justify-center'>
-                  <ContraventamentoSideIcon side='right' size={34}/>
-                </span>
-              </button>
-
-              <button
-                type='button'
-                aria-label='Superior'
-                title='Superior'
-                disabled={contraventamentoTopDisabled}
-                onClick={() => onBraceClick('top')}
-                className={
-                  getContraventamentoButtonClasses(
-                    contraventamentoTopActive,
-                    contraventamentoTopDisabled
-                  ) + (isInline ? ' !h-[60px] !w-[60px]' : '')
-                }>
-                <span aria-hidden='true' className='flex items-center justify-center'>
-                  <ContraventamentoHorizontalSideIcon side='top' size={34}/>
-                </span>
-              </button>
-
-              <button
-                type='button'
-                aria-label='Inferior'
-                title='Inferior'
-                disabled={contraventamentoBottomDisabled}
-                onClick={() => onBraceClick('bottom')}
-                className={
-                  getContraventamentoButtonClasses(
-                    contraventamentoBottomActive,
-                    contraventamentoBottomDisabled
-                  ) + (isInline ? ' !h-[60px] !w-[60px]' : '')
-                }>
-                <span aria-hidden='true' className='flex items-center justify-center'>
-                  <ContraventamentoHorizontalSideIcon side='bottom' size={34}/>
-                </span>
-              </button>
-            </div>
-          </div>
-          </section>
-          </div>
-        </>
-      }
+      cardContent={editorContent}
       isOpen={isOpen}
       isMobile={isMobile}
       anchorPosition={anchorPosition}
@@ -306,4 +276,69 @@ export function PilotiEditor({
       onCancel={handleCancel}
     />
   );
+}
+
+type MobilePilotiTab = 'nivel' | 'tamanho' | 'contraventamento';
+
+function PilotiMobilePanel({
+  selectedPilotiId, previewDraft, destinationPilotiIds,
+  onSelectPiloti, onCancelDestination, onClose, content,
+}: {
+  selectedPilotiId: string | null;
+  previewDraft?: HouseFieldAnalysisDraft | null;
+  destinationPilotiIds?: readonly string[];
+  onSelectPiloti: (id: string) => void;
+  onCancelDestination?: () => void;
+  onClose: () => void;
+  content: ReactNode;
+}) {
+  const [tab, setTab] = useState<MobilePilotiTab>('nivel');
+  const selectingDestination = destinationPilotiIds !== undefined;
+  useEffect(() => {
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (selectingDestination) onCancelDestination?.(); else onClose();
+    };
+    window.addEventListener('keydown', onEscape, true);
+    return () => window.removeEventListener('keydown', onEscape, true);
+  }, [selectingDestination, onCancelDestination, onClose]);
+
+  return <>
+    <div aria-hidden='true' className='piloti-mobile-dismiss' onPointerDown={(event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      onClose();
+    }}/>
+    <aside role='dialog' aria-label='Editar pilotis da planta' aria-modal='false'
+      data-tab={tab} className='piloti-mobile-panel'
+      onMouseDown={(event) => event.stopPropagation()}
+      onTouchStart={(event) => event.stopPropagation()}
+      onClick={(event) => event.stopPropagation()}>
+    <div className='piloti-mobile-preview'>
+      {previewDraft ? <HouseFieldAnalysisPreview compact draft={previewDraft} selectedPilotiId={selectedPilotiId ?? undefined}
+        onSelectPiloti={onSelectPiloti} destinationPilotiIds={destinationPilotiIds}/> : null}
+    </div>
+    <div role='tablist' aria-label='Configuração do piloti' className='piloti-mobile-tabs'>
+      {([
+        ['nivel', 'Nível'], ['tamanho', 'Tamanho'], ['contraventamento', 'Contraventar'],
+      ] as const).map(([id, label]) => <button key={id} id={`piloti-mobile-trigger-${id}`} type='button'
+        role='tab' aria-selected={tab === id} aria-controls={`piloti-mobile-tab-${id}`}
+        onClick={() => setTab(id)}>{label}</button>)}
+    </div>
+    <div className='piloti-mobile-scroll'>
+      <div className='piloti-mobile-controls'>{content}</div>
+      {selectingDestination && tab === 'contraventamento' ? <div className='piloti-mobile-destination'>
+        <p role='status'>Selecione piloti de destino a contraventar.</p>
+        <button type='button' onClick={onCancelDestination}
+          className='group min-h-10 justify-self-center rounded-lg py-1.5 text-xs font-semibold text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600'>
+          <span className='flex min-h-7 items-center justify-center rounded-lg bg-blue-100 px-4 group-hover:bg-blue-200'>
+            Cancelar seleção
+          </span>
+        </button>
+      </div> : null}
+    </div>
+    </aside>
+  </>;
 }

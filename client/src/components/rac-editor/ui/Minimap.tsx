@@ -43,10 +43,12 @@ export function Minimap({
 
   // Calcula o fator de escala do minimapa.
   const scale = MINIMAP_SIZE / Math.max(canvasWidth, canvasHeight);
+  const minimapWidth = canvasWidth * scale;
+  const minimapHeight = canvasHeight * scale;
 
   // Calcula as dimensões do retângulo da viewport no minimapa.
-  const viewRectWidth = (viewportWidth / zoom) * scale;
-  const viewRectHeight = (viewportHeight / zoom) * scale;
+  const viewRectWidth = Math.min(minimapWidth, Math.max(MINIMAP.minViewportSize, (viewportWidth / zoom) * scale));
+  const viewRectHeight = Math.min(minimapHeight, Math.max(MINIMAP.minViewportSize, (viewportHeight / zoom) * scale));
 
   // Calcula a posição do retângulo da viewport no minimapa.
   const viewRectX = (viewportX / zoom) * scale;
@@ -57,8 +59,8 @@ export function Minimap({
       if (!minimapRef.current) return;
 
       const rect = minimapRef.current.getBoundingClientRect();
-      const clickX = clientX - rect.left;
-      const clickY = clientY - rect.top;
+      const clickX = clientX - rect.left - minimapRef.current.clientLeft;
+      const clickY = clientY - rect.top - minimapRef.current.clientTop;
 
       const canvasX = (clickX / scale) * zoom - (viewportWidth / 2);
       const canvasY = (clickY / scale) * zoom - (viewportHeight / 2);
@@ -131,15 +133,15 @@ export function Minimap({
       ref={minimapRef}
       data-testid='rac-minimap'
       className={
-        `bg-background/90 border border-border rounded shadow-lg cursor-crosshair overflow-hidden touch-none
+        `box-content bg-background/90 border border-border rounded shadow-lg cursor-crosshair overflow-hidden touch-none
           ${highlight
           ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75'
           : ''
         }`
       }
       style={{
-        width: MINIMAP_SIZE,
-        height: MINIMAP_SIZE,
+        width: minimapWidth,
+        height: minimapHeight,
       }}
       onClick={handleMinimapClick}
       onMouseDown={handleMouseDown}
@@ -148,8 +150,8 @@ export function Minimap({
       <div
         className='bg-card relative'
         style={{
-          width: canvasWidth * scale,
-          height: canvasHeight * scale,
+          width: minimapWidth,
+          height: minimapHeight,
         }}
       >
         {objects.map((obj, index) => (
@@ -170,10 +172,10 @@ export function Minimap({
         <div
           className='absolute border border-primary bg-primary/20 rounded-sm transition-all duration-75'
           style={{
-            width: Math.max(MINIMAP.minViewportSize, viewRectWidth),
-            height: Math.max(MINIMAP.minViewportSize, viewRectHeight),
-            left: Math.max(0, Math.min(viewRectX, MINIMAP_SIZE - viewRectWidth)),
-            top: Math.max(0, Math.min(viewRectY, MINIMAP_SIZE - viewRectHeight)),
+            width: viewRectWidth,
+            height: viewRectHeight,
+            left: Math.max(0, Math.min(viewRectX, minimapWidth - viewRectWidth)),
+            top: Math.max(0, Math.min(viewRectY, minimapHeight - viewRectHeight)),
           }}
         />
       </div>

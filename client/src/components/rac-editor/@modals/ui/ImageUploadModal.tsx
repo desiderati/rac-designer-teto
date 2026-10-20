@@ -16,6 +16,7 @@ import {
 } from '@/shared/lib/photo-data-url.ts';
 import {toStorageImageUploadPayload} from '@/shared/lib/storage-image-upload.ts';
 import {isIsolatedLocalMode} from '@/shared/local-runtime.ts';
+import {useCanvasMobileViewport} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
 
 const ACCEPTED_IMAGE_TYPES_LABEL = 'PNG, JPG ou WEBP';
 
@@ -32,6 +33,8 @@ export function ImageUploadModal({
   onOpenChange,
   onInsertImage,
 }: ImageUploadModalProps) {
+  const {mobile: canvasMobile} = useCanvasMobileViewport();
+  const compact = isMobile || canvasMobile;
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -130,20 +133,22 @@ export function ImageUploadModal({
         disabled={false}
         aria-describedby='image-upload-modal-description image-upload-modal-hint'
         className={cn(
-          'group flex min-h-[220px] w-full flex-col items-center justify-center gap-4 rounded-2xl',
-          'border border-dashed bg-slate-50/80 px-6 py-8 text-center transition-colors',
+          'group flex w-full flex-col items-center justify-center rounded-2xl',
+          compact ? 'min-h-[165px] gap-3' : 'min-h-[220px] gap-4',
+          'border border-dashed bg-slate-50/80 text-center transition-colors',
+          compact ? 'px-[18px] py-4' : 'px-6 py-8',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
           isDragging ? 'border-blue-400 bg-blue-50 text-blue-700' : 'border-slate-300 text-slate-900',
           !reviewFile && 'hover:border-blue-300 hover:bg-blue-50/70',
         )}
       >
-        <span className='flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700' aria-hidden>
-          <FontAwesomeIcon icon={faUpload} className='text-2xl'/>
+        <span className={cn('flex shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700', compact ? 'h-12 w-12' : 'h-16 w-16')} aria-hidden>
+          <FontAwesomeIcon icon={faUpload} className={compact ? 'text-lg' : 'text-2xl'}/>
         </span>
-        <span className='space-y-2'>
-          <span className='block text-base font-bold uppercase tracking-[0.08em]'>Upload de imagem</span>
-          <span id='image-upload-modal-description' className='block text-sm text-slate-600'>Arraste uma imagem ou clique para selecionar</span>
-          <span id='image-upload-modal-hint' className='block text-xs text-slate-400'>{ACCEPTED_IMAGE_TYPES_LABEL} até {PHOTO_SOURCE_UPLOAD_LIMIT_LABEL}; a compactação acontece antes do envio</span>
+        <span className={compact ? 'space-y-1.5' : 'space-y-2'}>
+          <span className={cn('block font-bold uppercase tracking-[0.08em]', compact ? 'text-sm' : 'text-base')}>Upload de imagem</span>
+          <span id='image-upload-modal-description' className={cn('block text-slate-600', compact ? 'text-xs' : 'text-sm')}>Arraste uma imagem ou clique para selecionar</span>
+          <span id='image-upload-modal-hint' className={cn('block text-slate-400', compact ? 'text-[11px]' : 'text-xs')}>{ACCEPTED_IMAGE_TYPES_LABEL} até {PHOTO_SOURCE_UPLOAD_LIMIT_LABEL}; a compactação acontece antes do envio</span>
         </span>
       </button>
 
@@ -163,7 +168,7 @@ export function ImageUploadModal({
   );
 
   const actions = (
-    <Button type='button' variant='outline' className='w-full bg-white' onClick={requestClose} disabled={Boolean(reviewFile)}>
+    <Button type='button' variant='outline' className={cn('w-full bg-white', compact && 'min-h-11')} onClick={requestClose} disabled={Boolean(reviewFile)}>
       Cancelar
     </Button>
   );
@@ -181,10 +186,10 @@ export function ImageUploadModal({
 
       {isMobile ? (
         <Drawer open={isOpen && !reviewFile} onOpenChange={(open) => !open && requestClose()}>
-          <DrawerContent className='max-h-[92dvh] overflow-hidden'>
+          <DrawerContent className='mx-auto max-h-[92dvh] w-full max-w-sm overflow-hidden'>
             <DrawerHeader className='pb-2 text-center'>
-              <DrawerTitle className='text-center text-2xl'>Inserir imagem</DrawerTitle>
-              <DrawerDescription>Envie uma imagem para posicioná-la no Canvas.</DrawerDescription>
+              <DrawerTitle className='text-center text-lg'>Inserir imagem</DrawerTitle>
+              <DrawerDescription className='text-xs'>Envie uma imagem para posicioná-la no Canvas.</DrawerDescription>
             </DrawerHeader>
             <div className='min-h-0 flex-1 overflow-y-auto px-4 pb-4'>{body}</div>
             <ActionDock testId='image-upload-modal-actions' surface='drawer' spacing='flush' edgeToEdge>
@@ -194,10 +199,10 @@ export function ImageUploadModal({
         </Drawer>
       ) : (
         <Dialog open={isOpen && !reviewFile} onOpenChange={(open) => !open && requestClose()}>
-          <DialogContent className='sm:max-w-lg' hideCloseButton>
+          <DialogContent className={compact ? 'gap-3 p-[18px] sm:max-w-sm' : 'sm:max-w-lg'} hideCloseButton>
             <DialogHeader className='text-center'>
-              <DialogTitle className='text-center text-2xl'>Inserir imagem</DialogTitle>
-              <DialogDescription>Envie uma imagem para posicioná-la no Canvas.</DialogDescription>
+              <DialogTitle className={cn('text-center', compact ? 'text-lg' : 'text-2xl')}>Inserir imagem</DialogTitle>
+              <DialogDescription className={compact ? 'text-xs' : undefined}>Envie uma imagem para posicioná-la no Canvas.</DialogDescription>
             </DialogHeader>
             {body}
             <ActionDock testId='image-upload-modal-actions' surface='dialog' spacing='flush'>

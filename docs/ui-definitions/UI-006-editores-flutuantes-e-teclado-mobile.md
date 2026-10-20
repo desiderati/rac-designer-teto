@@ -7,7 +7,7 @@ doc_set: ui-definitions
 status: active
 lang: pt-BR
 created: 2026-10-18
-updated: 2026-10-18
+updated: 2026-10-20
 tags: [mobile, teclado, correction-pattern]
 ---
 
@@ -29,8 +29,21 @@ eram a causa reproduzida.
 
 - O teclado aparece quando a pessoa toca no campo. O foco inicial de desktop permanece.
 
-- Confirmar aplica o rascunho; Cancelar o descarta. Girar o aparelho deve preservar o rascunho
-  enquanto a edição continuar aberta.
+- Confirmar aplica o rascunho; Cancelar o descarta.
+
+- Ao entrar no modo mobile do Canvas, fechar os editores de piloti, objetos de parede,
+  linhas/setas e terreno pelo fluxo de cancelamento. Fechá-los também ao voltar ao retrato mobile,
+  cancelando a escolha de destino de contraventamento. Alterações já aplicadas permanecem.
+  Em paisagem, permitir abrir novamente os editores pelas ações disponíveis da seleção.
+
+- Enquanto o aviso de rotação estiver ativo, impedir que esses editores sejam apresentados,
+  inclusive quando o estado aberto já existir na montagem ou uma seleção tardia tentar reabri-los.
+
+- Fechar sem alterações ou cancelar a escolha de destino não deve emitir toast de erro.
+  O fechamento automático só cancela o contraventamento quando esse fluxo estiver ativo.
+
+- O aviso de rotação mantém “Voltar às construções” como ação secundária, com fundo cinza fixo
+  também em hover e ao pressionar, preservando o acesso por toque e teclado.
 
 ## Área visível e acesso às ações
 
@@ -55,9 +68,10 @@ estratégias concorrentes de deslocamento.
 
 ## Validação e limites
 
-Exercitar o toque no campo e nas ações em paisagem baixa, confirmar e reabrir após recarga, cancelar
-e girar mantendo o rascunho. A proteção de orientação do Canvas continua vigente: se o aviso cobrir
-a edição em retrato, conferir a continuidade ao retornar à paisagem.
+Exercitar o toque no campo e nas ações em paisagem baixa, confirmar e reabrir após recarga e cancelar.
+Conferir o fechamento dos editores ao entrar no mobile e ao girar para retrato; retornar à paisagem
+deve liberar o Canvas sem reabrir o editor anterior. Redimensionar dentro da mesma orientação não
+deve fechar uma edição, inclusive ao abrir o teclado.
 
 Altura reduzida e VisualViewport simulada são evidência local do contrato de layout. O aceite do
 teclado Android real depende de teste no aparelho. O roteiro e as camadas de teste estão no

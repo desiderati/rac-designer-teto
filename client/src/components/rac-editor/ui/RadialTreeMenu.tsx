@@ -153,10 +153,10 @@ export function RadialTreeMenu({side, label, items, rootIcon = faPenRuler, activ
   const positions = getRadialMenuPositions(level.length, side, window.innerHeight);
   return <div ref={ref} data-testid={testId} data-guided-tour-id={guidedTourId}
     style={side === 'left' ? {left: 'max(2rem, calc(env(safe-area-inset-left, 0px) + 1rem))'} : {right: 'max(2rem, calc(env(safe-area-inset-right, 0px) + 1rem))'}}
-    className='pointer-events-auto fixed top-1/2 z-50 -translate-y-1/2'>
+    className='pointer-events-auto fixed top-1/2 z-40 -translate-y-1/2'>
     <button ref={centerRef} type='button' aria-label={current ? `Voltar para ${parentLabel}` : label}
       aria-expanded={open} aria-pressed={current ? current.pressed : active} onClick={centerClick}
-      className={`relative z-10 grid h-12 w-12 place-items-center rounded-full border border-slate-200 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${(current ? current.pressed : active) ? 'bg-blue-600 text-white' : current ? 'bg-white text-blue-600' : 'bg-white text-slate-600'}`}>
+      className={`relative z-10 grid h-12 w-12 place-items-center rounded-full border border-slate-200 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${current || active ? 'bg-blue-600 text-white' : 'bg-white text-slate-600'}`}>
       <span className={flight ? 'opacity-0' : undefined}>
         {current ? itemIcon(current) : <FontAwesomeIcon icon={rootIcon} className='h-4 w-4'/>}
       </span>
@@ -173,7 +173,7 @@ export function RadialTreeMenu({side, label, items, rootIcon = faPenRuler, activ
                 aria-pressed={item.pressed}
                 disabled={item.disabled} data-guided-tour-id={item.guidedTourId}
                 onClick={event => itemClick(item, event)}
-                className={`relative grid h-11 w-11 place-items-center rounded-full text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${item.disabled ? 'cursor-not-allowed text-slate-400 opacity-40' : item.destructive ? 'text-red-500 hover:bg-red-50' : item.pressed ? 'bg-blue-600 text-white hover:bg-blue-500' : item.active ? 'bg-blue-50 text-blue-600 hover:bg-blue-100' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'} ${item.atLimit && !item.disabled ? 'opacity-60' : ''}`}>
+                className={`relative grid h-11 w-11 place-items-center rounded-full text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${item.disabled ? 'cursor-not-allowed text-slate-400 opacity-40' : item.destructive ? 'text-red-500 hover:bg-red-50' : item.pressed || item.active ? 'bg-blue-600 text-white hover:bg-blue-500' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'} ${item.atLimit && !item.disabled ? 'opacity-60' : ''}`}>
                 {itemIcon(item)}
                 <RadialItemLabel side={side}>{item.caption ?? item.label}</RadialItemLabel>
               </button>
@@ -181,7 +181,7 @@ export function RadialTreeMenu({side, label, items, rootIcon = faPenRuler, activ
       })}
     </div>}
     {flight && createPortal(<div ref={flightRef} aria-hidden='true' data-testid='rac-radial-flight'
-      className='pointer-events-none fixed z-[70] grid place-items-center rounded-full bg-white text-blue-600 shadow-sm'
+      className='pointer-events-none fixed z-[45] grid place-items-center rounded-full bg-white text-blue-600 shadow-sm'
       style={{left: flight.left, top: flight.top, width: flight.width, height: flight.height}}>
       {itemIcon(flight)}
     </div>, document.body)}

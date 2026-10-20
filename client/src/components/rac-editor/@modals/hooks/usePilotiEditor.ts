@@ -30,6 +30,7 @@ interface UsePilotiEditorArgs {
   onNavigate?: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
   pilotiReadPort?: HousePilotiReadPort;
   pilotiWritePort?: HousePilotiWritePort;
+  autoNavigateOnHeightClick?: boolean;
 }
 
 export function usePilotiEditor({
@@ -44,6 +45,7 @@ export function usePilotiEditor({
   onNavigate,
   pilotiReadPort,
   pilotiWritePort,
+  autoNavigateOnHeightClick = true,
 }: UsePilotiEditorArgs) {
 
   const editorPorts = useContext(EditorPortsContext);
@@ -167,15 +169,9 @@ export function usePilotiEditor({
     });
   }, [tempHeight]);
 
-  const handleNavigate = (direction: 'prev' | 'next') => {
+  const handleSelectPiloti = (newId: string) => {
     if (!pilotiId) return;
-
-    const idx = allIds.indexOf(pilotiId);
-    if (idx === -1) return;
-
-    const newIndex = direction === 'next' ? idx + 1 : idx - 1;
-    const newId = allIds[newIndex];
-    if (!newId) return;
+    if (!allIds.includes(newId) || newId === pilotiId) return;
 
     commitDraftChanges();
 
@@ -186,6 +182,12 @@ export function usePilotiEditor({
       setSyncedTempIsMaster(pilotiData.isMaster);
       setSyncedTempNivel(pilotiData.nivel);
     }
+  };
+
+  const handleNavigate = (direction: 'prev' | 'next') => {
+    if (currentIndex < 0) return;
+    const nextId = allIds[currentIndex + (direction === 'next' ? 1 : -1)];
+    if (nextId) handleSelectPiloti(nextId);
   };
 
   const handleApply = () => {
@@ -286,7 +288,7 @@ export function usePilotiEditor({
       );
     }
 
-    if (autoNavigatePiloti && pilotiId) {
+    if (autoNavigateOnHeightClick && autoNavigatePiloti && pilotiId) {
       setClickedHeight(h);
 
       const idx = allIds.indexOf(pilotiId);
@@ -399,6 +401,7 @@ export function usePilotiEditor({
     autoAdjustPilotiHeightsFromNivel,
     handleNivelModeToggle,
     handleNavigate,
+    handleSelectPiloti,
     handleApply,
     handleCancel,
     handleNivelChange,

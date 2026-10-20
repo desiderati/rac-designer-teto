@@ -20,12 +20,13 @@ function setup(readOnly = false, canvasToolMode: 'select' | 'pan' = 'pan') {
   const onToolModeChange = vi.fn();
   const panningChanges = vi.fn();
   const objectMovingChanges = vi.fn();
+  const onObjectMove = vi.fn();
   const containerRef = {current: container};
   const fabricCanvasRef = {current: canvas as unknown as Canvas};
   const hook = renderHook(() => {
     const viewport = useCanvasViewport({});
     const shouldSkipLegacyTouch = useMobileCanvasGestures({...viewport, enabled: true, readOnly, containerRef, fabricCanvasRef,
-      canvasToolMode, onToolModeChange, onObjectMovingChange: objectMovingChanges, onPanningChange: (panning) => {
+      canvasToolMode, onToolModeChange, onObjectMove, onObjectMovingChange: objectMovingChanges, onPanningChange: (panning) => {
         viewport.setIsPanning(panning);
         panningChanges(panning);
       }});
@@ -35,7 +36,7 @@ function setup(readOnly = false, canvasToolMode: 'select' | 'pan' = 'pan') {
   act(() => {hook.result.current.handleViewportChange(300, 200);});
   const send = (type: 'touchStart' | 'touchMove' | 'touchEnd' | 'touchCancel', points: number[][]) =>
     fireEvent[type](upperCanvasEl, {touches: points.map(([clientX, clientY]) => ({clientX, clientY})), changedTouches: []});
-  return {...hook, canvas, target, onToolModeChange, panningChanges, objectMovingChanges, send, container, upperCanvasEl};
+  return {...hook, canvas, target, onToolModeChange, panningChanges, objectMovingChanges, onObjectMove, send, container, upperCanvasEl};
 }
 afterEach(() => {vi.useRealTimers(); localStorage.clear(); document.body.innerHTML = '';});
 
@@ -132,7 +133,7 @@ describe('gestos mobile com dono único', () => {
   });
   it('seleciona por toque prolongado partindo de Pan e move apenas o objeto', () => {
     vi.useFakeTimers();
-    const {send, result, target, canvas, onToolModeChange, objectMovingChanges} = setup();
+    const {send, result, target, canvas, onToolModeChange, objectMovingChanges, onObjectMove} = setup();
     send('touchStart', [[400, 170]]);
     expect(canvas.getActiveObject()).toBeUndefined();
     act(() => {vi.advanceTimersByTime(500);});
@@ -141,6 +142,8 @@ describe('gestos mobile com dono único', () => {
     expect(objectMovingChanges).not.toHaveBeenCalled();
     send('touchMove', [[450, 190]]);
     expect(objectMovingChanges).toHaveBeenLastCalledWith(true);
+    expect(onObjectMove).toHaveBeenCalledOnce();
+    expect(canvas.fire).not.toHaveBeenCalledWith('object:modified', expect.anything());
     send('touchEnd', []);
     expect(objectMovingChanges).toHaveBeenLastCalledWith(false);
     expect(target.left).toBe(250);

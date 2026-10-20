@@ -45,6 +45,28 @@ describe('avisos compartilhados', () => {
     expect(props.toastOptions.classNames.info).toBeUndefined();
   });
 
+  it.each([
+    {width: 852, height: 393, coarse: true, mobile: true},
+    {width: 852, height: 393, coarse: false, mobile: false},
+    {width: 1024, height: 768, coarse: true, mobile: false},
+  ])('respeita toque e altura em $width×$height com coarse=$coarse', ({width, height, coarse, mobile}) => {
+    vi.stubGlobal('innerWidth', width);
+    vi.stubGlobal('innerHeight', height);
+    vi.spyOn(window, 'matchMedia').mockImplementation(query => ({
+      matches: width <= 767 || (query.includes('(pointer: coarse)') && coarse && height <= 600),
+      media: query, addEventListener: vi.fn(), removeEventListener: vi.fn(),
+    } as unknown as MediaQueryList));
+    toast.info('Selecione o destino', {position: 'bottom-left'});
+    toast.custom(() => null, {position: 'bottom-left'});
+    expect(rawToast.info).toHaveBeenLastCalledWith(expect.any(Function), expect.objectContaining({position: mobile ? 'top-center' : 'bottom-left'}));
+    expect(rawToast.custom).toHaveBeenLastCalledWith(expect.any(Function), expect.objectContaining({position: mobile ? 'top-center' : 'bottom-left'}));
+    render(<Toaster/>);
+    const props = mocks.toaster.mock.calls.at(-1)?.[0] as {position: string; visibleToasts: number; offset: unknown};
+    expect(props.position).toBe(mobile ? 'top-center' : 'bottom-right');
+    expect(props.visibleToasts).toBe(mobile ? 2 : 3);
+    expect(props.offset).toEqual(mobile ? {top: 'max(16px, env(safe-area-inset-top))', left: 16, right: 16} : undefined);
+  });
+
   it('preserva ação, ID e detalhe no componente comum', () => {
     const action = {label: 'Atualizar agora', onClick: vi.fn()};
     toast('Nova versão disponível', {id: 'rac-new-version', duration: Infinity, description: 'Salve suas alterações.', action});

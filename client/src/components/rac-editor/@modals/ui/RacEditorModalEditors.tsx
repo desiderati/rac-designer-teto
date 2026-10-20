@@ -1,3 +1,5 @@
+import {useEffect, useRef} from 'react';
+import {useCanvasMobileViewport} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
 import type {
   LinearCanvasSelection,
   PilotiCanvasSelection,
@@ -20,6 +22,10 @@ import type {
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 import {TerrainEditor} from '@/components/rac-editor/@modals/ui/editors/terrain/TerrainEditor.tsx';
 import {LinearEditorType} from '@/components/rac-editor/@modals/hooks/useLinearEditorActions.ts';
+import {useHouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-store.ts';
+import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib/canvas.ts';
+import {createCanvasPilotiPreviewDraft, getEligibleCanvasDestinationPilotiIds} from '@/components/rac-editor/@modals/lib/canvas-piloti-preview.ts';
+import {parsePilotiGridPosition} from '@/shared/types/piloti.ts';
 
 interface RacEditorModalEditorsProps {
   isMobile: boolean;
@@ -42,6 +48,10 @@ interface RacEditorModalEditorsProps {
   contraventamentoEditorState: ContraventamentoEditorState;
   onContraventamentoSelect: (side: ContraventamentoVerticalSide, pilotiId?: string) => void;
   onHorizontalContraventamentoSelect: (side: ContraventamentoHorizontalSide, pilotiId?: string) => void;
+  isContraventamentoMode: boolean;
+  isPilotiEligibleAsDestination: (pilotiId: string) => boolean;
+  onContraventamentoPilotiClick: (col: number, row: number) => void;
+  onCancelContraventamento: () => void;
 
   // Wall Object
   onWallApply: (newValue: string, newColor: string) => void;
@@ -85,6 +95,10 @@ export function RacEditorModalEditors({
   contraventamentoEditorState,
   onContraventamentoSelect,
   onHorizontalContraventamentoSelect,
+  isContraventamentoMode,
+  isPilotiEligibleAsDestination,
+  onContraventamentoPilotiClick,
+  onCancelContraventamento,
 
   onWallApply,
   wallSelection,
@@ -104,6 +118,29 @@ export function RacEditorModalEditors({
   onTerrainEditorClose,
   onTerrainApply,
 }: RacEditorModalEditorsProps) {
+  const {mobile, portrait} = useCanvasMobileViewport();
+  const blockEditors = mobile && portrait;
+  const previousMobile = useRef(mobile);
+  useEffect(() => {
+    const enteringMobile = mobile && !previousMobile.current;
+    previousMobile.current = mobile;
+    if (!enteringMobile && !blockEditors) return;
+
+    if (isContraventamentoMode) onCancelContraventamento();
+    if (isPilotiEditorOpen) onPilotiEditorClose();
+    if (isWallEditorOpen) onWallEditorClose();
+    if (isLinearEditorOpen) onLinearEditorClose();
+    if (isTerrainEditorOpen) onTerrainEditorClose();
+  }, [mobile, blockEditors, isContraventamentoMode, isPilotiEditorOpen, isWallEditorOpen, isLinearEditorOpen,
+    isTerrainEditorOpen, onCancelContraventamento, onPilotiEditorClose,
+    onWallEditorClose, onLinearEditorClose, onTerrainEditorClose]);
+
+  const houseSnapshot = useHouseRuntimeSnapshot<CanvasGroup>();
+  const mobilePanel = isPilotiEditorOpen && pilotiSelection?.mobilePanel === true;
+  const previewDraft = mobilePanel ? createCanvasPilotiPreviewDraft(houseSnapshot, selectedPilotiHeights) : null;
+  const destinationPilotiIds = mobilePanel && isContraventamentoMode
+    ? getEligibleCanvasDestinationPilotiIds(isPilotiEligibleAsDestination) : undefined;
+
   return (
     <>
       {pendingViewType && (
@@ -118,6 +155,15 @@ export function RacEditorModalEditors({
       )}
 
       <PilotiEditor
+        presentation={mobilePanel ? 'mobile-panel' : 'floating'}
+        previewDraft={previewDraft}
+        destinationPilotiIds={destinationPilotiIds}
+        onDestinationPilotiSelect={(id) => {
+          if (!destinationPilotiIds?.includes(id)) return;
+          const point = parsePilotiGridPosition(id);
+          if (point) onContraventamentoPilotiClick(point.col, point.row);
+        }}
+        onCancelDestination={onCancelContraventamento}
         pilotiId={pilotiSelection?.pilotiId ?? null}
         pilotiIds={pilotiSelection?.pilotiIds ?? []}
         selectedPilotiHeights={selectedPilotiHeights}
@@ -129,7 +175,7 @@ export function RacEditorModalEditors({
         currentNivel={pilotiSelection?.currentNivel ?? DEFAULT_HOUSE_PILOTI.nivel}
 
         isMobile={isMobile}
-        isOpen={isPilotiEditorOpen}
+        isOpen={isPilotiEditorOpen && !blockEditors}
 
         onClose={onPilotiEditorClose}
         onHeightChange={onPilotiHeightChange}
@@ -151,7 +197,7 @@ export function RacEditorModalEditors({
         editorType={wallSelection?.editorType ?? 'wall'}
         currentValue={wallSelection?.currentLabel ?? ''}
         currentColor={wallEditorColor ?? CANVAS_ELEMENT_STYLE.strokeColor.wallElement}
-        isOpen={isWallEditorOpen}
+        isOpen={isWallEditorOpen && !blockEditors}
         isMobile={isMobile}
         onApply={(value, color) => onWallApply(value, color)}
         onClose={onWallEditorClose}
@@ -162,7 +208,7 @@ export function RacEditorModalEditors({
         editorType={linearEditorType}
         currentValue={linearSelection?.currentLabel ?? ''}
         currentColor={linearSelection?.currentColor ?? CANVAS_ELEMENT_STYLE.strokeColor.linearElement}
-        isOpen={isLinearEditorOpen}
+        isOpen={isLinearEditorOpen && !blockEditors}
         isMobile={isMobile}
         onApply={(value, color) => onLinearApply(value, color)}
         onClose={onLinearEditorClose}
@@ -170,7 +216,7 @@ export function RacEditorModalEditors({
       />
 
       <TerrainEditor
-        isOpen={isTerrainEditorOpen}
+        isOpen={isTerrainEditorOpen && !blockEditors}
         isMobile={isMobile}
         currentTerrainType={terrainSelection?.terrainType ?? 1}
         pilotis={terrainPilotis}

@@ -15,9 +15,13 @@ import {
   CanvasGroup,
   CanvasObject,
   ensureCanvasObjectId,
+  getPilotiFromGroup,
+  getPilotiIdsFromGroup,
   toCanvasObject,
 } from '@/components/rac-editor/@canvas/lib';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
+import {MobileCanvasSelectionBar} from './MobileCanvasSelectionBar.tsx';
+import {useMobileCanvasSelection} from './adapters/hooks/useMobileCanvasSelection.ts';
 import type {CanvasToolMode} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 import {useCanvasClipboard} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasClipboard.ts';
 import {useCanvasContainerLifecycle} from '@/components/rac-editor/@canvas/hooks/useCanvasContainerLifecycle.ts';
@@ -154,7 +158,6 @@ export const Canvas =
       onFreeDrawPathCreated,
     }, ref) => {
       const {mobile, landscape} = useCanvasMobileViewport();
-      const [landscapeSelection, setLandscapeSelection] = useState(false);
 
       const containerRef = useRef<HTMLDivElement>(null);
       const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -196,7 +199,7 @@ export const Canvas =
         fitContentInView,
       } = useCanvasViewport({houseId: activeHouseId, onMinimapInteraction, onZoomInteraction});
 
-      const {minimapObjects, updateMinimapObjects} = useCanvasMinimapObjects();
+      const {minimapObjects, updateMinimapObjects, scheduleMinimapUpdate} = useCanvasMinimapObjects(fabricCanvasRef, activeHouseId);
       const isAnyEditorOpenRef = useRef(isAnyEditorOpen);
 
       const {
@@ -464,6 +467,7 @@ export const Canvas =
       }, [getImageLayerMenuPosition]);
 
       const handleImageContextMenu = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
+        if (landscape) {event.preventDefault(); return;}
         if (readOnly) return;
 
         const target = findObjectAtPointer(event.nativeEvent);
@@ -481,15 +485,15 @@ export const Canvas =
         event.preventDefault();
         event.stopPropagation();
         openImageLayerMenu(target, event.clientX, event.clientY);
-      }, [findObjectAtPointer, openColorEditor, openImageLayerMenu, readOnly]);
+      }, [findObjectAtPointer, openColorEditor, openImageLayerMenu, readOnly, landscape]);
 
       const handleFreehandDoubleClick = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
-        if (readOnly || fabricCanvasRef.current?.isDrawingMode) return;
+        if (readOnly || landscape || fabricCanvasRef.current?.isDrawingMode) return;
         const target = findObjectAtPointer(event.nativeEvent);
         if (target?.myType !== 'freehand' && target?.type !== 'path') return;
         event.preventDefault();
         openColorEditor(target);
-      }, [findObjectAtPointer, openColorEditor, readOnly]);
+      }, [findObjectAtPointer, openColorEditor, readOnly, landscape]);
 
       const moveActiveImageLayer = useCallback((direction: 'front' | 'back') => {
         if (readOnly) return;
@@ -549,6 +553,31 @@ export const Canvas =
         onZoomChange?.(zoom);
       }, [onZoomChange, zoom]);
 
+      const selection = useMobileCanvasSelection({enabled: landscape && !readOnly, houseId: activeHouseId, fabricCanvasRef, zoom});
+
+      const openSelectedTopViewPilotis = () => {
+        const group = selection.selectedTopView;
+        if (!landscape || readOnly || isAnyEditorOpen || !group || !onPilotiSelect) return;
+        const pilotiIds = getPilotiIdsFromGroup(group);
+        const pilotiId = pilotiIds[0];
+        const piloti = pilotiId ? getPilotiFromGroup(group, pilotiId) : null;
+        if (!piloti) return;
+        const center = piloti.circle.getCenterPoint();
+        const screenPosition = getCurrentScreenPoint({x: center.x, y: center.y});
+        if (!screenPosition) return;
+        onPilotiSelect({
+          pilotiId,
+          pilotiIds,
+          currentHeight: piloti.height,
+          currentIsMaster: piloti.isMaster,
+          currentNivel: piloti.nivel,
+          editorSelection: {type: 'piloti', pilotiId, houseView: 'top', screenPosition},
+          screenPosition,
+          houseView: 'top',
+          mobilePanel: true,
+        });
+      };
+
       // Apply tool-mode side effects to the fabric canvas.
       // 'pan' disables multi-selection and switches to a grab cursor;
       // 'select' restores fabric defaults.
@@ -569,7 +598,7 @@ export const Canvas =
         } else if (canvasToolMode === 'pan') {
           const panCursor = isPanning ? 'grabbing' : 'grab';
           fabric.selection = false;
-          fabric.skipTargetFind = true;
+          fabric.skipTargetFind = !(landscape && selection.resizing);
           fabric.defaultCursor = panCursor;
           fabric.hoverCursor = panCursor;
           fabric.moveCursor = panCursor;
@@ -587,10 +616,11 @@ export const Canvas =
           fabric.wrapperEl.style.cursor = 'default';
         }
         fabric.requestRenderAll();
-      }, [canvasToolMode, isPanning, readOnly]);
+      }, [canvasToolMode, isPanning, readOnly, landscape, selection.resizing]);
 
       useCanvasFabricSetup({
         readOnly,
+        inlineEditingDisabled: landscape,
         canvasRef,
         containerRef,
         fabricCanvasRef,
@@ -623,31 +653,6 @@ export const Canvas =
         return bindReadOnlyCanvasInteraction(canvas);
       }, [readOnly]);
 
-      useEffect(() => {
-        const canvas = fabricCanvasRef.current;
-        if (!canvas || !landscape || readOnly) {setLandscapeSelection(false); return;}
-        const originals = new Map<CanvasObject, {borderColor: string; borderScaleFactor: number; cornerSize: number; padding: number}>();
-        const highlight = () => {
-          canvas.getActiveObjects().forEach(object => {
-            const target = object as CanvasObject;
-            if (!originals.has(target)) originals.set(target, {borderColor: target.borderColor, borderScaleFactor: target.borderScaleFactor, cornerSize: target.cornerSize, padding: target.padding});
-            target.set({borderColor: '#1d4ed8', borderScaleFactor: 3, cornerSize: 20, padding: 8});
-          });
-          setLandscapeSelection(canvas.getActiveObjects().length > 0);
-          canvas.requestRenderAll();
-        };
-        canvas.on('selection:created', highlight);
-        canvas.on('selection:updated', highlight);
-        canvas.on('selection:cleared', highlight);
-        highlight();
-        return () => {
-          canvas.off('selection:created', highlight);
-          canvas.off('selection:updated', highlight);
-          canvas.off('selection:cleared', highlight);
-          originals.forEach((style, object) => object.set(style));
-          canvas.requestRenderAll();
-        };
-      }, [landscape, readOnly]);
 
       useCanvasContainerLifecycle({
         containerRef,
@@ -693,8 +698,9 @@ export const Canvas =
 
       const {isObjectMoving, onObjectMovingChange} = useCanvasObjectMovement({fabricCanvasRef, enabled: mobile && !readOnly, houseId: activeHouseId});
       const shouldSkipLegacyTouch = useMobileCanvasGestures({enabled: landscape && !isContraventamentoMode, houseId: activeHouseId, readOnly, containerRef,
-        fabricCanvasRef, canvasToolMode, onToolModeChange, zoom, minimumZoom, viewportX, viewportY,
-        handleViewportChange, handleZoomChange, onPanningChange: setIsPanning, onObjectMovingChange});
+        fabricCanvasRef, canvasToolMode, resizing: selection.resizing, onToolModeChange, zoom, minimumZoom, viewportX, viewportY,
+        handleViewportChange, handleZoomChange, onPanningChange: setIsPanning, onObjectMovingChange,
+        onObjectMove: () => scheduleMinimapUpdate(fabricCanvasRef.current)});
 
       const handleCanvasMouseDown = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
         setImageLayerMenu(null);
@@ -799,7 +805,10 @@ export const Canvas =
           >
             {children}
           </CanvasOverlays>
-          {landscapeSelection && landscape && !readOnly ? <div role='status' className='pointer-events-none absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full bg-blue-700 px-4 py-2 text-xs font-semibold text-white shadow-md'>Item selecionado · arraste para mover apenas o item</div> : null}
+          {landscape && !readOnly && !isAnyEditorOpen ? <MobileCanvasSelectionBar
+            count={selection.count} resizing={selection.resizing} canResize={selection.canResize}
+            canEditPilotis={Boolean(selection.selectedTopView)} onEditPilotis={openSelectedTopViewPilotis}
+            onToggleResize={selection.toggleResizing}/> : null}
           {imageLayerMenu
             ? <div
                 role='menu'

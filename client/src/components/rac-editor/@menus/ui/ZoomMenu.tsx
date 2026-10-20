@@ -1,4 +1,5 @@
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {Ellipsis} from 'lucide-react';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
 import {TOP_BAR_ICONS} from '../lib/menu-config.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
@@ -48,6 +49,7 @@ export function ZoomMenu({readOnly = false, zoom, canvasToolMode, onSetToolMode,
         >
           {!isMobile ? <FontAwesomeIcon icon={TOP_BAR_ICONS.zoom} className='text-base text-slate-500'/> : null}
           <span className='tabular-nums'>{zoomPercent}%</span>
+          <Ellipsis className='h-3.5 w-3.5 shrink-0' aria-hidden='true'/>
         </button>
       </PopoverTrigger>
 

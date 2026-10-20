@@ -29,6 +29,7 @@ interface NivelSliderProps {
   onAutoModeToggle?: () => void;
   showModeTourTarget?: boolean;
   compactStepper?: boolean;
+  compactLayout?: boolean;
 }
 
 const NIVEL_MODE_TOUR_TARGET_ID = 'rac-piloti-nivel-mode-toggle';
@@ -49,6 +50,7 @@ export function NivelSlider({
   onAutoModeToggle,
   showModeTourTarget = false,
   compactStepper = false,
+  compactLayout = false,
 }: NivelSliderProps) {
   const [inputDigits, setInputDigits] = useState(() => nivelToInputDigits(nivel));
   const editableNivelRef = useRef<HTMLSpanElement | null>(null);
@@ -144,7 +146,7 @@ export function NivelSlider({
   const modeLabel = autoMode ? 'automático' : 'manual';
 
   return (
-    <div className='space-y-4'>
+    <div className={compactLayout ? 'space-y-3' : 'space-y-4'}>
       <div className='text-center'>
         <div className='flex items-center justify-center gap-2'>
           {showModeButton &&
@@ -170,19 +172,20 @@ export function NivelSlider({
         </div>
       </div>
 
-      <div className={cn('flex items-center justify-center', compactStepper ? 'gap-0' : 'gap-3', disabled && 'opacity-60')}>
+      <div className={cn('flex items-center', compactLayout ? 'justify-between px-1.5' : 'justify-center', compactStepper ? 'gap-0' : 'gap-3', disabled && 'opacity-60')}>
         <Button
           aria-label='Diminuir nível do piloti'
           variant='outline'
           size='icon'
-          className='h-9 w-9 rounded-full disabled:pointer-events-auto disabled:cursor-not-allowed'
+          className={cn('relative rounded-full disabled:pointer-events-auto disabled:cursor-not-allowed',
+            compactLayout ? "h-8 w-8 after:absolute after:-inset-1.5 after:content-['']" : 'h-9 w-9')}
           onClick={() => onNivelIncrement(-0.01)}
           disabled={disabled || nivel <= minNivel}>
 
           <FontAwesomeIcon icon={faMinus} className='h-3 w-3'/>
         </Button>
 
-        <div className='flex min-w-[7rem] items-baseline justify-center gap-1'>
+        <div className={cn('flex items-baseline justify-center gap-1', compactLayout ? 'min-w-[6rem]' : 'min-w-[7rem]')}>
           {enableInput ?
             <span
               ref={editableNivelRef}
@@ -204,11 +207,12 @@ export function NivelSlider({
                 replaceEditableText(nextText);
                 moveCaretToEnd();
               }}
-              className='inline-block min-w-[4.6rem] rounded-sm text-center text-4xl font-bold leading-none text-primary outline-none focus-visible:ring-0 focus-visible:ring-offset-0'
+              className={cn('inline-block rounded-sm text-center font-bold leading-none text-primary outline-none focus-visible:ring-0 focus-visible:ring-offset-0',
+                compactLayout ? 'min-w-[4rem] text-3xl' : 'min-w-[4.6rem] text-4xl')}
             >
               {displayedNivel}
             </span> :
-            <span className='text-4xl font-bold text-primary'>{displayedNivel}</span>
+            <span className={cn('font-bold text-primary', compactLayout ? 'text-3xl' : 'text-4xl')}>{displayedNivel}</span>
           }
           <span className='text-lg text-muted-foreground'>m</span>
         </div>
@@ -217,7 +221,8 @@ export function NivelSlider({
           aria-label='Aumentar nível do piloti'
           variant='outline'
           size='icon'
-          className='h-9 w-9 rounded-full disabled:pointer-events-auto disabled:cursor-not-allowed'
+          className={cn('relative rounded-full disabled:pointer-events-auto disabled:cursor-not-allowed',
+            compactLayout ? "h-8 w-8 after:absolute after:-inset-1.5 after:content-['']" : 'h-9 w-9')}
           onClick={() => onNivelIncrement(0.01)}
           disabled={disabled || nivel >= maxNivel}>
 
@@ -225,7 +230,7 @@ export function NivelSlider({
         </Button>
       </div>
 
-      <div className={cn('space-y-3 px-2', disabled && 'opacity-60')}>
+      <div className={cn('px-2', compactLayout ? 'space-y-2' : 'space-y-3', disabled && 'opacity-60')}>
         <Slider
           disabled={disabled}
           value={[nivel]}

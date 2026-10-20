@@ -9,7 +9,7 @@ export function CanvasOrientationNotice({onBackToConstructions}: {onBackToConstr
       <div className='mx-auto grid h-24 w-24 place-items-center text-blue-600' aria-hidden='true'><Smartphone className='h-16 w-16 motion-safe:animate-[rac-rotate-phone_2s_ease-in-out_infinite]'/></div>
       <DialogTitle>Gire seu celular</DialogTitle>
       <DialogDescription>Use o celular na horizontal para trabalhar no Canvas. A tela será liberada ao girar o aparelho.</DialogDescription>
-      <Button type='button' className='min-h-11 bg-blue-600 text-white hover:bg-blue-700' onClick={onBackToConstructions}>Voltar às construções</Button>
+      <Button type='button' variant='ghost' className='mx-auto min-h-11 bg-slate-200/60 text-sm font-normal text-slate-900 hover:bg-slate-200/60 hover:text-slate-900 active:bg-slate-200/60' onClick={onBackToConstructions}>Voltar às construções</Button>
     </DialogContent>
   </Dialog>;
 }

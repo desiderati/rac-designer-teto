@@ -84,6 +84,48 @@ function Wrapper({children}: { children: ReactNode }) {
 }
 
 describe('PilotiEditor.tsx', () => {
+  it('mostra a orientação de destino somente em Contraventar e preserva o cancelamento', () => {
+    const onCancelDestination = vi.fn();
+    render(<PilotiEditor presentation='mobile-panel' isOpen isMobile onClose={vi.fn()}
+      pilotiId='piloti_0_0' currentHeight={1} currentNivel={0.2} currentIsMaster
+      pilotiIds={['piloti_0_0', 'piloti_1_0']} selectedPilotiHeights={[1, 1.5, 2]}
+      destinationPilotiIds={['piloti_1_0']} onCancelDestination={onCancelDestination}
+      onHeightChange={vi.fn()}/>, {wrapper: Wrapper});
+    const message = 'Selecione piloti de destino a contraventar.';
+    expect(screen.queryByText(message)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: 'Cancelar seleção'})).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', {name: 'Contraventar'}));
+    expect(screen.getByText(message)).toBeVisible();
+    fireEvent.click(screen.getByRole('tab', {name: 'Tamanho'}));
+    expect(screen.queryByText(message)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', {name: 'Nível'}));
+    expect(screen.queryByText(message)).not.toBeInTheDocument();
+    expect(onCancelDestination).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('tab', {name: 'Contraventar'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Cancelar seleção'}));
+    expect(onCancelDestination).toHaveBeenCalledOnce();
+  });
+
+  it('mantém o painel mobile aberto ao editar altura e trocar de aba', () => {
+    const updatePiloti = vi.fn((id: string, patch: Partial<HousePiloti>) => ({...pilotis[id], ...patch}));
+    const onClose = vi.fn();
+    render(<PilotiEditor presentation='mobile-panel' isOpen isMobile onClose={onClose}
+      pilotiId='piloti_0_0' currentHeight={1} currentNivel={0.2} currentIsMaster
+      pilotiIds={['piloti_0_0', 'piloti_1_0']} selectedPilotiHeights={[1, 1.5, 2]}
+      onHeightChange={vi.fn()}/>, {wrapper: createWrapper({settings: {autoNavigatePiloti: true}, updatePiloti})});
+
+    expect(screen.getByRole('dialog', {name: 'Editar pilotis da planta'})).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', {name: 'Tamanho'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Piloti de 1,5 metros'}));
+    expect(updatePiloti).toHaveBeenCalledWith('piloti_0_0', expect.objectContaining({height: 1.5}));
+    expect(screen.getByRole('dialog', {name: 'Editar pilotis da planta'})).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('tab', {name: 'Contraventar'}));
+    expect(screen.getByRole('tab', {name: 'Contraventar'})).toHaveAttribute('aria-selected', 'true');
+    fireEvent.keyDown(window, {key: 'Escape'});
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
   it('preserva altura e nível manuais de A2 ao confirmar', () => {
     const currentPilotis: Record<string, HousePiloti> = {
       ...pilotis,

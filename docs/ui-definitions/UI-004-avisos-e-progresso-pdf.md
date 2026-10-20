@@ -63,6 +63,9 @@ foco visível, rótulos acessíveis e acionamento por teclado.
 O host Sonner mantém a fila, o ciclo de exibição e o fechamento. No desktop, a pilha fica no canto
 inferior direito com até três avisos visíveis; no celular, no topo central, respeitando a área
 segura e o limite de dois. Conteúdo longo no celular pode rolar sem ampliar o aviso indefinidamente.
+O reconhecimento mobile compartilha a condição do Canvas: largura de até 767 px ou ponteiro de
+toque com altura de até 600 px. Assim, celulares deitados com largura maior também usam o topo
+central, incluindo avisos cujo emissor definiu uma posição de canto.
 
 O tempo padrão permanece o da biblioteca quando o fluxo não define duração. Erros emitidos por
 `toast.error` e pelos estados de erro de `toast.promise`, incluindo falhas de PDF, fecham após 30
