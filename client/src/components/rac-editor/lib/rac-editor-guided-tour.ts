@@ -305,7 +305,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           placement: 'right',
           alignment: 'middle',
           title: 'Prévia do Canvas',
-          text: 'No computador, passe o mouse sobre a miniatura para ver o desenho. No celular, toque nela para abrir a prévia. O ícone no canto superior esquerdo abre o Canvas.',
+          text: 'No celular, toque na foto ou nas iniciais da casa para abrir a prévia do desenho. No computador, passe o mouse sobre esse mesmo local. Para abrir o Canvas, use a opção “Ir pro Canvas” no menu do canto superior direito da prévia.',
           next: 'rac-house-status',
           persistKey: 'guided-tour:rac-house-actions:canvas-preview',
           kind: 'flow',
