@@ -180,8 +180,9 @@ conforme a [UI-006](UI-006-editores-flutuantes-e-teclado-mobile.md).
 Dispensar cabeçalho, ícone e labels visuais redundantes. Manter nomes acessíveis; centralizar o texto
 dos campos e usar recuos de 12 px e espaços de 8 px na paleta e nas ações. A paleta conserva as cores
 existentes e destaca a selecionada. Confirmar aplica o rascunho; Cancelar, toque fora e Escape fecham
-sem aplicar o rascunho genérico. O terreno conserva a aplicação ao alterar o slider e seus dados
-reais de rachão e volumes, sem título nem label/badge superior. Fechar não desfaz valores já aplicados.
+sem aplicar o rascunho. No terreno, o slider atualiza apenas a prévia de rachão e volumes;
+o valor só é aplicado em `Confirmar`. Cancelar ou fechar descarta o rascunho. A apresentação
+continua sem título nem label/badge superior.
 As apresentações desktop continuam usando o editor flutuante existente.
 
 Cada tipo editável tem orientação de primeira inserção, com progresso persistido próprio. Cerca,

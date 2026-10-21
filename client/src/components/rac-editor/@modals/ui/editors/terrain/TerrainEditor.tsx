@@ -69,12 +69,7 @@ export function TerrainEditor({
     </div>
     <Slider min={1} max={5} step={1} value={[draftType]}
       aria-label='Tipo de terreno'
-      onValueChange={values => setDraftType(values[0] ?? 1)} className='my-4'
-      onValueCommit={values => {
-        const committed = normalizeTerrainSolidityLevel(values[0] ?? 1);
-        setDraftType(committed);
-        onApply(committed);
-      }}/>
+      onValueChange={values => setDraftType(values[0] ?? 1)} className='my-4'/>
     <div className='grid grid-cols-5 text-[10px] text-muted-foreground'>
       {[1, 2, 3, 4, 5].map(level => <span key={level} className='text-center'>{level}</span>)}
     </div>
