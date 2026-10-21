@@ -20,6 +20,7 @@ import {
   TERRAIN_STYLE
 } from '@/shared/config.ts';
 import {getPilotiIdsForSide} from '@/shared/types/piloti.ts';
+import {CANVAS_MOBILE_QUERY} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
 
 interface BindSelectionActionsArgs {
   canvas: FabricCanvas;
@@ -272,11 +273,7 @@ export function useCanvasSelectionActions() {
         (typeof activeObjectGetter === 'function' ? activeObjectGetter.call(canvas) : null)
         ?? (canvas.getObjects().find((item) => isCanvasGroup(item)) ?? null);
       const object = toCanvasObject(activeObjectRaw) ?? null;
-      onSelectionChange(
-        object?.myType === 'text' || object?.myType === 'freehand' || object?.type === 'path'
-          ? 'Clique com o botão direito no objeto para alterar a cor.'
-          : getHintForObject(object),
-      );
+      onSelectionChange(getHintForObject(object, window.matchMedia(CANVAS_MOBILE_QUERY).matches));
 
       if (isContraventamentoMode()) {
         return;

@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it} from 'vitest';
-import {getVisibleTargetRect} from '@/components/guided-tour/lib/guided-tour-targets.ts';
+import {getRenderedGuidedTourTarget, getVisibleTargetRect} from '@/components/guided-tour/lib/guided-tour-targets.ts';
 
 function createTarget(attributes: Record<string, string>, visible: boolean): HTMLElement {
   const target = document.createElement('button');
@@ -34,5 +34,13 @@ describe('guided-tour-targets', () => {
     const rect = getVisibleTargetRect('rac-export-pdf');
 
     expect(rect).toEqual(expect.objectContaining({left: 20, top: 30, width: 40, height: 40}));
+  });
+
+  it('encontra o alvo mobile abaixo da viewport sem confundir com o alvo desktop oculto', () => {
+    createTarget({'data-guided-tour-id': 'rac-house-status'}, false);
+    const mobile = createTarget({'data-guided-tour-id': 'rac-house-status'}, true);
+    Object.defineProperty(mobile, 'getBoundingClientRect', {configurable: true, value: () => new DOMRect(20, window.innerHeight + 100, 40, 40)});
+    expect(getVisibleTargetRect('rac-house-status')).toBeNull();
+    expect(getRenderedGuidedTourTarget('rac-house-status')).toBe(mobile);
   });
 });

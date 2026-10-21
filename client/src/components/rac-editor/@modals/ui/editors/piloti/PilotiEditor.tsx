@@ -312,7 +312,7 @@ function PilotiMobilePanel({
     <div className='piloti-mobile-scroll'>
       <div className='piloti-mobile-controls'>{content}</div>
       {selectingDestination && tab === 'contraventamento' ? <div className='piloti-mobile-destination'>
-        <p role='status'>Selecione piloti de destino a contraventar.</p>
+        <p role='status'>Selecione o piloti onde o contraventamento termina.</p>
         <button type='button' onClick={onCancelDestination}
           className='group min-h-10 justify-self-center rounded-lg py-1.5 text-xs font-semibold text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600'>
           <span className='flex min-h-7 items-center justify-center rounded-lg bg-blue-100 px-4 group-hover:bg-blue-200'>

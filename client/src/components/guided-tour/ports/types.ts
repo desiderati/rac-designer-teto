@@ -19,6 +19,8 @@ export interface GuidedTourStep {
 export interface GuidedTourDefinition {
   id: string;
   initialStepId: string;
+  /** Apresenta este tour antes da etapa indicada, se seu alvo estiver disponível. */
+  beforeStepId?: string;
   persistKey: string;
   storageRevision?: string;
   autoStart?: boolean;

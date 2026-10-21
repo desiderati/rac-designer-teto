@@ -123,7 +123,7 @@ test('planta abre o painel com a estética de campo e persiste edição pelas ab
   await expect(editor.getByRole('button', {name: 'Selecionar piloti A1', exact: true})).toBeDisabled();
   await expect(editor.getByRole('button', {name: 'Selecionar piloti C4', exact: true})).toBeDisabled();
   const hint = editor.getByRole('status');
-  await expect(hint).toHaveText('Selecione piloti de destino a contraventar.');
+  await expect(hint).toHaveText('Selecione o piloti onde o contraventamento termina.');
   const hintBox = (await hint.boundingBox())!;
   const buttonRow = (await brace.boundingBox())!;
   expect(hintBox.y).toBeGreaterThan(buttonRow.y + buttonRow.height);

@@ -32,7 +32,7 @@ import {
 import {EmptyState, PrimaryButton} from '@/components/construction-site/ui/lib/shared-controls.tsx';
 import type {ConstructionSiteManagementActions, ConstructionSiteManagementScreen} from '@/components/construction-site/ui/lib/types.ts';
 import {getScreenSubtitle, getScreenTitle} from '@/components/construction-site/ui/lib/view-model.ts';
-import {getVisibleTargetRect} from '@/components/guided-tour/lib/guided-tour-targets.ts';
+import {getRenderedGuidedTourTarget, getVisibleTargetRect, queryGuidedTourTarget} from '@/components/guided-tour/lib/guided-tour-targets.ts';
 import {toast} from '@/components/ui/sonner.tsx';
 import {
   GUIDED_TOUR_COMPLETED_EVENT,
@@ -100,9 +100,25 @@ const CONSTRUCTION_TOUR_SEGMENTS = [
   CONSTRUCTION_ACTIONS_TOUR_SEGMENT,
   CONSTRUCTION_BACK_TO_CANVAS_TOUR_SEGMENT,
 ] as const;
+const HOUSE_FIELD_ANALYSIS_TOUR_SEGMENT = {
+  key: 'house-field-analysis',
+  eventName: 'rac:house-field-analysis-tour-ready',
+  kind: 'house-field-analysis',
+  persistKey: 'guided-tour:rac-house-field-analysis:completed',
+  targetIds: ['rac-house-field-analysis'],
+} as const;
+const HOUSE_RESET_TOUR_SEGMENT = {
+  key: 'house-reset',
+  eventName: 'rac:house-reset-tour-ready',
+  kind: 'house-reset',
+  persistKey: 'guided-tour:rac-house-reset:completed',
+  targetIds: ['rac-house-reset'],
+} as const;
 const HOUSE_TOUR_SEGMENTS = [
   HOUSE_ADD_TOUR_SEGMENT,
   HOUSE_ACTIONS_TOUR_SEGMENT,
+  HOUSE_FIELD_ANALYSIS_TOUR_SEGMENT,
+  HOUSE_RESET_TOUR_SEGMENT,
 ] as const;
 type GuidedTourSegment =
   | typeof CONSTRUCTION_TOUR_SEGMENTS[number]
@@ -190,6 +206,7 @@ export function ConstructionSiteManagementPanel({
   const [isDownloadingHouseRacPdfPreview, setIsDownloadingHouseRacPdfPreview] = useState(false);
   const hasUnsavedChangesRef = useRef(false);
   const dispatchedGuidedTourSegmentsRef = useRef<Set<string>>(new Set());
+  const activeGuidedTourSegmentRef = useRef<string | null>(null);
 
   useEffect(() => {
     onUnsavedChangesChange?.(hasUnsavedChanges);
@@ -371,7 +388,10 @@ export function ConstructionSiteManagementPanel({
   }, []);
 
   useEffect(() => {
-    const handleGuidedTourCompleted = () => {
+    const handleGuidedTourCompleted = (event: Event) => {
+      if (activeGuidedTourSegmentRef.current
+        && (!(event instanceof CustomEvent) || event.detail?.persistKey !== activeGuidedTourSegmentRef.current)) return;
+      activeGuidedTourSegmentRef.current = null;
       setGuidedTourCompletionVersion((version) => version + 1);
     };
 
@@ -380,7 +400,7 @@ export function ConstructionSiteManagementPanel({
   }, []);
 
   useEffect(() => {
-    if (navigation.screen !== 'construction-list') return;
+    if (navigation.screen !== 'construction-list' || activeGuidedTourSegmentRef.current) return;
 
     return scheduleGuidedTourWhenTargetsReady(() => collectNextGuidedTourSegment([
       {segment: CONSTRUCTION_ADD_TOUR_SEGMENT, enabled: true},
@@ -388,6 +408,7 @@ export function ConstructionSiteManagementPanel({
       {segment: CONSTRUCTION_BACK_TO_CANVAS_TOUR_SEGMENT, enabled: isBackToCanvasButton},
     ], dispatchedGuidedTourSegmentsRef.current), ({segment, targets}) => {
       dispatchedGuidedTourSegmentsRef.current.add(segment.key);
+      activeGuidedTourSegmentRef.current = segment.persistKey;
       document.dispatchEvent(new CustomEvent(segment.eventName, {
         detail: {
           kind: segment.kind,
@@ -399,13 +420,16 @@ export function ConstructionSiteManagementPanel({
   }, [guidedTourCompletionVersion, isBackToCanvasButton, navigation.screen, summaries]);
 
   useEffect(() => {
-    if (navigation.screen !== 'houses') return;
+    if (navigation.screen !== 'houses' || activeGuidedTourSegmentRef.current) return;
 
     return scheduleGuidedTourWhenTargetsReady(() => collectNextGuidedTourSegment([
       {segment: HOUSE_ADD_TOUR_SEGMENT, enabled: true},
       {segment: HOUSE_ACTIONS_TOUR_SEGMENT, enabled: Boolean(constructionSite?.houses.some((house) => house.status !== 'archived'))},
+      {segment: HOUSE_FIELD_ANALYSIS_TOUR_SEGMENT, enabled: isMobile && !isSelectedConstructionReadOnly},
+      {segment: HOUSE_RESET_TOUR_SEGMENT, enabled: isMobile && !isSelectedConstructionReadOnly},
     ], dispatchedGuidedTourSegmentsRef.current), ({segment, targets}) => {
       dispatchedGuidedTourSegmentsRef.current.add(segment.key);
+      activeGuidedTourSegmentRef.current = segment.persistKey;
       document.dispatchEvent(new CustomEvent(segment.eventName, {
         detail: {
           kind: segment.kind,
@@ -414,7 +438,7 @@ export function ConstructionSiteManagementPanel({
       }));
       markGuidedTourSeen(segment);
     });
-  }, [constructionSite?.houses, guidedTourCompletionVersion, navigation.screen]);
+  }, [constructionSite?.houses, guidedTourCompletionVersion, isMobile, isSelectedConstructionReadOnly, navigation.screen]);
 
   return (
     <main
@@ -858,12 +882,25 @@ function scheduleGuidedTourWhenTargetsReady<T>(
   let frame: number | null = null;
   let attempt = 0;
   let cancelled = false;
+  const cleanup = () => {
+    cancelled = true;
+    if (frame !== null) window.cancelAnimationFrame(frame);
+    document.removeEventListener('scroll', retryOnViewportChange, true);
+    window.removeEventListener('resize', retryOnViewportChange);
+  };
+  const retryOnViewportChange = () => {
+    if (cancelled) return;
+    attempt = 0;
+    if (frame !== null) window.cancelAnimationFrame(frame);
+    frame = window.requestAnimationFrame(tryDispatch);
+  };
 
   const tryDispatch = () => {
     if (cancelled) return;
 
     const targets = collectTargets();
     if (targets) {
+      cleanup();
       dispatchTour(targets);
       return;
     }
@@ -875,18 +912,16 @@ function scheduleGuidedTourWhenTargetsReady<T>(
   };
 
   frame = window.requestAnimationFrame(tryDispatch);
+  // Ações do card podem começar abaixo da área visível no celular.
+  document.addEventListener('scroll', retryOnViewportChange, true);
+  window.addEventListener('resize', retryOnViewportChange);
 
-  return () => {
-    cancelled = true;
-    if (frame !== null) {
-      window.cancelAnimationFrame(frame);
-    }
-  };
+  return cleanup;
 }
 
-function collectGuidedTourTargets(targetIds: readonly string[]): Record<string, GuidedTourEventRect> | null {
+function collectGuidedTourTargets(targetIds: readonly string[], allowScroll = false): Record<string, GuidedTourEventRect> | null {
   const entries = targetIds.map((targetId) => {
-    const rect = getVisibleTargetRect(targetId);
+    const rect = allowScroll ? getRenderedGuidedTourTarget(targetId)?.getBoundingClientRect() : getVisibleTargetRect(targetId);
     if (!rect) return null;
     return [targetId, toGuidedTourEventRect(rect)] as const;
   });
@@ -904,7 +939,15 @@ function collectNextGuidedTourSegment(
     if (dispatchedSegments.has(candidate.segment.key)) continue;
     if (isGuidedTourSeen(candidate.segment)) continue;
 
-    const targets = collectGuidedTourTargets(candidate.segment.targetIds);
+    if (candidate.segment === HOUSE_FIELD_ANALYSIS_TOUR_SEGMENT || candidate.segment === HOUSE_RESET_TOUR_SEGMENT) {
+      const target = queryGuidedTourTarget(candidate.segment.targetIds[0]);
+      const rect = target?.getBoundingClientRect();
+      if (rect?.width && rect.height && (rect.top < 8 || rect.bottom > window.innerHeight - 8)) {
+        target.scrollIntoView?.({block: 'center', behavior: 'instant'});
+        return null;
+      }
+    }
+    const targets = collectGuidedTourTargets(candidate.segment.targetIds, candidate.segment === HOUSE_ACTIONS_TOUR_SEGMENT);
     if (targets) return {segment: candidate.segment, targets};
   }
 

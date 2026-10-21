@@ -1,5 +1,5 @@
 import {describe, expect, it, beforeEach} from 'vitest';
-import {act, render, screen, waitFor} from '@testing-library/react';
+import {act, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {GuidedTourHost} from '@/components/guided-tour/ui/GuidedTourHost.tsx';
 import {racEditorGuidedTourRegistry} from '@/components/rac-editor/lib/rac-editor-guided-tour.ts';
@@ -76,7 +76,7 @@ describe('GuidedTourHost', () => {
 
     const dialog = await screen.findByRole('dialog', {name: 'Menu Principal'});
     expect(dialog).toBeVisible();
-    expect(dialog).toHaveAccessibleDescription(/use o menu principal/i);
+    expect(dialog).toHaveAccessibleDescription(/trocar de casa ou acessar a lista/i);
     expect(dialog).toHaveClass('bg-amber-100', 'border-amber-200');
     expect(screen.getByText('Menu Principal')).toBeVisible();
     expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(7);
@@ -119,7 +119,7 @@ describe('GuidedTourHost', () => {
 
     const difficultyDialog = await screen.findByRole('dialog', {name: 'Dificuldade da Casa'});
     expect(difficultyDialog).toBeVisible();
-    expect(difficultyDialog).toHaveAccessibleDescription(/solo, hidráulicos, subterrâneos, elevados e esquadro/i);
+    expect(difficultyDialog).toHaveAccessibleDescription(/Tipo de solo e Obstáculos/i);
     expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(7);
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
@@ -136,7 +136,7 @@ describe('GuidedTourHost', () => {
         detail: {kind, rect: {left: 420, top: 120, width: 80, height: 40}},
       })));
       insert();
-      expect(await screen.findByRole('dialog')).toHaveAccessibleDescription(/selecione o elemento e toque em Editar/i);
+      expect(await screen.findByRole('dialog')).toHaveAccessibleDescription(/selecione-o e toque em Editar/i);
       await user.click(screen.getByRole('button', {name: 'OK'}));
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
       expect(localStorage.getItem(`guided-tour:rac-tip:${kind}`)).toBe('true');
@@ -163,10 +163,10 @@ describe('GuidedTourHost', () => {
       }));
     });
 
-    const tipDialog = await screen.findByRole('dialog', {name: 'Dica do editor RAC'});
+    const tipDialog = await screen.findByRole('dialog', {name: 'Muro'});
     expect(tipDialog).toBeVisible();
-    expect(tipDialog).toHaveAccessibleDescription(/selecione o elemento e toque em Editar/i);
-    expect(screen.getByText(/selecione o elemento e toque em Editar/i)).toBeVisible();
+    expect(tipDialog).toHaveAccessibleDescription(/selecione-o e toque em Editar/i);
+    expect(screen.getByText(/selecione-o e toque em Editar/i)).toBeVisible();
     expect(screen.queryByTestId('guided-tour-progress-dot')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', {name: 'OK'}));
 
@@ -194,7 +194,7 @@ describe('GuidedTourHost', () => {
     });
 
     expect(await screen.findByRole('dialog')).toBeVisible();
-    expect(screen.getByText(/Linhas podem receber texto/i)).toBeVisible();
+    expect(screen.getByText(/Altere o texto e a cor deste objeto/i)).toBeVisible();
     expect(screen.queryByTestId('guided-tour-progress-dot')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', {name: 'OK'}));
 
@@ -252,7 +252,7 @@ describe('GuidedTourHost', () => {
 
     const addDialog = await screen.findByRole('dialog', {name: 'Adicionar Construção'});
     expect(addDialog).toBeVisible();
-    expect(addDialog).toHaveAccessibleDescription(/nova Construção TETO/i);
+    expect(addDialog).toHaveAccessibleDescription(/Cadastre uma Construção TETO/i);
     expect(screen.queryByTestId('guided-tour-progress-dot')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
@@ -297,7 +297,7 @@ describe('GuidedTourHost', () => {
     await user.click(screen.getByRole('button', {name: 'OK'}));
     const completedDialog = await screen.findByRole('dialog', {name: 'Construção Concluída'});
     expect(completedDialog).toBeVisible();
-    expect(completedDialog).toHaveAccessibleDescription(/casas e monitores ficam somente para visualização/i);
+    expect(completedDialog).toHaveAccessibleDescription(/bloquear a edição de suas casas e monitores/i);
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     expect(await screen.findByRole('dialog', {name: 'Arquivar Construção'})).toBeVisible();
@@ -380,13 +380,57 @@ describe('GuidedTourHost', () => {
 
     const addDialog = await screen.findByRole('dialog', {name: 'Adicionar Casa'});
     expect(addDialog).toBeVisible();
-    expect(addDialog).toHaveAccessibleDescription(/configurar família, terreno, pilotis/i);
+    expect(addDialog).toHaveAccessibleDescription(/Cadastre uma casa e os dados da família/i);
     expect(screen.queryByTestId('guided-tour-progress-dot')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(localStorage.getItem('guided-tour:rac-house-add:completed')).toBe('true');
     expect(localStorage.getItem('guided-tour:rac-house-add:completed:revision')).toBe('house-add-v1');
+  });
+
+  it.each([
+    ['house-field-analysis', 'Análise de Campo', /ajustar níveis, tamanhos e contraventamentos/i],
+    ['house-reset', 'Redefinir Casa', /dados da família e os outros objetos do Canvas serão mantidos/i],
+  ] as const)('apresenta %s a quem já concluiu o tour da lista e não repete após concluir', async (kind, title, description) => {
+    const user = userEvent.setup();
+    localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
+    localStorage.setItem('guided-tour:rac-house-actions:completed', 'true');
+    localStorage.setItem('guided-tour:rac-house-actions:completed:revision', 'house-actions-v3');
+    render(<TestGuidedTourHost/>);
+    const show = () => act(() => document.dispatchEvent(new CustomEvent(`rac:${kind}-tour-ready`, {
+      detail: {kind, targets: {[`rac-${kind}`]: {left: 120, top: 180, width: 44, height: 44}}},
+    })));
+    show();
+    const dialog = await screen.findByRole('dialog', {name: title});
+    expect(dialog).toHaveAccessibleDescription(description);
+    await user.click(within(dialog).getByRole('button', {name: 'OK'}));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(localStorage.getItem(`guided-tour:rac-${kind}:completed`)).toBe('true');
+    show();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('encaixa Pilotis antes de Materiais e Redefinir antes de Voltar, retomando o tour geral', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
+    render(<TestGuidedTourHost/>);
+    appendTarget('rac-house-field-analysis', rect(120, 180, 44, 44));
+    appendTarget('rac-house-reset', rect(420, 180, 44, 44));
+    act(() => document.dispatchEvent(new CustomEvent('rac:house-actions-tour-ready', {
+      detail: {kind: 'house-actions', targets: Object.fromEntries([
+        'rac-house-canvas-preview', 'rac-house-status', 'rac-house-difficulty', 'rac-house-extra-materials',
+        'rac-house-export-pdf', 'rac-house-built', 'rac-house-archive', 'rac-house-back',
+      ].map(id => [id, {left: 120, top: 180, width: 44, height: 44}]))},
+    })));
+    for (const title of ['Prévia do Canvas', 'Status da Casa', 'Dificuldade', 'Análise de Campo', 'Materiais Extras', 'Exportar RAC PDF', 'Casa Construída', 'Arquivar Casa', 'Redefinir Casa', 'Voltar para Construções']) {
+      const dialog = await screen.findByRole('dialog', {name: title});
+      await user.click(within(dialog).getByRole('button', {name: 'OK'}));
+    }
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    for (const id of ['rac-house-actions', 'rac-house-field-analysis', 'rac-house-reset']) {
+      expect(localStorage.getItem(`guided-tour:${id}:completed`)).toBe('true');
+    }
   });
 
   it('starts the house actions tour from the ready event', async () => {
@@ -426,12 +470,12 @@ describe('GuidedTourHost', () => {
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     const exportDialog = await screen.findByRole('dialog', {name: 'Exportar RAC PDF'});
-    expect(exportDialog).toHaveAccessibleDescription(/exporte a RAC PDF da casa/i);
+    expect(exportDialog).toHaveAccessibleDescription(/Gere a RAC desta casa em PDF/i);
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     const builtDialog = await screen.findByRole('dialog', {name: 'Casa Construída'});
     expect(builtDialog).toBeVisible();
-    expect(builtDialog).toHaveAccessibleDescription(/edição da casa e do canvas fica bloqueada/i);
+    expect(builtDialog).toHaveAccessibleDescription(/bloquear a edição da casa e do Canvas/i);
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     expect(await screen.findByRole('dialog', {name: 'Arquivar Casa'})).toBeVisible();
@@ -484,9 +528,9 @@ describe('GuidedTourHost', () => {
 
     appendTarget('rac-piloti-nivel-mode-toggle', rect(120, 120, 36, 36));
 
-    const dialog = await screen.findByRole('dialog', {name: 'Dica do editor RAC'});
+    const dialog = await screen.findByRole('dialog', {name: 'Altura automática ou manual'});
     expect(dialog).toBeVisible();
-    expect(dialog).toHaveAccessibleDescription(/alternar entre modo automático e manual/i);
+    expect(dialog).toHaveAccessibleDescription(/calcula as alturas a partir dos níveis/i);
     expect(screen.queryByTestId('guided-tour-progress-dot')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', {name: 'OK'}));

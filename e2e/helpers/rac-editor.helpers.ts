@@ -88,6 +88,8 @@ export async function applyRacEditorInitScript(page: Page, settingsOverrides: Pa
       storage.setItem('guided-tour:rac-house-add:completed:revision', 'house-add-v1');
       storage.setItem('guided-tour:rac-house-actions:completed', 'true');
       storage.setItem('guided-tour:rac-house-actions:completed:revision', 'house-actions-v3');
+      storage.setItem('guided-tour:rac-house-field-analysis:completed', 'true');
+      storage.setItem('guided-tour:rac-house-reset:completed', 'true');
       storage.setItem('guided-tour:rac-tip:wall', 'true');
       storage.setItem('guided-tour:rac-tip:line', 'true');
       storage.setItem('guided-tour:rac-tip:arrow', 'true');

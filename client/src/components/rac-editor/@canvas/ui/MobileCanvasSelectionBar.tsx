@@ -24,7 +24,7 @@ export function MobileCanvasSelectionBar({count, resizing, canResize, canEdit, o
   >
     <p role='status' className='min-w-0 text-xs font-semibold leading-snug'>
       {resizing ? 'Arraste os pontos destacados para escalar.'
-        : count === 1 ? 'Item selecionado. Arraste pra movê-lo.' : 'Itens selecionados. Arraste pra movê-los.'}
+        : count === 1 ? 'Item selecionado. Arraste para movê-lo.' : 'Itens selecionados. Arraste para movê-los.'}
     </p>
     <div className='flex shrink-0 items-center gap-2'>
       {count === 1 ? <button type='button' disabled={!canEdit} onClick={onEdit}

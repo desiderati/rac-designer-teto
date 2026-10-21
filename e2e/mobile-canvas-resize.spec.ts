@@ -61,7 +61,7 @@ for (const mode of ['Seleção', 'Panning'] as const) {
     await touch('touchStart', [first]);
     if (mode === 'Panning') await expect.poll(async () => (await getActiveCanvasObjectSummaryByDebug(page))?.myType).toBe('square');
     await touch('touchEnd', []);
-    await expect(page.getByText('Item selecionado. Arraste pra movê-lo.')).toBeVisible();
+    await expect(page.getByText('Item selecionado. Arraste para movê-lo.')).toBeVisible();
     await expect(page.getByRole('button', {name: 'Editar', exact: true})).toBeEnabled();
     for (const name of ['Editar', 'Escalar']) {
       const box = (await page.getByRole('button', {name, exact: true}).boundingBox())!;
@@ -89,7 +89,7 @@ for (const mode of ['Seleção', 'Panning'] as const) {
     await screenshot(`${mode}-redimensionado`);
     await page.getByRole('button', {name: 'Mover', exact: true}).click();
     await expect(page.getByRole('button', {name: 'Escalar', exact: true})).toHaveAttribute('aria-pressed', 'false');
-    await expect(page.getByText('Item selecionado. Arraste pra movê-lo.')).toBeVisible();
+    await expect(page.getByText('Item selecionado. Arraste para movê-lo.')).toBeVisible();
     await cdp.detach();
   });
 }
@@ -100,7 +100,7 @@ test('seleção múltipla redimensiona os dois itens e mantém barra dentro do v
   await touch('touchStart', [{x: first.x - 60 * zoom, y: first.y - 60 * zoom, id: 1}]);
   await touch('touchMove', [{x: second.x + 60 * zoom, y: second.y + 60 * zoom, id: 1}]);
   await touch('touchEnd', []);
-  await expect(page.getByText('Itens selecionados. Arraste pra movê-los.')).toBeVisible();
+  await expect(page.getByText('Itens selecionados. Arraste para movê-los.')).toBeVisible();
   await expect(page.getByRole('button', {name: 'Editar', exact: true})).toHaveCount(0);
   await screenshot('multiplos-mover');
   await page.getByRole('button', {name: 'Escalar', exact: true}).click();
@@ -140,7 +140,7 @@ test('planta real da fábrica escala pelos cantos sem abrir editor automaticamen
   await expect.poll(async () => (await getCanvasPosition(page))!.x).toBeCloseTo(x);
   await expect.poll(async () => (await getCanvasPosition(page))!.y).toBeCloseTo(y);
   await expect.poll(async () => selectCanvasObjectByMyTypeByDebug(page, 'house', false, true)).toBe(true);
-  await expect(page.getByText('Item selecionado. Arraste pra movê-lo.')).toBeVisible();
+  await expect(page.getByText('Item selecionado. Arraste para movê-lo.')).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   mkdirSync(evidence, {recursive: true});
   await expect(page.getByText('Vista Planta adicionada!', {exact: true})).toBeHidden();

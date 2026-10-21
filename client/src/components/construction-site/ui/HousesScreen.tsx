@@ -101,6 +101,9 @@ export function HousesScreen({
   const lastIndex = Math.min(firstIndex + HOUSES_PER_PAGE, filteredHouses.length);
   const pageHouses = filteredHouses.slice(firstIndex, lastIndex);
   const guidedTourHouseId = pageHouses.find((house) => house.status !== 'archived')?.id ?? null;
+  const preparationTourHouseId = !readOnly
+    ? pageHouses.find((house) => !getHouseFieldAnalysisDisabledReason(constructionSite, house))?.id
+    : undefined;
 
   useEffect(() => {
     setPage(1);
@@ -212,6 +215,7 @@ export function HousesScreen({
             house={house}
             active={activeHouse?.id === house.id}
             showGuidedTourTargets={house.id === guidedTourHouseId}
+            showPreparationGuidedTourTargets={house.id === preparationTourHouseId}
             onOpenHouse={onEditHouse}
             onOpenHouseCanvas={onOpenHouseCanvas}
             onOpenHouseFieldAnalysis={onOpenHouseFieldAnalysis}
@@ -250,6 +254,7 @@ export function HouseMobileCard({
   house,
   active,
   showGuidedTourTargets = false,
+  showPreparationGuidedTourTargets = false,
   onOpenHouse,
   onOpenHouseCanvas,
   onOpenHouseFieldAnalysis,
@@ -264,6 +269,7 @@ export function HouseMobileCard({
   house: PersistedHouseRecord;
   active: boolean;
   showGuidedTourTargets?: boolean;
+  showPreparationGuidedTourTargets?: boolean;
   onOpenHouse(houseId: string): Promise<void>;
   onOpenHouseCanvas?(houseId: string): Promise<void>;
   onOpenHouseFieldAnalysis?(houseId: string): Promise<void>;
@@ -395,6 +401,7 @@ export function HouseMobileCard({
       <HouseCardActions>
         {onOpenHouseFieldAnalysis ? (
           <RoundIconActionButton label={`Pilotis da casa ${familyName}`}
+            guidedTourId={showPreparationGuidedTourTargets && !fieldAnalysisDisabledReason ? 'rac-house-field-analysis' : undefined}
             disabled={Boolean(fieldAnalysisDisabledReason)} disabledReason={fieldAnalysisDisabledReason ?? undefined}
             onClick={() => void onOpenHouseFieldAnalysis(house.id)}>
             <HousePilotisMinimap/>
@@ -441,6 +448,7 @@ export function HouseMobileCard({
         </StatusActionButton>
         {house.status !== 'archived' && onResetHouse ? (
           <RoundIconActionButton label={`Redefinir casa ${familyName}`}
+            guidedTourId={showPreparationGuidedTourTargets && !fieldAnalysisDisabledReason ? 'rac-house-reset' : undefined}
             disabled={Boolean(fieldAnalysisDisabledReason)} disabledReason={fieldAnalysisDisabledReason ?? undefined}
             onClick={(event) => {event.stopPropagation(); setResetOpen(true);}}>
             <House className='h-4 w-4'/>

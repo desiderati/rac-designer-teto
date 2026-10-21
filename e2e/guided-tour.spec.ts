@@ -18,6 +18,80 @@ test.describe('RAC guided tour', () => {
     expectNoConsoleErrors(page);
   });
 
+  test.describe('Tours das ações mobile da casa', () => {
+    test.use({hasTouch: true});
+    test('segue a ordem dos botões no primeiro tour completo mobile', async ({page}) => {
+      await page.evaluate(() => {
+        for (const key of Object.keys(localStorage)) {
+          if (['guided-tour:rac-house-actions:', 'guided-tour:rac-house-field-analysis:', 'guided-tour:rac-house-reset:'].some(prefix => key.startsWith(prefix))) localStorage.removeItem(key);
+        }
+      });
+      await page.getByRole('button', {name: 'Abrir menu principal'}).click();
+      await page.getByRole('button', {name: 'Construções TETO', exact: true}).click();
+      await page.setViewportSize({width: 736, height: 375});
+      await page.getByRole('row', {name: /CC2603.*Andamento/i}).click();
+      for (const title of ['Prévia do Canvas', 'Status da Casa', 'Dificuldade', 'Análise de Campo', 'Materiais Extras', 'Exportar RAC PDF', 'Casa Construída', 'Arquivar Casa', 'Redefinir Casa', 'Voltar para Construções']) {
+        const dialog = page.getByRole('dialog', {name: title, exact: true});
+        await expect(dialog).toBeVisible();
+        if (title === 'Análise de Campo' || title === 'Redefinir Casa') {
+          await page.screenshot({path: `.agents/work-items/2026-10/20261021-textos-tours-dicas.work-item.assets/ordem-${title === 'Análise de Campo' ? 'pilotis' : 'redefinir'}-736x375.png`});
+        }
+        await dialog.getByRole('button', {name: 'OK', exact: true}).tap();
+      }
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+      await expect(page.getByRole('region', {name: 'Listagem de casas', exact: true})).toBeVisible();
+      for (const key of ['rac-house-actions', 'rac-house-field-analysis', 'rac-house-reset']) {
+        await expect.poll(() => page.evaluate(key => localStorage.getItem(`guided-tour:${key}:completed`), key)).toBe('true');
+      }
+    });
+    for (const viewport of [{width: 736, height: 375}, {width: 390, height: 844}]) {
+      test(`orienta Pilotis e Redefinir em ${viewport.width}×${viewport.height} sem executar as ações`, async ({page}) => {
+        await page.evaluate(() => {
+          localStorage.removeItem('guided-tour:rac-house-field-analysis:completed');
+          localStorage.removeItem('guided-tour:rac-house-reset:completed');
+        });
+        await page.getByRole('button', {name: 'Abrir menu principal'}).click();
+        await page.getByRole('button', {name: 'Construções TETO', exact: true}).click();
+        await page.getByRole('row', {name: /CC2603.*Andamento/i}).click();
+        await expect(page.getByRole('region', {name: 'Listagem de casas', exact: true})).toBeVisible();
+        await page.setViewportSize(viewport);
+
+        for (const [id, title] of [['rac-house-field-analysis', 'Análise de Campo'], ['rac-house-reset', 'Redefinir Casa']]) {
+          const dialog = page.getByRole('dialog', {name: title, exact: true});
+          await expect(dialog).toBeVisible();
+          const target = page.locator(`[data-guided-tour-id="${id}"]`);
+          await expect(target).toBeEnabled();
+          await expect.poll(async () => {
+            const bounds = (await target.boundingBox())!;
+            return bounds.y >= 8 && bounds.y + bounds.height <= viewport.height - 8;
+          }).toBe(true);
+          const balloon = (await dialog.boundingBox())!;
+          expect(balloon.x).toBeGreaterThanOrEqual(0);
+          expect(balloon.y).toBeGreaterThanOrEqual(0);
+          expect(balloon.x + balloon.width).toBeLessThanOrEqual(viewport.width);
+          expect(balloon.y + balloon.height).toBeLessThanOrEqual(viewport.height);
+          const targetBounds = (await target.boundingBox())!;
+          const overlapsTarget = balloon.x < targetBounds.x + targetBounds.width
+            && balloon.x + balloon.width > targetBounds.x
+            && balloon.y < targetBounds.y + targetBounds.height
+            && balloon.y + balloon.height > targetBounds.y;
+          expect(overlapsTarget).toBe(false);
+          await page.screenshot({path: `.agents/work-items/2026-10/20261021-textos-tours-dicas.work-item.assets/${id}-${viewport.width}x${viewport.height}.png`});
+          await dialog.getByRole('button', {name: 'OK', exact: true}).tap();
+          await expect.poll(() => page.evaluate(key => localStorage.getItem(key), `guided-tour:${id}:completed`)).toBe('true');
+        }
+        await expect(page.getByRole('dialog')).toHaveCount(0);
+        await expect(page.getByRole('alertdialog')).toHaveCount(0);
+        await expect(page.getByRole('region', {name: 'Listagem de casas', exact: true})).toBeVisible();
+        await page.setViewportSize({width: 1280, height: 800});
+        await page.getByRole('button', {name: 'Voltar', exact: true}).click();
+        await page.getByRole('row', {name: /CC2603.*Andamento/i}).click();
+        await page.setViewportSize(viewport);
+        await expect(page.getByRole('dialog')).toHaveCount(0);
+      });
+    }
+  });
+
   test('guided-tour: mostra planta na inserção da casa e elevação na primeira vista elevada', async ({page}) => {
     await page.evaluate(() => {
       localStorage.removeItem('guided-tour:rac-house-top-view:completed');
@@ -35,9 +109,9 @@ test.describe('RAC guided tour', () => {
 
     await topViewDialog.getByRole('button', {name: 'OK'}).click();
 
-    const pilotiDialog = page.getByRole('dialog').filter({hasText: 'Na planta superior'});
+    const pilotiDialog = page.getByRole('dialog').filter({hasText: 'Ajuste nível, tamanho e contraventamento'});
     await expect(pilotiDialog).toBeVisible();
-    await expect(pilotiDialog).toContainText('Na planta superior');
+    await expect(pilotiDialog).toContainText('Ajuste nível, tamanho e contraventamento');
     await expect(pilotiDialog).not.toContainText('Editar Piloti');
     const pilotiHighlight = await page.getByTestId('guided-tour-highlight').boundingBox();
     expect(pilotiHighlight).not.toBeNull();

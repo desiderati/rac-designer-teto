@@ -1,12 +1,14 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {
   isGuidedTourCompleted,
   isGuidedTourTipShown,
+  isGuidedTourSeen,
   markGuidedTourCompleted,
   markGuidedTourTipShown,
+  markGuidedTourSeen,
   resetGuidedTourProgress,
 } from '@/components/guided-tour/store/guided-tour-storage.ts';
-import {getVisibleTargetRect} from '@/components/guided-tour/lib/guided-tour-targets.ts';
+import {getRenderedGuidedTourTarget, getVisibleTargetRect} from '@/components/guided-tour/lib/guided-tour-targets.ts';
 import type {
   GuidedTourActiveItem,
   GuidedTourDefinition,
@@ -80,6 +82,7 @@ export function useGuidedTourRuntime(registry: GuidedTourRegistry) {
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [dynamicTargetRects, setDynamicTargetRects] = useState<Record<string, DOMRect>>({});
   const [observerVersion, setObserverVersion] = useState(0);
+  const resumeItemRef = useRef<GuidedTourActiveItem | null>(null);
 
   const tourById = useMemo(
     () => new Map(registry.tours.map((tour) => [tour.id, tour])),
@@ -97,6 +100,7 @@ export function useGuidedTourRuntime(registry: GuidedTourRegistry) {
 
     const firstStep = findStep(tour, tour.initialStepId);
     if (firstStep) {
+      resumeItemRef.current = null;
       setActiveItem({kind: 'flow', tourId: tour.id, step: firstStep});
     }
   }, [registry.tips, tourById]);
@@ -159,6 +163,7 @@ export function useGuidedTourRuntime(registry: GuidedTourRegistry) {
         if (!firstStep) return;
 
         setDynamicTargetRects(toDOMRectMap(event.detail.targets));
+        resumeItemRef.current = null;
         setActiveItem({kind: 'flow', tourId: tour.id, step: firstStep});
         return;
       }
@@ -216,7 +221,7 @@ export function useGuidedTourRuntime(registry: GuidedTourRegistry) {
     setActiveItem({kind: 'tip', step: passiveTip, targetRect: passiveTargetRect});
   }, [activeItem, observerVersion, registry.tips]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!activeItem) {
       setTargetRect(null);
       return;
@@ -227,8 +232,16 @@ export function useGuidedTourRuntime(registry: GuidedTourRegistry) {
       return;
     }
 
-    const dynamicTargetRect = activeItem.step.targetId ? dynamicTargetRects[activeItem.step.targetId] : null;
-    setTargetRect(dynamicTargetRect ?? (activeItem.step.targetId ? getVisibleTargetRect(activeItem.step.targetId) ?? null : null));
+    const target = getRenderedGuidedTourTarget(activeItem.step.targetId);
+    if (target) {
+      const rect = target.getBoundingClientRect();
+      if (rect.top < 8 || rect.bottom > window.innerHeight - 8) {
+        target.scrollIntoView?.({block: 'center', inline: 'nearest', behavior: 'instant'});
+      }
+      setTargetRect(target.getBoundingClientRect());
+      return;
+    }
+    setTargetRect(dynamicTargetRects[activeItem.step.targetId] ?? null);
   }, [activeItem, dynamicTargetRects, observerVersion]);
 
   const confirmCurrent = useCallback(() => {
@@ -244,7 +257,8 @@ export function useGuidedTourRuntime(registry: GuidedTourRegistry) {
     const step = activeItem.step as GuidedTourStep;
     if (!tour || !step.next) {
       if (tour) markGuidedTourCompleted(tour);
-      setActiveItem(null);
+      setActiveItem(resumeItemRef.current);
+      resumeItemRef.current = null;
       return;
     }
 
@@ -255,8 +269,21 @@ export function useGuidedTourRuntime(registry: GuidedTourRegistry) {
       return;
     }
 
+    const precedingTour = registry.tours.find(candidate => {
+      if (candidate.beforeStepId !== nextStep.id || isGuidedTourSeen(candidate)) return false;
+      const first = findStep(candidate, candidate.initialStepId);
+      const target = first ? getRenderedGuidedTourTarget(first.targetId) : null;
+      return target && !target.matches(':disabled, [aria-disabled="true"]');
+    });
+    const precedingStep = precedingTour ? findStep(precedingTour, precedingTour.initialStepId) : null;
+    if (precedingStep && precedingTour) {
+      resumeItemRef.current = {kind: 'flow', tourId: tour.id, step: nextStep};
+      markGuidedTourSeen(precedingTour);
+      setActiveItem({kind: 'flow', tourId: precedingTour.id, step: precedingStep});
+      return;
+    }
     setActiveItem({kind: 'flow', tourId: tour.id, step: nextStep});
-  }, [activeItem, tourById]);
+  }, [activeItem, registry.tours, tourById]);
 
   return {
     activeItem,

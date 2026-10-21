@@ -156,8 +156,8 @@ export function useCanvasTools({
 
     setInfoMessage(
       nextDrawingState ?
-        '<b>Modo Desenho:</b> Risque na tela livremente.' :
-        '<b>Dica:</b> Modo desenho desativado.'
+        '<b>Lápis:</b> Arraste na tela para desenhar à mão livre.' :
+        'Lápis desativado. Selecione um objeto ou outra ferramenta.'
     );
   }, [canvasRef, closeAllMenus, isDrawing, setInfoMessage, setIsDrawing]);
 

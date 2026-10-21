@@ -835,6 +835,42 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Fechar prévia do PDF'}));
   });
 
+  it('apresenta os tours mobile de Pilotis e Redefinir em sequência, sem executar as ações', async () => {
+    vi.stubGlobal('innerWidth', 736);
+    markGuidedTourSegmentCompleted('guided-tour:rac-house-add:completed', 'house-add-v1');
+    markGuidedTourSegmentCompleted('guided-tour:rac-house-actions:completed', 'house-actions-v3');
+    const analysis = listenGuidedTourEvent('rac:house-field-analysis-tour-ready');
+    const reset = listenGuidedTourEvent('rac:house-reset-tour-ready');
+    const actions = {...createActions(), resetHouseDefinition: vi.fn().mockResolvedValue(undefined)};
+    renderPanel({initialScreen: 'houses', actions});
+    stubGuidedTourTargetRects();
+    for (const id of ['rac-house-field-analysis', 'rac-house-reset']) {
+      const target = document.querySelector<HTMLElement>(`[data-guided-tour-id="${id}"]`)!;
+      Object.defineProperty(target, 'getBoundingClientRect', {configurable: true, value: () => new DOMRect(80, 200, 44, 44)});
+    }
+    await waitFor(() => expect(analysis.listener).toHaveBeenCalledTimes(1));
+    expect(getGuidedTourEventTargetIds(analysis.listener)).toEqual(['rac-house-field-analysis']);
+    expect(reset.listener).not.toHaveBeenCalled();
+    await act(async () => {
+      localStorage.setItem('guided-tour:rac-house-field-analysis:completed', 'true');
+      document.dispatchEvent(new CustomEvent('guided-tour:completed', {detail: {persistKey: 'guided-tour:rac-house-field-analysis:completed'}}));
+    });
+    await waitFor(() => expect(reset.listener).toHaveBeenCalledTimes(1));
+    expect(getGuidedTourEventTargetIds(reset.listener)).toEqual(['rac-house-reset']);
+    expect(actions.openHouseFieldAnalysis).not.toHaveBeenCalled();
+    expect(actions.resetHouseDefinition).not.toHaveBeenCalled();
+    analysis.cleanup();
+    reset.cleanup();
+  });
+
+  it.each(['built', 'archived'] as const)('não associa tours de preparação à casa %s', status => {
+    const constructionSite = createConstructionSite();
+    constructionSite.houses = [{...constructionSite.houses[0], status}];
+    renderPanel({constructionSite, initialScreen: 'houses'});
+    expect(document.querySelector('[data-guided-tour-id="rac-house-field-analysis"]')).toBeNull();
+    expect(document.querySelector('[data-guided-tour-id="rac-house-reset"]')).toBeNull();
+  });
+
   it('dispara apenas o tour de adicionar casa quando a construção ainda não tem casas', async () => {
     const user = userEvent.setup();
     const constructionSite = createConstructionSite();

@@ -91,7 +91,7 @@ describe('PilotiEditor.tsx', () => {
       pilotiIds={['piloti_0_0', 'piloti_1_0']} selectedPilotiHeights={[1, 1.5, 2]}
       destinationPilotiIds={['piloti_1_0']} onCancelDestination={onCancelDestination}
       onHeightChange={vi.fn()}/>, {wrapper: Wrapper});
-    const message = 'Selecione piloti de destino a contraventar.';
+    const message = 'Selecione o piloti onde o contraventamento termina.';
     expect(screen.queryByText(message)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Cancelar seleção'})).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', {name: 'Contraventar'}));

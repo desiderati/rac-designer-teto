@@ -9,6 +9,20 @@ function getGuidedTourTargetCandidates(escapedTargetId: string): HTMLElement[] {
   ));
 }
 
+/** Encontra o alvo no layout, inclusive quando ele exige rolagem para aparecer. */
+export function getRenderedGuidedTourTarget(targetId: string): HTMLElement | null {
+  const escaped = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(targetId) : targetId;
+  const candidates = getGuidedTourTargetCandidates(escaped);
+  const fallback = document.getElementById(targetId);
+  if (fallback) candidates.push(fallback);
+  return candidates.find(element => {
+    const rect = element.getBoundingClientRect();
+    const style = window.getComputedStyle(element);
+    return rect.width > 0 && rect.height > 0
+      && style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+  }) ?? null;
+}
+
 export function isElementVisible(element: HTMLElement): boolean {
   const rect = element.getBoundingClientRect();
   const style = window.getComputedStyle(element);

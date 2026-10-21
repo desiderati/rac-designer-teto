@@ -11,6 +11,7 @@ import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {toast} from '@/components/ui/sonner.tsx';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
+import {DEFAULT_CANVAS_HINT} from '@/components/rac-editor/@canvas/lib/hints.ts';
 
 interface UseCanvasActionsArgs {
   canvasRef: React.RefObject<(
@@ -56,7 +57,7 @@ export function useCanvasActions({
   const disableDrawingMode = useCallback(() => {
     if (isDrawing && canvasRef.current?.setDrawingModeEnabled(false)) {
       setIsDrawing(false);
-      setInfoMessage('Dica: Selecione uma ferramenta.');
+      setInfoMessage(DEFAULT_CANVAS_HINT);
     }
   }, [canvasRef, isDrawing, setInfoMessage, setIsDrawing]);
 

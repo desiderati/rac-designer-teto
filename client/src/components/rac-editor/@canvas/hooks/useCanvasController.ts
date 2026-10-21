@@ -150,7 +150,7 @@ export function useCanvasController({
 
   const handleFreeDrawPathCreated = useCallback(() => {
     setIsDrawing(false);
-    setInfoMessage('<b>Dica:</b> Modo Lápis desativado após concluir o desenho à mão livre.');
+    setInfoMessage('Traço concluído. O Lápis foi desativado; selecione-o novamente para continuar desenhando.');
   }, [setInfoMessage, setIsDrawing]);
 
   const {
