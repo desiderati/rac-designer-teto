@@ -117,12 +117,12 @@ que indica a ação de voltar quando houver um nível pai. Não duplicar esses n
 ### Seleção de itens no mobile horizontal
 
 A barra inferior acompanha a seleção. Por padrão, o arrasto move somente os itens selecionados.
-Um item mostra `Item selecionado. Arraste pra movê-lo.`, `Editar` e `Escalar`.
+Um item mostra `Item selecionado. Arraste para movê-lo.`, `Editar` e `Escalar`.
 Editar e o botão que alterna entre Escalar e Mover têm 80 × 44 px em todos os estados.
 `Editar` fica habilitado para um objeto com editor associado: planta/pilotis, terreno da elevação,
 muro e formas geométricas, linha/seta/distância, texto, desenho livre, cerca, entrada de terreno,
 casa desenhada e construção desenhada. Componentes sem editor mantêm a ação desabilitada.
-Vários mostram `Itens selecionados. Arraste pra movê-los.` e `Escalar`, sem edição múltipla.
+Vários mostram `Itens selecionados. Arraste para movê-los.` e `Escalar`, sem edição múltipla.
 Ao lado das ações, Excluir seleção aparece somente como ícone de lixeira vermelho, com alvo de toque
 de 44 × 44 px e nome acessível. A ação usa o comando de exclusão existente para um ou vários itens;
 sem seleção, a barra desaparece, e casas construídas continuam sem ações de modificação.
@@ -190,6 +190,29 @@ entrada de terreno, casa desenhada, construção desenhada e as três formas tê
 As orientações da entrada e da construção compartilham o tipo lógico entre suas variantes, evitando
 repetição por direção. Os tours existentes de planta, elevação, texto, desenho livre e elementos
 lineares descrevem também o acesso explícito Editar no mobile, sem reiniciar progresso já salvo.
+
+### Linguagem dos tours e dicas
+
+Usar frases curtas que expliquem a ação e seu resultado. No Canvas mobile horizontal, orientar pelo
+botão `Editar` ou `Transformar`; reservar clique duplo e botão direito às instruções de computador.
+As dicas de planta descrevem pilotis; as de elevação, terreno e cama de rachão. A distância é uma
+anotação digitada, sem cálculo automático pelo comprimento da linha. Distinguir a Casa TETO dos
+objetos de casa e construção do entorno. O texto deve acompanhar os nomes atuais de ações e status.
+
+Na lista mobile de casas, `Pilotis` recebe o tour `Análise de Campo`, e `Redefinir` recebe o tour
+`Redefinir Casa`. Cada tour tem progresso próprio e aparece uma vez, inclusive para quem já concluiu
+o tour geral da lista. Só associar alvos a ações disponíveis em uma casa editável; construções
+concluídas ou arquivadas e casas construídas ou arquivadas não recebem esses alvos.
+Trazer o botão inteiro para a área visível antes de apresentar o balão. Concluir um tour antes de
+mostrar o próximo, inclusive durante redimensionamento ou atualização da lista. O botão `OK`
+conclui a orientação e não executa a ação destacada.
+
+Na primeira execução completa, seguir a sequência visual: Prévia, Status, Dificuldade, Pilotis,
+Materiais, Exportar RAC, Construída, Arquivar, Redefinir e Voltar. Os tours de Pilotis e Redefinir
+entram antes de Materiais e Voltar, respectivamente, e depois retomam o tour geral. Se o tour geral
+já foi concluído, as orientações novas continuam disponíveis pelo próprio progresso. No desktop
+ou quando uma ação não está disponível, seguir sem essa orientação. Não exigir que todos os
+alvos estejam na viewport ao mesmo tempo: fazer a rolagem ao apresentar cada etapa.
 
 ### Geometria e movimento
 

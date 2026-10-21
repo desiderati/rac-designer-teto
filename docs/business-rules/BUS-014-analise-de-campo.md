@@ -19,9 +19,9 @@ lang: pt-BR
 
 - O acesso explícito ao Canvas conserva os bloqueios de disponibilidade existentes.
 
-- Na lista mobile de casas, Análise de Campo fica disponível para casa editável ainda não inserida.
-  Casa construída ou arquivada e construção concluída ou arquivada exibem o motivo do bloqueio. Uma
-  casa já inserida mantém a ação desabilitada sem texto auxiliar no card.
+- Na lista mobile de casas, o botão `Pilotis` abre a Análise de Campo para uma casa editável,
+  inclusive quando ela já foi definida ou inserida no Canvas. Casa construída ou arquivada e
+  construção concluída ou arquivada exibem o motivo do bloqueio.
 
 ## Status da casa na listagem
 
@@ -57,9 +57,10 @@ definição e a preparação da Análise de Campo para começar uma nova configu
 2. O setup permanece em rascunho até concluir todas as etapas aplicáveis. Cancelar antes disso não
    grava uma preparação parcial. Preferências desativadas usam os defaults do fluxo de inclusão.
 
-3. Depois do setup, a tela mostra a planta ilustrativa e os controles existentes de pilotis abaixo.
-   A planta não permite seleção, arraste, zoom ou edição e não cria vistas no documento real. O
-   cabeçalho mostra somente o nome da família, sem subtítulo ou instruções intermediárias.
+3. Depois do setup, a tela mostra a planta ilustrativa e os controles de pilotis abaixo. Selecionar
+   um piloti na planta ou nos controles abre seus ajustes. A prévia não permite arraste ou zoom e
+   não cria vistas no documento real. O cabeçalho identifica o piloti selecionado; durante o setup,
+   mostra o nome da família.
 
 4. Uma preparação concluída abre diretamente nessa tela. Os ajustes efetivamente confirmados são
    salvos por construção e casa; a casa ativa e o documento de outra casa são preservados.
