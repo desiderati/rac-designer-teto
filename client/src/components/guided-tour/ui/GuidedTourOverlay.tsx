@@ -131,7 +131,7 @@ export function GuidedTourOverlay({activeItem, targetRect, tourProgress, onConfi
   const hasTitle = Boolean(activeItem.step.title);
 
   return (
-    <div className='fixed inset-0 z-[1000]' aria-live='polite'>
+    <div className='fixed inset-0 z-[1000]' aria-live='polite' data-guided-tour-target={activeItem.step.targetId}>
       <div className='absolute inset-0 pointer-events-auto' aria-hidden='true' data-testid='guided-tour-click-blocker'/>
 
       <div

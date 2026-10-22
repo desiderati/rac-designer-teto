@@ -76,6 +76,7 @@ describe('TopBar.tsx', () => {
     renderTopBar();
 
     const syncStatus = screen.getByRole('button', {name: 'Sincronizado'});
+    expect(syncStatus).toHaveAttribute('data-guided-tour-id', 'rac-sync-status');
     expect(syncStatus.querySelector('svg')).not.toHaveClass('animate-spin');
   });
 

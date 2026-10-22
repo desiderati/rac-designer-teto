@@ -79,7 +79,7 @@ describe('GuidedTourHost', () => {
     expect(dialog).toHaveAccessibleDescription(/trocar de casa ou acessar a lista/i);
     expect(dialog).toHaveClass('bg-amber-100', 'border-amber-200');
     expect(screen.getByText('Menu Principal')).toBeVisible();
-    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(7);
+    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(8);
     expect(screen.getByRole('button', {name: 'OK'})).toHaveClass('bg-amber-400', 'text-amber-950');
     expect(screen.getByTestId('guided-tour-click-blocker')).toHaveClass('pointer-events-auto');
     expect(screen.queryByRole('button', {name: /pr[oó]ximo/i})).not.toBeInTheDocument();
@@ -99,6 +99,7 @@ describe('GuidedTourHost', () => {
       <>
         <Target guidedTourId='rac-hamburger' label='hamburger' targetRect={rect(20, 20, 48, 48)}/>
         <Target guidedTourId='rac-user-menu' label='user menu' targetRect={rect(500, 20, 48, 48)}/>
+        <Target guidedTourId='rac-sync-status' label='sync status' targetRect={rect(770, 20, 28, 28)}/>
         <Target guidedTourId='rac-export-pdf' label='export pdf' targetRect={rect(820, 20, 48, 48)}/>
         <Target guidedTourId='rac-view-3d' label='view 3d' targetRect={rect(880, 20, 48, 48)}/>
         <Target guidedTourId='rac-zoom-menu' label='zoom' targetRect={rect(520, 70, 80, 36)}/>
@@ -112,15 +113,19 @@ describe('GuidedTourHost', () => {
       </>,
     );
 
-    for (const title of ['Menu Principal', 'Perfil e Ajuda', 'Exportar PDF', 'Visualização 3D', 'Zoom']) {
+    for (const title of ['Menu Principal', 'Perfil e Ajuda', 'Salvamento e Sincronização', 'Exportar PDF', 'Visualização 3D', 'Zoom']) {
       expect(await screen.findByRole('dialog', {name: title})).toBeVisible();
+      if (title === 'Salvamento e Sincronização') {
+        expect(screen.getByRole('dialog', {name: title})).toHaveAccessibleDescription(/Verde: sincronizado.*pendência ou conflito.*tentar novamente/i);
+        expect(screen.getByRole('dialog', {name: title}).parentElement).toHaveAttribute('data-guided-tour-target', 'rac-sync-status');
+      }
       await user.click(screen.getByRole('button', {name: 'OK'}));
     }
 
     const difficultyDialog = await screen.findByRole('dialog', {name: 'Dificuldade da Casa'});
     expect(difficultyDialog).toBeVisible();
     expect(difficultyDialog).toHaveAccessibleDescription(/Tipo de solo e Obstáculos/i);
-    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(7);
+    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(8);
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
 

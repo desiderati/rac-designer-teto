@@ -19,6 +19,46 @@ test.describe('RAC guided tour', () => {
     expectNoConsoleErrors(page);
   });
 
+  for (const [width, height, hasTouch] of [[1280, 800, false], [736, 375, true]] as const) {
+    test.describe(`Sincronizador em ${width}×${height}`, () => {
+      test.use({hasTouch});
+      test('orienta o indicador sem esconder a barra ou encobrir o alvo', async ({page}, testInfo) => {
+        await page.setViewportSize({width, height});
+        if (hasTouch) await page.getByRole('button', {name: 'Mostrar barra superior'}).tap();
+        await page.getByRole('button', {name: 'Abrir menu da conta'}).click();
+        await page.getByRole('button', {name: 'Abrir Tutorial', exact: true}).click();
+        for (const title of ['Menu Principal', 'Perfil e Ajuda']) {
+          const dialog = page.getByRole('dialog', {name: title, exact: true});
+          await expect(dialog).toBeVisible();
+          await dialog.getByRole('button', {name: 'OK', exact: true})[hasTouch ? 'tap' : 'click']();
+        }
+        const dialog = page.getByRole('dialog', {name: 'Salvamento e Sincronização', exact: true});
+        await expect(dialog).toBeVisible();
+        await expect(dialog).toContainText('Acompanhe o envio ao servidor');
+        if (hasTouch) {
+          // A orientação precisa continuar legível após o prazo de recolhimento da barra.
+          await page.waitForTimeout(5500);
+          await expect(dialog).toBeVisible();
+          await expect(page.locator('[data-guided-tour-id="rac-sync-status"]')).toBeVisible();
+        }
+        const balloon = (await dialog.boundingBox())!;
+        const highlight = (await page.getByTestId('guided-tour-highlight').boundingBox())!;
+        const ok = (await dialog.getByRole('button', {name: 'OK', exact: true}).boundingBox())!;
+        for (const box of [balloon, highlight, ok]) {
+          expect(box.x).toBeGreaterThanOrEqual(0);
+          expect(box.y).toBeGreaterThanOrEqual(0);
+          expect(box.x + box.width).toBeLessThanOrEqual(width);
+          expect(box.y + box.height).toBeLessThanOrEqual(height);
+        }
+        expect(balloon.x < highlight.x + highlight.width && balloon.x + balloon.width > highlight.x
+          && balloon.y < highlight.y + highlight.height && balloon.y + balloon.height > highlight.y).toBe(false);
+        await page.screenshot({path: testInfo.outputPath(`sincronizador-${width}x${height}.png`), animations: 'disabled'});
+        await dialog.getByRole('button', {name: 'OK', exact: true})[hasTouch ? 'tap' : 'click']();
+        await expect(page.getByRole('dialog', {name: 'Exportar PDF', exact: true})).toBeVisible();
+      });
+    });
+  }
+
   test.describe('Tours das ações mobile da casa', () => {
     test.use({hasTouch: true});
     test('segue a ordem dos botões no primeiro tour completo mobile', async ({page}, testInfo) => {

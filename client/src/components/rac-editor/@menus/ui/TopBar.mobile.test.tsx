@@ -121,4 +121,16 @@ describe('Barra superior do Canvas mobile', () => {
     view.unmount();
     expect(vi.getTimerCount()).toBe(0);
   });
+
+  it('mantém a barra aberta enquanto o tour aponta para o sincronizador e recolhe após a orientação', () => {
+    const view = render(<><Fixture/><div data-guided-tour-target='rac-sync-status'/></>);
+    fireEvent.click(screen.getByRole('button', {name: 'Mostrar barra superior'}));
+    act(() => vi.advanceTimersByTime(6000));
+    expect(screen.getByRole('button', {name: 'Abrir menu principal'})).toBeVisible();
+
+    view.rerender(<><Fixture/></>);
+    expect(screen.getByRole('button', {name: 'Abrir menu principal'})).toBeVisible();
+    act(() => vi.advanceTimersByTime(5000));
+    expect(screen.getByRole('button', {name: 'Mostrar barra superior'})).toBeVisible();
+  });
 });

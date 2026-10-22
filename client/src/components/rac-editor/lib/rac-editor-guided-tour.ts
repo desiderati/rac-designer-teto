@@ -1,4 +1,5 @@
 import type {GuidedTourRegistry} from '@/components/guided-tour/ports/types.ts';
+import {isIsolatedLocalMode} from '@/shared/local-runtime.ts';
 
 export const RAC_EDITOR_TOUR_ID = 'rac-editor-intro';
 
@@ -44,8 +45,21 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           alignment: 'right',
           title: 'Perfil e Ajuda',
           text: 'Abra este menu para acessar configurações, dicas e o tutorial. No celular, ele também reúne PDF e visualização 3D.',
-          next: 'rac-export-pdf',
+          next: 'rac-sync-status',
           persistKey: 'guided-tour:rac-editor-intro:user-menu',
+          kind: 'flow',
+        },
+        {
+          id: 'rac-sync-status',
+          targetId: 'rac-sync-status',
+          placement: 'bottom',
+          alignment: 'right',
+          title: 'Salvamento e Sincronização',
+          text: isIsolatedLocalMode
+            ? 'As alterações são salvas neste dispositivo. O ícone mostra o andamento e avisa se houver pendência ou falha. Toque no ícone verde para ver o último salvamento. Se houver falha, toque para tentar novamente.'
+            : 'Acompanhe o envio ao servidor. Verde: sincronizado; girando: enviando; amarelo: pendência ou conflito; vermelho: falha. Toque no ícone verde para ver os detalhes. Se houver falha, toque para tentar novamente.',
+          next: 'rac-export-pdf',
+          persistKey: 'guided-tour:rac-editor-intro:sync-status',
           kind: 'flow',
         },
         {

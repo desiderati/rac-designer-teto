@@ -7,6 +7,7 @@ import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.t
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {useRemoteSync} from '@/contexts/RemoteSyncContext.tsx';
 import {isIsolatedLocalMode} from '@/shared/local-runtime.ts';
+import {queryGuidedTourTarget} from '@/components/guided-tour/lib/guided-tour-targets.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {TOP_BAR_ICONS} from '../lib/menu-config.ts';
 import {FamilyName} from './FamilyName.tsx';
@@ -83,7 +84,16 @@ export function TopBar({
       return;
     }
     if (!mobileTopBarOpen) return;
-    const timeout = window.setTimeout(() => setMobileTopBarOpen(false), MOBILE_TOP_BAR_VISIBLE_MS);
+    const closeWhenNoTourTargetsBar = () => {
+      const tourTargetId = document.querySelector('[data-guided-tour-target]')?.getAttribute('data-guided-tour-target');
+      const tourTarget = tourTargetId ? queryGuidedTourTarget(tourTargetId) : null;
+      if (tourTarget && document.getElementById('canvas-top-bar')?.contains(tourTarget)) {
+        timeout = window.setTimeout(closeWhenNoTourTargetsBar, MOBILE_TOP_BAR_VISIBLE_MS);
+        return;
+      }
+      setMobileTopBarOpen(false);
+    };
+    let timeout = window.setTimeout(closeWhenNoTourTargetsBar, MOBILE_TOP_BAR_VISIBLE_MS);
     return () => window.clearTimeout(timeout);
   }, [canvasMobile, mobileTopBarOpen, showOrientationNotice]);
 
@@ -219,6 +229,7 @@ function RemoteSyncIndicator({
   const syncButton = (
     <button
       type='button'
+      data-guided-tour-id='rac-sync-status'
       aria-label={labelByStatus[status]}
       title={title}
       disabled={!canRetry && !canShowDetails}
