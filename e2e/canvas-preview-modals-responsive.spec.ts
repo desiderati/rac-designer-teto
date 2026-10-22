@@ -1,5 +1,6 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {createHouse, setupRacEditorPage, ensureOverflowMenuOpen, showCanvasTopBar, startConsoleErrorCapture, expectNoConsoleErrors} from './helpers/rac-editor.helpers';
+import {expectBoundsWithinViewport, expectContained} from './helpers/geometry.helpers';
 
 const viewports = [
   {width: 736, height: 375},
@@ -16,25 +17,11 @@ async function dismissNotifications(page: Page) {
   }
 }
 
-async function expectContained(element: Locator, parent: Locator) {
-  const bounds = await element.boundingBox();
-  const container = await parent.boundingBox();
-  expect(bounds).not.toBeNull();
-  expect(container).not.toBeNull();
-  expect(bounds!.x).toBeGreaterThanOrEqual(container!.x - 1);
-  expect(bounds!.y).toBeGreaterThanOrEqual(container!.y - 1);
-  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(container!.x + container!.width + 1);
-  expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(container!.y + container!.height + 1);
-}
-
 async function expectModalWithinViewport(page: Page, modal: Locator) {
   const bounds = await modal.boundingBox();
   const viewport = page.viewportSize()!;
   expect(bounds).not.toBeNull();
-  expect(bounds!.x).toBeGreaterThanOrEqual(0);
-  expect(bounds!.y).toBeGreaterThanOrEqual(0);
-  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width);
-  expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(viewport.height);
+  expectBoundsWithinViewport(bounds!, viewport);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
   expect(overflow).toBe(false);
 }

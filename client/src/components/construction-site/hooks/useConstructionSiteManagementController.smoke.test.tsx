@@ -304,6 +304,7 @@ describe('useConstructionSiteManagementController.ts', () => {
     controllerMocks.buildRacPdfZipExport.mockReset();
     controllerMocks.downloadBlob.mockReset();
     controllerMocks.renderHouseDrawingCanvasImageDataUrl.mockReset();
+    controllerMocks.renderHouse3D.mockReset();
     controllerMocks.JSZip.mockReset();
     controllerMocks.jsPDF.mockReset();
     controllerMocks.toast.success.mockReset();
@@ -645,6 +646,61 @@ describe('useConstructionSiteManagementController.ts', () => {
     ]);
     expect(ports.houseDrawingDocumentPort.importHouseDrawingDocument).toHaveBeenNthCalledWith(1, firstTargetDocument);
     expect(ports.houseDrawingDocumentPort.importHouseDrawingDocument).toHaveBeenNthCalledWith(2, secondTargetDocument);
+  });
+
+  it.each(['house', 'zip'] as const)('exporta %s com captura 3D local quando a porta de ilustração está ausente', async (kind) => {
+    const site = createConstructionSiteSnapshot();
+    makeHousePrintable(site, 'house_draft');
+    const house = site.houses.find(house => house.id === 'house_draft')!;
+    const screenshot = 'data:image/png;base64,local-3d';
+    controllerMocks.renderHouse3D.mockResolvedValue(screenshot);
+    const port = createConstructionSiteManagementPort({getConstructionSiteSnapshots: vi.fn(() => [site])});
+    const ports = createEditorPorts({constructionSiteManagementPort: port});
+    const exporter = kind === 'house' ? controllerMocks.buildRacPdfHouseExport : controllerMocks.buildRacPdfZipExport;
+    const exported = kind === 'house'
+      ? {fileName: 'rac.pdf', blob: new Blob(['pdf']), exportedHouseId: house.id}
+      : {fileName: 'racs.zip', blob: new Blob(['zip']), exportedHouseIds: [house.id], failures: []};
+    exporter.mockImplementation(async args => {
+      expect(await args.renderHouse3DImageDataUrl(house, args.signal)).toBe(screenshot);
+      return exported;
+    });
+    const onPrepared = vi.fn();
+    const {result} = renderHook(() => useConstructionSiteManagementController({}), {wrapper: createWrapper(ports)});
+    await act(async () => {
+      if (kind === 'house') await result.current.actions.exportHouseRacPdf(site.constructionSite.id, house.id, onPrepared);
+      else await result.current.actions.exportConstructionRacsZip(site.constructionSite.id);
+    });
+    expect(controllerMocks.renderHouse3D).toHaveBeenCalledOnce();
+    expect(controllerMocks.toast.error).not.toHaveBeenCalled();
+    if (kind === 'house') expect(onPrepared).toHaveBeenCalledWith(exported, expect.any(AbortSignal));
+    else expect(controllerMocks.downloadBlob).toHaveBeenCalledWith(exported.blob, exported.fileName);
+    expect(port.activateHouse).not.toHaveBeenCalled();
+  });
+
+  it.each(['house', 'zip'] as const)('mantém o erro da ilustração conectada na exportação %s', async (kind) => {
+    const site = createConstructionSiteSnapshot();
+    makeHousePrintable(site, 'house_draft');
+    const house = site.houses.find(house => house.id === 'house_draft')!;
+    controllerMocks.renderHouse3D.mockResolvedValue('data:image/png;base64,scene');
+    const generate = vi.fn().mockResolvedValue(null);
+    const port = createConstructionSiteManagementPort({getConstructionSiteSnapshots: vi.fn(() => [site])});
+    const ports = createEditorPorts({constructionSiteManagementPort: port, houseIllustrationPort: {generateFromDataUrl: generate}});
+    const exporter = kind === 'house' ? controllerMocks.buildRacPdfHouseExport : controllerMocks.buildRacPdfZipExport;
+    exporter.mockImplementation(async args => {
+      await args.renderHouse3DImageDataUrl(house, args.signal);
+    });
+    const onPrepared = vi.fn();
+    const {result} = renderHook(() => useConstructionSiteManagementController({}), {wrapper: createWrapper(ports)});
+    await act(async () => {
+      if (kind === 'house') await result.current.actions.exportHouseRacPdf(site.constructionSite.id, house.id, onPrepared);
+      else await result.current.actions.exportConstructionRacsZip(site.constructionSite.id);
+    });
+    expect(generate).toHaveBeenCalledOnce();
+    expect(controllerMocks.toast.error).toHaveBeenCalledWith(expect.any(Function), expect.any(Object));
+    expect(controllerMocks.toast.error.mock.calls.at(-1)![0]().props.resultMessage).toContain('Não foi possível gerar a ilustração');
+    expect(onPrepared).not.toHaveBeenCalled();
+    expect(controllerMocks.downloadBlob).not.toHaveBeenCalled();
+    expect(port.markHouseRacPrinted).not.toHaveBeenCalled();
   });
 
   it('gera a ilustração de cada casa do ZIP com seu próprio 3D e sua cor', async () => {

@@ -70,6 +70,8 @@ export function useConstructionSiteManagementController({
   const renderPersistedHouseIllustration = useCallback(async (house: PersistedHouseRecord, signal?: AbortSignal) => {
     const screenshot = await waitForPdfExport(renderPersistedHouse3D(house), signal);
     if (!screenshot) return null;
+    // O perfil isolado mantém a captura 3D local, sem serviço de ilustração por IA.
+    if (!houseIllustrationPort) return screenshot;
     const wallColor = house.drawingDocument.viewer3D?.wallColor
       ?? readHouse3DViewerPreferences(getHouse3DViewerPreferencesStorageKey(house.id)).wallColor;
     return preparePdfHouseIllustration(screenshot, wallColor, houseIllustrationPort, signal);

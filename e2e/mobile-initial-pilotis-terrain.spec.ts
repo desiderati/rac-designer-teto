@@ -1,6 +1,7 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {mkdirSync} from 'node:fs';
 import {resolve} from 'node:path';
+import {expectBoundsWithinViewport} from './helpers/geometry.helpers';
 import {
   createHouse, expectNoConsoleErrors, getActiveCanvasObjectSummaryByDebug,
   getHouseSnapshot, selectCanvasObjectByMyTypeByDebug, setupRacEditorPage,
@@ -24,10 +25,7 @@ async function screenshot(page: Page, name: string) {
 async function expectInsideViewport(locator: Locator) {
   await expect(locator).toBeInViewport({ratio: 1});
   const bounds = (await locator.boundingBox())!;
-  expect(bounds.x).toBeGreaterThanOrEqual(0);
-  expect(bounds.y).toBeGreaterThanOrEqual(0);
-  expect(bounds.x + bounds.width).toBeLessThanOrEqual(667);
-  expect(bounds.y + bounds.height).toBeLessThanOrEqual(375);
+  expectBoundsWithinViewport(bounds, {width: 667, height: 375});
 }
 
 test('F1: assistente inicial permite visitar os quatro cantos e inserir em 667x375 com toque', async ({page}) => {

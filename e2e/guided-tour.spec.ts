@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {writeFileSync} from 'node:fs';
+import {boundsOverlap, expectBoundsWithinViewport} from './helpers/geometry.helpers';
 import {
   createHouse,
   expectNoConsoleErrors,
@@ -45,13 +46,9 @@ test.describe('RAC guided tour', () => {
         const highlight = (await page.getByTestId('guided-tour-highlight').boundingBox())!;
         const ok = (await dialog.getByRole('button', {name: 'OK', exact: true}).boundingBox())!;
         for (const box of [balloon, highlight, ok]) {
-          expect(box.x).toBeGreaterThanOrEqual(0);
-          expect(box.y).toBeGreaterThanOrEqual(0);
-          expect(box.x + box.width).toBeLessThanOrEqual(width);
-          expect(box.y + box.height).toBeLessThanOrEqual(height);
+          expectBoundsWithinViewport(box, {width, height});
         }
-        expect(balloon.x < highlight.x + highlight.width && balloon.x + balloon.width > highlight.x
-          && balloon.y < highlight.y + highlight.height && balloon.y + balloon.height > highlight.y).toBe(false);
+        expect(boundsOverlap(balloon, highlight)).toBe(false);
         await page.screenshot({path: testInfo.outputPath(`sincronizador-${width}x${height}.png`), animations: 'disabled'});
         await dialog.getByRole('button', {name: 'OK', exact: true})[hasTouch ? 'tap' : 'click']();
         await expect(page.getByRole('dialog', {name: 'Exportar PDF', exact: true})).toBeVisible();
@@ -84,13 +81,9 @@ test.describe('RAC guided tour', () => {
         const highlight = (await page.getByTestId('guided-tour-highlight').boundingBox())!;
         const ok = (await dialog.getByRole('button', {name: 'OK', exact: true}).boundingBox())!;
         for (const box of [balloon, highlight, ok]) {
-          expect(box.x, `${title}: margem esquerda`).toBeGreaterThanOrEqual(0);
-          expect(box.y, `${title}: margem superior`).toBeGreaterThanOrEqual(0);
-          expect(box.x + box.width, `${title}: margem direita`).toBeLessThanOrEqual(736);
-          expect(box.y + box.height, `${title}: margem inferior`).toBeLessThanOrEqual(375);
+          expectBoundsWithinViewport(box, {width: 736, height: 375}, title);
         }
-        const overlapsHighlight = balloon.x < highlight.x + highlight.width && balloon.x + balloon.width > highlight.x
-          && balloon.y < highlight.y + highlight.height && balloon.y + balloon.height > highlight.y;
+        const overlapsHighlight = boundsOverlap(balloon, highlight);
         expect(overlapsHighlight, `${title}: destaque visível`).toBe(false);
         const screenshot = `${String(layouts.length + 1).padStart(2, '0')}-tour.png`;
         await page.screenshot({path: testInfo.outputPath(screenshot), animations: 'disabled'});
@@ -127,15 +120,9 @@ test.describe('RAC guided tour', () => {
             return bounds.y >= 8 && bounds.y + bounds.height <= viewport.height - 8;
           }).toBe(true);
           const balloon = (await dialog.boundingBox())!;
-          expect(balloon.x).toBeGreaterThanOrEqual(0);
-          expect(balloon.y).toBeGreaterThanOrEqual(0);
-          expect(balloon.x + balloon.width).toBeLessThanOrEqual(viewport.width);
-          expect(balloon.y + balloon.height).toBeLessThanOrEqual(viewport.height);
+          expectBoundsWithinViewport(balloon, viewport);
           const targetBounds = (await target.boundingBox())!;
-          const overlapsTarget = balloon.x < targetBounds.x + targetBounds.width
-            && balloon.x + balloon.width > targetBounds.x
-            && balloon.y < targetBounds.y + targetBounds.height
-            && balloon.y + balloon.height > targetBounds.y;
+          const overlapsTarget = boundsOverlap(balloon, targetBounds);
           expect(overlapsTarget).toBe(false);
           await page.screenshot({path: `.agents/work-items/2026-10/20261021-textos-tours-dicas.work-item.assets/${id}-${viewport.width}x${viewport.height}.png`});
           await dialog.getByRole('button', {name: 'OK', exact: true}).tap();
