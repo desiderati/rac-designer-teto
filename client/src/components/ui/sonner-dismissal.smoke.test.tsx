@@ -2,6 +2,7 @@ import {act, cleanup, fireEvent, render, screen, waitFor, within} from '@testing
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {toast, Toaster} from './sonner.tsx';
 import {toast as nativeToast} from 'sonner';
+import {Dialog, DialogContent, DialogTitle} from './dialog.tsx';
 
 vi.mock('next-themes', () => ({useTheme: () => ({theme: 'dark'})}));
 afterEach(() => {
@@ -11,6 +12,34 @@ afterEach(() => {
 });
 
 describe('fechamento do toast real', () => {
+  it('permite foco e fechamento no toast sem dispensar a modal ou liberar o fundo e preserva o blur do formulário', async () => {
+    const onBlur = vi.fn();
+    render(<>
+      <Toaster/>
+      <button data-testid='background-control'>Controle do Canvas</button>
+      <Dialog open>
+        <DialogContent aria-describedby={undefined}>
+          <DialogTitle>Modal de teste</DialogTitle>
+          <input aria-label='Campo da modal' onBlur={onBlur}/>
+        </DialogContent>
+      </Dialog>
+    </>);
+    act(() => {toast.info('Informação sobre a operação', {duration: Infinity});});
+    const title = await screen.findByText('Informação sobre a operação');
+    const close = within(title.closest('[data-sonner-toast]') as HTMLElement).getByRole('button', {name: 'Close toast'});
+    const field = screen.getByRole('textbox', {name: 'Campo da modal'});
+    act(() => {field.focus(); close.focus();});
+    expect(onBlur).toHaveBeenCalled();
+    expect(close).toHaveFocus();
+    const background = screen.getByTestId('background-control');
+    act(() => {background.focus();});
+    expect(background).not.toHaveFocus();
+    act(() => {close.focus();});
+    fireEvent.click(close);
+    await waitFor(() => expect(screen.queryByText('Informação sobre a operação')).not.toBeInTheDocument());
+    expect(screen.getByRole('dialog', {name: 'Modal de teste'})).toBeVisible();
+  });
+
   it.each([
     {withLoading: true, duration: Infinity},
     {withLoading: false, duration: Infinity},

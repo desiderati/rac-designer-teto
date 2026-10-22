@@ -4,16 +4,18 @@ import type {Canvas} from 'fabric';
 import {useMobileCanvasGestures} from './useMobileCanvasGestures.ts';
 import {useCanvasViewport} from '@/components/rac-editor/@canvas/hooks/useCanvasViewport.ts';
 
-function setup(readOnly = false, canvasToolMode: 'select' | 'pan' = 'pan') {
+function setup(readOnly = false, canvasToolMode: 'select' | 'pan' = 'pan', transforming = false) {
   const container = document.createElement('div');
   const upperCanvasEl = document.createElement('canvas');
   container.append(upperCanvasEl); document.body.append(container);
   container.getBoundingClientRect = () => ({left: 0, top: 0, width: 800, height: 340}) as DOMRect;
   upperCanvasEl.getBoundingClientRect = () => ({width: 1200, height: 800}) as DOMRect;
   const target = {left: 200, top: 200, selectable: true, lockMovementX: readOnly, lockMovementY: readOnly,
+    findControl: vi.fn(() => ({key: 'mtr'})),
     set: vi.fn(function (this: {left: number; top: number}, key: 'left' | 'top', value: number) {this[key] = value;}), setCoords: vi.fn()};
-  let active: typeof target | undefined;
+  let active: typeof target | undefined = transforming ? target : undefined;
   const canvas = {upperCanvasEl, skipTargetFind: true, isDrawingMode: false, findTarget: vi.fn<() => typeof target | undefined>(() => target),
+    getViewportPoint: vi.fn(() => ({x: 400, y: 170})),
     getActiveObject: () => active, setActiveObject: (object: typeof target) => {active = object;},
     discardActiveObject: () => {active = undefined;}, getWidth: () => 1200, getHeight: () => 800,
     requestRenderAll: vi.fn(), fire: vi.fn()};
@@ -26,7 +28,7 @@ function setup(readOnly = false, canvasToolMode: 'select' | 'pan' = 'pan') {
   const hook = renderHook(() => {
     const viewport = useCanvasViewport({});
     const shouldSkipLegacyTouch = useMobileCanvasGestures({...viewport, enabled: true, readOnly, containerRef, fabricCanvasRef,
-      canvasToolMode, onToolModeChange, onObjectMove, onObjectMovingChange: objectMovingChanges, onPanningChange: (panning) => {
+      canvasToolMode, transforming, onToolModeChange, onObjectMove, onObjectMovingChange: objectMovingChanges, onPanningChange: (panning) => {
         viewport.setIsPanning(panning);
         panningChanges(panning);
       }});
@@ -41,6 +43,25 @@ function setup(readOnly = false, canvasToolMode: 'select' | 'pan' = 'pan') {
 afterEach(() => {vi.useRealTimers(); localStorage.clear(); document.body.innerHTML = '';});
 
 describe('gestos mobile com dono único', () => {
+  it('delega a alça de rotação ao Fabric em Panning sem deslocar a viewport', () => {
+    const {send, upperCanvasEl, result, target, canvas} = setup(false, 'pan', true);
+    const received: string[] = [];
+    const listener = (event: Event) => {
+      received.push(event.type);
+      expect(result.current.shouldSkipLegacyTouch(event)).toBe(true);
+    };
+    ['touchstart', 'touchmove', 'touchend'].forEach(type => upperCanvasEl.addEventListener(type, listener));
+    const before = {x: result.current.viewportX, y: result.current.viewportY};
+    send('touchStart', [[400, 170]]);
+    send('touchMove', [[440, 190]]);
+    send('touchEnd', []);
+    expect(target.findControl).toHaveBeenCalled();
+    expect(received).toEqual(['touchstart', 'touchmove', 'touchend']);
+    expect(result.current.isPanning).toBe(false);
+    expect({x: result.current.viewportX, y: result.current.viewportY}).toEqual(before);
+    expect(canvas.findTarget).not.toHaveBeenCalled();
+    expect(target.set).not.toHaveBeenCalled();
+  });
   it.each(['touchEnd', 'touchCancel'] as const)('sinaliza panning apenas após deslocar e encerra em %s', (end) => {
     const {send, result} = setup();
     send('touchStart', [[400, 170]]);

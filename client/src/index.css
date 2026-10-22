@@ -27,6 +27,11 @@
     overflow: hidden;
 }
 
+/* Modais bloqueiam o body; os cartões de notificação continuam interativos. */
+.toaster [data-sonner-toast] {
+    pointer-events: auto;
+}
+
 .toaster [data-sonner-toast][data-type='error'],
 .rac-toast-surface[data-tone='error'] {
     --rac-toast-surface: hsl(var(--error-surface));

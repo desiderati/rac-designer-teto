@@ -613,7 +613,7 @@ export const Canvas =
         } else if (canvasToolMode === 'pan') {
           const panCursor = isPanning ? 'grabbing' : 'grab';
           fabric.selection = false;
-          fabric.skipTargetFind = !(landscape && selection.resizing);
+          fabric.skipTargetFind = !(landscape && selection.transforming);
           fabric.defaultCursor = panCursor;
           fabric.hoverCursor = panCursor;
           fabric.moveCursor = panCursor;
@@ -631,7 +631,7 @@ export const Canvas =
           fabric.wrapperEl.style.cursor = 'default';
         }
         fabric.requestRenderAll();
-      }, [canvasToolMode, isPanning, readOnly, landscape, selection.resizing]);
+      }, [canvasToolMode, isPanning, readOnly, landscape, selection.transforming]);
 
       useCanvasFabricSetup({
         readOnly,
@@ -713,7 +713,7 @@ export const Canvas =
 
       const {isObjectMoving, onObjectMovingChange} = useCanvasObjectMovement({fabricCanvasRef, enabled: mobile && !readOnly, houseId: activeHouseId});
       const shouldSkipLegacyTouch = useMobileCanvasGestures({enabled: landscape && !isContraventamentoMode, houseId: activeHouseId, readOnly, containerRef,
-        fabricCanvasRef, canvasToolMode, resizing: selection.resizing, onToolModeChange, zoom, minimumZoom, viewportX, viewportY,
+        fabricCanvasRef, canvasToolMode, transforming: selection.transforming, onToolModeChange, zoom, minimumZoom, viewportX, viewportY,
         handleViewportChange, handleZoomChange, onPanningChange: setIsPanning, onObjectMovingChange,
         onObjectMove: () => scheduleMinimapUpdate(fabricCanvasRef.current)});
 
@@ -821,9 +821,9 @@ export const Canvas =
             {children}
           </CanvasOverlays>
           {landscape && !readOnly && !isAnyEditorOpen ? <MobileCanvasSelectionBar
-            count={selection.count} resizing={selection.resizing} canResize={selection.canResize}
+            count={selection.count} transforming={selection.transforming} canTransform={selection.canTransform} rotationAngle={selection.rotationAngle}
             canEdit={Boolean(selection.selectedTopView || selection.selectedEditableObject)} onEdit={openSelectedEditor}
-            onToggleResize={selection.toggleResizing} onDelete={onDelete}/> : null}
+            onToggleTransform={selection.toggleTransforming} onDelete={onDelete}/> : null}
           {imageLayerMenu
             ? <div
                 role='menu'

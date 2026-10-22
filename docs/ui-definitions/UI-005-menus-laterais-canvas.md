@@ -51,6 +51,15 @@ recolher. No Canvas mobile em retrato, o aviso de rotação preserva o bloqueio 
 
 ## Identidade e anatomia compartilhadas
 
+A barra superior, seus menus ancorados e o puxador ficam acima dos FABs laterais e abaixo dos
+modais e seus fundos de bloqueio. A camada raiz da barra e do puxador é 49, acima dos FABs mobile
+em 40/45 e abaixo das superfícies modais em 50 ou mais. Abrir Configurações, PDF ou outra janela
+não deve deixar o puxador atravessar o modal nem permitir acioná-lo sobre o fundo de bloqueio.
+
+Configurações usa a confirmação compartilhada limitada à altura dinâmica da viewport menos 16 px,
+nas apresentações Dialog e Drawer. O título e Cancelar/Confirmar permanecem visíveis; somente a
+região de conteúdo rola quando necessário. A rolagem não altera o rascunho nem a semântica de cancelar.
+
 - Superfícies brancas ou translúcidas, borda clara, sombra discreta, ícones em cinza-ardósia e azul
   para foco, seleção e navegação. Exclusão conserva o vermelho de ação destrutiva.
 - Ícones e miniaturas dos comandos mantêm escala visual de 16 × 16 px; uma nova opção não deve
@@ -117,25 +126,31 @@ que indica a ação de voltar quando houver um nível pai. Não duplicar esses n
 ### Seleção de itens no mobile horizontal
 
 A barra inferior acompanha a seleção. Por padrão, o arrasto move somente os itens selecionados.
-Um item mostra `Item selecionado. Arraste para movê-lo.`, `Editar` e `Escalar`.
-Editar e o botão que alterna entre Escalar e Mover têm 80 × 44 px em todos os estados.
+Um item mostra `Item selecionado. Arraste para movê-lo.`, `Editar` e `Transformar`.
+Editar e o botão que alterna entre Transformar e Mover têm 112 × 44 px em todos os estados.
 `Editar` fica habilitado para um objeto com editor associado: planta/pilotis, terreno da elevação,
 muro e formas geométricas, linha/seta/distância, texto, desenho livre, cerca, entrada de terreno,
 casa desenhada e construção desenhada. Componentes sem editor mantêm a ação desabilitada.
-Vários mostram `Itens selecionados. Arraste para movê-los.` e `Escalar`, sem edição múltipla.
+Vários mostram `Itens selecionados. Arraste para movê-los.` e `Transformar`, sem edição múltipla.
 Ao lado das ações, Excluir seleção aparece somente como ícone de lixeira vermelho, com alvo de toque
 de 44 × 44 px e nome acessível. A ação usa o comando de exclusão existente para um ou vários itens;
 sem seleção, a barra desaparece, e casas construídas continuam sem ações de modificação.
 
-`Escalar` revela alças circulares brancas com contorno azul e alvos de toque de 44 px.
-A barra passa a orientar o arrasto dos pontos e oferece `Mover` para retornar. As alças respeitam
-as restrições de cada componente; rotação não integra essa ação. Ao mudar a seleção, volta a mover.
-Na seleção múltipla, um eixo bloqueado em qualquer membro fica bloqueado para o conjunto.
+`Transformar` revela alças circulares brancas com contorno azul e alvos de toque de 44 px.
+As alças existentes escalam; a alça superior com ícone ↻ gira o objeto. A barra orienta o arrasto
+e oferece `Mover` para retornar. Durante a rotação, mostra o ângulo real normalizado entre 0° e 359°,
+arredondado ao grau inteiro, respeitando o snap já existente. O indicador desaparece ao soltar,
+trocar a seleção ou voltar a Mover; a barra mantém a largura durante o gesto.
+As alças respeitam visibilidade, hasControls, bloqueios de escala e lockRotation de cada componente.
+É possível transformar se houver pelo menos uma ação permitida, inclusive somente rotação.
+Ao mudar a seleção, volta a mover. Na seleção múltipla, um eixo ou rotação bloqueados em qualquer
+membro ficam bloqueados para o conjunto, sem alterar as flags dos membros.
 Esse estado é transitório e não altera as flags salvas no desenho. Casas construídas não mostram
 as ações de modificação. Os editores automáticos permanecem bloqueados no mobile horizontal.
 
 A ferramenta Seleção conserva toque e seleção por área. Panning conserva a seleção por toque
-prolongado; arrastar uma alça em Escalar transforma o item sem deslocar a viewport.
+prolongado; arrastar uma alça em Transformar escala ou gira o item sem deslocar a viewport.
+Os handlers nativos conservam persistência e histórico ao concluir a transformação.
 
 ### Edição de pilotis da planta no mobile horizontal
 

@@ -67,6 +67,10 @@ O reconhecimento mobile compartilha a condição do Canvas: largura de até 767 
 toque com altura de até 600 px. Assim, celulares deitados com largura maior também usam o topo
 central, incluindo avisos cujo emissor definiu uma posição de canto.
 
+O cartão e seu X permanecem interativos quando uma modal bloqueia os eventos do restante da tela.
+Interagir com o toast não fecha a modal nem aciona controles atrás dele; o bloqueio do fundo continua
+ativo. O fechamento manual funciona por mouse, toque e teclado.
+
 O tempo padrão permanece o da biblioteca quando o fluxo não define duração. Erros emitidos por
 `toast.error` e pelos estados de erro de `toast.promise`, incluindo falhas de PDF, fecham após 30
 segundos de contagem ativa, independentemente de uma duração solicitada pelo emissor. Com o mouse
@@ -100,6 +104,28 @@ a uma ação nova inventada no toast.
 
 A barra da prévia do PDF mantém seu controle de minimização e restauração, independentemente do
 toast. A notificação não substitui os bloqueios ou as validações da exportação.
+
+A prévia deve caber na altura dinâmica da viewport, com margem mínima de 8px no mobile horizontal.
+Título e fechamento permanecem acessíveis. A página se ajusta à área restante, incluindo zoom abaixo
+de 40% quando necessário; a barra ocupa espaço próprio e mantém navegação, download e restauração
+visíveis. Ao ampliar, a rolagem pertence à superfície do PDF, sem aumentar a modal. No mobile
+horizontal usa Dialog, inclusive em telas largas com toque; no mobile vertical mantém Drawer.
+No mobile horizontal, a prévia ocupa 50% da largura da viewport e permanece centralizada.
+
+O visualizador 3D usa 50% da largura no mobile horizontal, centralizado, e segue o mesmo limite de
+altura da viewport. A cena ocupa o espaço restante do cabeçalho,
+sem altura mínima rígida; os controles podem quebrar linha em telas estreitas. Expandir o
+visualizador preserva a margem de 8px e mantém a cena dentro da modal.
+
+## Dicas do Canvas mobile
+
+Com “Dicas” ativado, selecionar um objeto no Canvas mobile horizontal mostra o hint contextual
+como toast de informação por 5 segundos, com fundo neutro e ícone de informação. O aviso substitui
+o hint fixo nessa viewport, mantém a formatação do texto e usa um único ID para evitar acúmulo.
+Uma nova seleção reapresenta a dica, mesmo que o texto seja igual ao do objeto anterior.
+Limpar a seleção, desativar Dicas, carregar outra casa ou sair do Canvas dispensa o aviso. Na
+orientação vertical, não aparece sobre o aviso para girar o aparelho. No desktop, o hint permanece
+na apresentação fixa existente.
 
 ## Imagem 3D pendente
 

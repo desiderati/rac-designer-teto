@@ -9,7 +9,7 @@ interface MobileCanvasGesturesArgs {
   enabled: boolean;
   houseId?: string | null;
   readOnly: boolean;
-  resizing?: boolean;
+  transforming?: boolean;
   containerRef: RefObject<HTMLDivElement | null>;
   fabricCanvasRef: RefObject<Canvas | null>;
   canvasToolMode: CanvasToolMode;
@@ -109,9 +109,9 @@ export function useMobileCanvasGestures(args: MobileCanvasGesturesArgs) {
       if (!canvas || waitingForRelease) {stop(event); return;}
       start = last = point(event.touches[0]);
       pan = {x: current.viewportX, y: current.viewportY};
-      const resizeControl = current.resizing && !current.readOnly
+      const transformControl = current.transforming && !current.readOnly
         && canvas.getActiveObject()?.findControl(canvas.getViewportPoint(event as TPointerEvent), true);
-      if (current.canvasToolMode === 'select' || resizeControl) {
+      if (current.canvasToolMode === 'select' || transformControl) {
         // Inclui a área vazia: o Fabric usa esse gesto para seleção múltipla
         // por retângulo. Seleção nunca transforma um dedo em pan da viewport.
         nativeCanvas = canvas;

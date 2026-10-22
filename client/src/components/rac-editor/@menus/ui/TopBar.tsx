@@ -99,8 +99,9 @@ export function TopBar({
 
   return (
     <>
-    {canvasMobile && !showOrientationNotice && !mobileTopBarOpen ? <button type='button' aria-label='Mostrar barra superior' aria-controls='canvas-top-bar' aria-expanded={false} onClick={() => setMobileTopBarOpen(true)} className='mobile-top-bar-handle fixed left-1/2 top-0 z-[60] grid h-7 w-64 -translate-x-1/2 place-items-center rounded-b-xl bg-white/80 focus-visible:ring-2 focus-visible:ring-blue-500'><span className='h-3 w-48 rounded-full bg-slate-400/70'/></button> : null}
-    <div id='canvas-top-bar' hidden={showOrientationNotice || (canvasMobile && !mobileTopBarOpen)} data-testid='top-bar-layout' className='fixed left-0 top-4 z-50 h-12 min-w-[360px] w-full'>
+    {/* FABs mobile (40/45) < barra e puxador (49) < modais e seus overlays (50+). */}
+    {canvasMobile && !showOrientationNotice && !mobileTopBarOpen ? <button type='button' aria-label='Mostrar barra superior' aria-controls='canvas-top-bar' aria-expanded={false} onClick={() => setMobileTopBarOpen(true)} className='mobile-top-bar-handle fixed left-1/2 top-0 z-[49] grid h-7 w-64 -translate-x-1/2 place-items-center rounded-b-xl bg-white/80 focus-visible:ring-2 focus-visible:ring-blue-500'><span className='h-3 w-48 rounded-full bg-slate-400/70'/></button> : null}
+    <div id='canvas-top-bar' hidden={showOrientationNotice || (canvasMobile && !mobileTopBarOpen)} data-testid='top-bar-layout' className='fixed left-0 top-4 z-[49] h-12 min-w-[360px] w-full'>
       {!showOrientationNotice && (!canvasMobile || mobileTopBarOpen) ? <>
       {/* Left: Menu + Family */}
       <div className='absolute left-4 top-0 z-50 flex items-center gap-3'>

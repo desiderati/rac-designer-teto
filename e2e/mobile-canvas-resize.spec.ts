@@ -55,6 +55,25 @@ async function fixture(page: Page, enabled: boolean, mode: 'Seleção' | 'Pannin
 }
 
 for (const mode of ['Seleção', 'Panning'] as const) {
+  test(`rotaciona pela alça e mostra o ângulo durante o gesto em ${mode}`, async ({page}) => {
+    const {cdp, touch, center, zoom, drawing, screenshot} = await fixture(page, false, mode);
+    const viewport = await getCanvasPosition(page), first = center(600);
+    await touch('touchStart', [first]);
+    if (mode === 'Panning') await expect.poll(async () => (await getActiveCanvasObjectSummaryByDebug(page))?.myType).toBe('square');
+    await touch('touchEnd', []);
+    await page.getByRole('button', {name: 'Transformar', exact: true}).click();
+    const rotation = {...first, y: first.y - 30.5 * zoom - 8 - 40};
+    await touch('touchStart', [rotation]);
+    await touch('touchMove', [{...first, x: first.x + 30.5 * zoom + 8 + 40}]);
+    await expect(page.getByLabel('Ângulo de rotação')).toHaveText('Rotação: 90°');
+    await screenshot(`${mode}-rotacao-durante-gesto`);
+    await touch('touchEnd', []);
+    await expect(page.getByLabel('Ângulo de rotação')).toHaveCount(0);
+    await expect.poll(async () => (await drawing()).objects[0].geometry!.angle ?? 0).toBeCloseTo(90);
+    expect(await getCanvasPosition(page)).toEqual(viewport);
+    await cdp.detach();
+  });
+
   test(`redimensiona um item em ${mode} sem mover a viewport ou abrir edição`, async ({page}) => {
     const {cdp, touch, center, zoom, drawing, screenshot} = await fixture(page, false, mode);
     const viewport = await getCanvasPosition(page), before = await drawing(), first = center(600);
@@ -63,21 +82,21 @@ for (const mode of ['Seleção', 'Panning'] as const) {
     await touch('touchEnd', []);
     await expect(page.getByText('Item selecionado. Arraste para movê-lo.')).toBeVisible();
     await expect(page.getByRole('button', {name: 'Editar', exact: true})).toBeEnabled();
-    for (const name of ['Editar', 'Escalar']) {
+    for (const name of ['Editar', 'Transformar']) {
       const box = (await page.getByRole('button', {name, exact: true}).boundingBox())!;
-      expect(box.width).toBe(80);
+      expect(box.width).toBe(112);
       expect(box.height).toBe(44);
     }
     await expect(page.getByRole('button', {name: 'Mover', exact: true})).toHaveCount(0);
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await screenshot(`${mode}-mover`);
-    await page.getByRole('button', {name: 'Escalar', exact: true}).click();
-    await expect(page.getByRole('button', {name: 'Escalar', exact: true})).toHaveCount(0);
+    await page.getByRole('button', {name: 'Transformar', exact: true}).click();
+    await expect(page.getByRole('button', {name: 'Transformar', exact: true})).toHaveCount(0);
     const move = page.getByRole('button', {name: 'Mover', exact: true});
     await expect(move).toHaveAttribute('aria-pressed', 'true');
-    expect((await move.boundingBox())!.width).toBe(80);
+    expect((await move.boundingBox())!.width).toBe(112);
     expect((await move.boundingBox())!.height).toBe(44);
-    await expect(page.getByText('Arraste os pontos destacados para escalar.')).toBeVisible();
+    await expect(page.getByText('Arraste os pontos para redimensionar ou a alça ↻ para girar.')).toBeVisible();
     await screenshot(`${mode}-alcas`);
     const corner = {...first, x: first.x + 30.5 * zoom + 8, y: first.y + 30.5 * zoom + 8};
     await touch('touchStart', [corner]);
@@ -88,7 +107,7 @@ for (const mode of ['Seleção', 'Panning'] as const) {
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await screenshot(`${mode}-redimensionado`);
     await page.getByRole('button', {name: 'Mover', exact: true}).click();
-    await expect(page.getByRole('button', {name: 'Escalar', exact: true})).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.getByRole('button', {name: 'Transformar', exact: true})).toHaveAttribute('aria-pressed', 'false');
     await expect(page.getByText('Item selecionado. Arraste para movê-lo.')).toBeVisible();
     await cdp.detach();
   });
@@ -103,7 +122,7 @@ test('seleção múltipla redimensiona os dois itens e mantém barra dentro do v
   await expect(page.getByText('Itens selecionados. Arraste para movê-los.')).toBeVisible();
   await expect(page.getByRole('button', {name: 'Editar', exact: true})).toHaveCount(0);
   await screenshot('multiplos-mover');
-  await page.getByRole('button', {name: 'Escalar', exact: true}).click();
+  await page.getByRole('button', {name: 'Transformar', exact: true}).click();
   await screenshot('multiplos-alcas');
   const corner = {...second, x: second.x + 30.5 * zoom + 8, y: second.y + 30.5 * zoom + 8};
   await touch('touchStart', [corner]);
@@ -145,7 +164,7 @@ test('planta real da fábrica escala pelos cantos sem abrir editor automaticamen
   mkdirSync(evidence, {recursive: true});
   await expect(page.getByText('Vista Planta adicionada!', {exact: true})).toBeHidden();
   await page.screenshot({path: resolve(evidence, 'planta-mover.png')});
-  await page.getByRole('button', {name: 'Escalar', exact: true}).click();
+  await page.getByRole('button', {name: 'Transformar', exact: true}).click();
   await page.screenshot({path: resolve(evidence, 'planta-alcas.png')});
   const viewport = await getCanvasPosition(page);
   const surface = (await page.getByTestId('rac-canvas-surface').boundingBox())!;

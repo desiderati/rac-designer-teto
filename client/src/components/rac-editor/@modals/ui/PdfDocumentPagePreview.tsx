@@ -90,8 +90,7 @@ export function PdfDocumentPagePreview({pdfUrl, pageNumber, pageCount, zoom, fit
 
   return (
     <div
-      className={`relative mx-auto block min-h-[360px] min-w-0 max-w-full w-[842px] overflow-auto sm:min-h-0 ${fitToContainer ? 'bg-white' : 'bg-slate-900'}`}
-      style={{aspectRatio: '841.89 / 595.28', width: fitToContainer ? '100%' : undefined}}
+      className={`relative h-full min-h-0 w-full min-w-0 flex-1 overflow-auto ${fitToContainer ? 'bg-white' : 'bg-slate-900'}`}
       data-testid='pdf-preview-surface'
       data-page-number={safePageNumber}
       data-page-count={pageCount}

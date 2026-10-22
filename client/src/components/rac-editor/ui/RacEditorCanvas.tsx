@@ -13,6 +13,10 @@ import type {HouseDifficultyIndicator} from '@/components/rac-editor/lib/house-d
 import type {SiteAssessment} from '@/shared/types/construction-site.ts';
 import {useCanvasHouseInitialization} from '@/components/rac-editor/@canvas/hooks/useCanvasHouseInitialization.ts';
 import {CanvasLoadingState} from './CanvasLoadingState.tsx';
+import {useCanvasMobileViewport} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
+import {toast} from '@/components/ui/sonner.tsx';
+
+const MOBILE_CANVAS_TIP_ID = 'rac-mobile-canvas-tip';
 
 interface RacEditorCanvasProps {
   canvasRef: React.RefObject<CanvasHandle | null>;
@@ -79,6 +83,8 @@ export function RacEditorCanvas({
 }: RacEditorCanvasProps) {
   useCanvasHouseInitialization({canvasRef});
   const [hasActiveSelection, setHasActiveSelection] = useState(false);
+  const [selectionHintRevision, setSelectionHintRevision] = useState(0);
+  const {mobile, portrait} = useCanvasMobileViewport();
   const noop = useCallback(() => {}, []);
   const neverEligibleForContraventamento = useCallback(() => false, []);
 
@@ -88,12 +94,28 @@ export function RacEditorCanvas({
     setHasActiveSelection(activeSelectionCount > 0);
   }, [canvasRef, showTips]);
 
+  const showMobileTip = mobile && !portrait && showTips && hasActiveSelection && !loading && Boolean(infoMessage.trim());
+  useEffect(() => {
+    if (!showMobileTip) return;
+    toast.info('Dica', {
+      id: MOBILE_CANVAS_TIP_ID,
+      duration: 5_000,
+      description: <span dangerouslySetInnerHTML={{__html: infoMessage}}/>,
+    });
+  }, [infoMessage, selectionHintRevision, showMobileTip]);
+
+  useEffect(() => {
+    if (!showMobileTip) return;
+    return () => { toast.dismiss(MOBILE_CANVAS_TIP_ID); };
+  }, [showMobileTip]);
+
   const handleSelectionChange = useCallback((message: string) => {
     onSelectionMessage(message);
     onSelectionAuxCleanup();
 
     const activeSelectionCount = canvasRef.current?.getActiveObjectCount() ?? 0;
     setHasActiveSelection(activeSelectionCount > 0);
+    setSelectionHintRevision((current) => current + 1);
   }, [canvasRef, onSelectionAuxCleanup, onSelectionMessage]);
 
   return (
@@ -132,7 +154,7 @@ export function RacEditorCanvas({
         onContraventamentoCancel={readOnly ? undefined : onContraventamentoCancel}
         onFreeDrawPathCreated={readOnly ? undefined : onFreeDrawPathCreated}
       >
-        {showTips && hasActiveSelection &&
+        {!mobile && showTips && hasActiveSelection &&
           <div
             className='sm:absolute sm:bottom-2.5 sm:left-1/2 sm:-translate-x-1/2 max-w-md w-full pointer-events-auto'>
             <InfoBar message={infoMessage}/>

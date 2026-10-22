@@ -3,6 +3,28 @@ import {describe, expect, it, vi} from 'vitest';
 import {RacPdfPreviewModal} from '@/components/rac-editor/@modals/ui/RacPdfPreviewModal.tsx';
 
 describe('RacPdfPreviewModal', () => {
+  it('ajusta a página a uma área baixa com zoom abaixo de 40% e permite ampliá-la', () => {
+    render(
+      <RacPdfPreviewModal
+        isMobile={false}
+        isOpen
+        fileName='RAC.pdf'
+        pdfUrl='blob:rac-preview'
+        onDownload={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    const surface = screen.getByTestId('pdf-preview-surface');
+    vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({width: 640, height: 180} as DOMRect);
+    fireEvent.click(screen.getByRole('button', {name: 'Ajustar à página'}));
+    expect(surface).toHaveAttribute('data-zoom', '30');
+    fireEvent.click(screen.getByRole('button', {name: 'Aumentar zoom da prévia'}));
+    expect(surface).toHaveAttribute('data-zoom', '40');
+    fireEvent.click(screen.getByRole('button', {name: 'Diminuir zoom da prévia'}));
+    expect(surface).toHaveAttribute('data-zoom', '30');
+    vi.restoreAllMocks();
+  });
+
   it('exibe a prévia PDF no Dialog desktop e delega o download', () => {
     const onDownload = vi.fn();
     const onClose = vi.fn();

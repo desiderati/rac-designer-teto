@@ -30,6 +30,7 @@ import {
 import {getHouse3DViewerPreferencesStorageKey} from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
 import type {HouseIllustrationPort} from '@/components/rac-editor/ports/HouseIllustrationPort.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
+import {useCanvasMobileViewport} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
 
 interface House3DViewerProps {
   readOnly?: boolean;
@@ -47,6 +48,7 @@ function readPersistedCameraPose(storageKey: string | null, storageRevision: num
 }
 
 export function House3DViewer({readOnly = false, open, onOpenChange, canvasRef, activeHouseId, houseIllustrationPort, onDocumentChange}: House3DViewerProps) {
+  const {mobile, landscape} = useCanvasMobileViewport();
   const {houseDrawingDocumentPort} = useEditorPorts();
   const {
     houseType,
@@ -123,21 +125,23 @@ export function House3DViewer({readOnly = false, open, onOpenChange, canvasRef, 
   }, [canRenderHouse, clearSceneReadiness, open]);
 
   const dialogClass = isFullscreen
-    ? 'max-w-[95vw] w-[95vw] h-[90vh] max-h-[90vh]'
-    : 'max-w-3xl w-full h-[70vh] max-h-[70vh]';
+    ? 'max-w-none w-[calc(100vw-16px)] h-[calc(100dvh-16px)]'
+    : landscape
+      ? 'max-w-none w-[50vw] h-[calc(100dvh-16px)]'
+      : 'max-w-3xl w-[calc(100vw-16px)] h-[70dvh]';
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent
         hideCloseButton
-        className={`p-0 gap-0 flex flex-col ${dialogClass}`}
+        className={`p-0 gap-0 flex min-h-0 min-w-0 max-h-[calc(100dvh-16px)] flex-col overflow-hidden rounded-lg ${dialogClass}`}
       >
-        <DialogHeader className='p-4 pb-2 border-b'>
-          <div className='flex items-center justify-between'>
+        <DialogHeader className='shrink-0 p-4 pb-2 border-b text-left'>
+          <div className='flex flex-wrap items-center justify-between gap-2'>
             <DialogTitle className='text-lg font-semibold'>
               Visualizador 3D
             </DialogTitle>
-            <div className='flex gap-2'>
+            <div className='flex flex-wrap gap-2'>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -222,11 +226,13 @@ export function House3DViewer({readOnly = false, open, onOpenChange, canvasRef, 
             </div>
           </div>
           <DialogDescription className='text-sm text-muted-foreground'>
-            Arraste para rotacionar • Scroll para zoom • Shift+arraste para mover
+            {mobile
+              ? 'Arraste para rotacionar • Use dois dedos para zoom e mover'
+              : 'Arraste para rotacionar • Scroll para zoom • Shift+arraste para mover'}
           </DialogDescription>
         </DialogHeader>
 
-        <div className='flex-1 bg-gradient-to-b from-muted to-muted/50 relative' style={{minHeight: '400px'}}>
+        <div className='relative min-h-0 min-w-0 flex-1 overflow-hidden bg-gradient-to-b from-muted to-muted/50' data-testid='house-3d-viewport'>
           {isProjectionLoading ? (
             <div className='absolute inset-0 flex flex-col items-center justify-center gap-3 text-muted-foreground'>
               <div className='animate-spin rounded-full h-10 w-10 border-4 border-muted-foreground/20 border-t-primary'/>
@@ -245,6 +251,7 @@ export function House3DViewer({readOnly = false, open, onOpenChange, canvasRef, 
             }>
               <Canvas
                 key={resetKey}
+                resize={{offsetSize: true}}
                 shadows
                 gl={{preserveDrawingBuffer: true}}
                 onCreated={({gl}) => {

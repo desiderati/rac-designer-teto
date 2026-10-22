@@ -85,8 +85,12 @@ test.describe('Exportação PDF do RAC', () => {
         clientHeight: surface.clientHeight,
       };
     });
-    expect(Math.abs(initialGeometry.surfaceWidth - initialGeometry.canvasWidth)).toBeLessThanOrEqual(1);
-    expect(Math.abs(initialGeometry.surfaceHeight - initialGeometry.canvasHeight)).toBeLessThanOrEqual(1);
+    expect(initialGeometry.canvasWidth).toBeLessThanOrEqual(initialGeometry.surfaceWidth + 1);
+    expect(initialGeometry.canvasHeight).toBeLessThanOrEqual(initialGeometry.surfaceHeight + 1);
+    expect(Math.min(
+      initialGeometry.surfaceWidth - initialGeometry.canvasWidth,
+      initialGeometry.surfaceHeight - initialGeometry.canvasHeight,
+    )).toBeLessThanOrEqual(9);
     expect(initialGeometry.scrollWidth).toBeLessThanOrEqual(initialGeometry.clientWidth + 1);
     expect(initialGeometry.scrollHeight).toBeLessThanOrEqual(initialGeometry.clientHeight + 1);
     const initialZoom = Number(await previewSurface.getAttribute('data-zoom'));
@@ -98,6 +102,9 @@ test.describe('Exportação PDF do RAC', () => {
     await page.getByRole('button', {name: 'Aumentar zoom da prévia'}).click();
     await page.getByRole('button', {name: 'Aumentar zoom da prévia'}).click();
     await expect(previewSurface).toHaveAttribute('data-zoom', String(Math.min(120, initialZoom + 20)));
+    while (Number(await previewSurface.getAttribute('data-zoom')) < 120) {
+      await page.getByRole('button', {name: 'Aumentar zoom da prévia'}).click();
+    }
     await expect(page.getByTestId('pdf-preview-loading')).toHaveCount(0);
     const surfaceWidth = await previewSurface.evaluate((element) => element.clientWidth);
     await expect.poll(async () => previewSurface.evaluate((element) => element.scrollWidth), {

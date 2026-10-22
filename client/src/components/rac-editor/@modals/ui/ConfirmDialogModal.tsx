@@ -71,8 +71,8 @@ export function ConfirmDialogModal({
   if (!isMobile) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-        <DialogContent className={dialogContentClassName} hideCloseButton>
-          <DialogHeader className={hasTitle ? 'text-center' : 'sr-only'}>
+        <DialogContent className={cn('flex max-h-[calc(100dvh-1rem)] flex-col overflow-hidden', dialogContentClassName)} hideCloseButton>
+          <DialogHeader className={hasTitle ? 'shrink-0 text-center' : 'sr-only'}>
             <DialogTitle
               className={cn(
                 hasTitle ? 'text-center text-2xl' : 'sr-only',
@@ -89,8 +89,10 @@ export function ConfirmDialogModal({
               {dialogDescription}
             </DialogDescription>
           </DialogHeader>
-          {mainCard}
-          <ActionDock testId='confirm-dialog-actions' surface='dialog' spacing='flush'>
+          <div data-testid='confirm-dialog-scroll-content' className='min-h-0 flex-1 overflow-y-auto overscroll-contain'>
+            {mainCard}
+          </div>
+          <ActionDock testId='confirm-dialog-actions' surface='dialog' spacing='flush' className='shrink-0'>
             {actionButtons}
           </ActionDock>
         </DialogContent>
@@ -99,8 +101,8 @@ export function ConfirmDialogModal({
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <DrawerContent>
-        <DrawerHeader className={hasTitle ? 'text-center pb-2' : 'sr-only'}>
+      <DrawerContent className='mt-0 max-h-[calc(100dvh-1rem)] overflow-hidden [&>div:first-child]:shrink-0'>
+        <DrawerHeader className={hasTitle ? 'shrink-0 text-center pb-2' : 'sr-only'}>
           <DrawerTitle
             className={cn(
               hasTitle ? 'text-center text-2xl' : 'sr-only',
@@ -117,9 +119,11 @@ export function ConfirmDialogModal({
             {dialogDescription}
           </DrawerDescription>
         </DrawerHeader>
-        <div className='px-4 pb-4'>
-          {mainCard}
-          <ActionDock testId='confirm-dialog-actions' surface='drawer' spacing='flush'>
+        <div className='flex min-h-0 flex-1 flex-col px-4 pb-4'>
+          <div data-testid='confirm-dialog-scroll-content' className='min-h-0 flex-1 overflow-y-auto overscroll-contain'>
+            {mainCard}
+          </div>
+          <ActionDock testId='confirm-dialog-actions' surface='drawer' spacing='flush' className='shrink-0'>
             {actionButtons}
           </ActionDock>
         </div>

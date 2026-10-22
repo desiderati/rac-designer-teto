@@ -5,6 +5,7 @@ import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} fro
 import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
 import {PdfDocumentPagePreview} from './PdfDocumentPagePreview.tsx';
 import {createResizeObserverScheduler} from '@/shared/lib/resize-observer-scheduler.ts';
+import {useCanvasMobileViewport} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
 
 interface RacPdfPreviewModalProps {
   isMobile: boolean;
@@ -33,6 +34,7 @@ export function RacPdfPreviewModal({
   onDownload,
   onClose,
 }: RacPdfPreviewModalProps) {
+  const {landscape} = useCanvasMobileViewport();
   const [currentPage, setCurrentPage] = useState(1);
   const [zoom, setZoom] = useState(() => (isMobile ? 70 : 100));
   const [fitToContainer, setFitToContainer] = useState(true);
@@ -55,25 +57,19 @@ export function RacPdfPreviewModal({
   const safePage = Math.min(currentPage, safePageCount);
 
   const fitToPage = useCallback(() => {
-    const host = previewContainerRef.current?.querySelector<HTMLElement>('[data-testid="pdf-preview-host"]');
     const surface = previewContainerRef.current?.querySelector<HTMLElement>('[data-testid="pdf-preview-surface"]');
-    if (!surface) {
-      setZoom(isMobile ? 70 : 100);
-      return;
-    }
-
-    const hostRect = host?.getBoundingClientRect();
-    const availableWidth = hostRect?.width ?? surface.getBoundingClientRect().width;
-    const availableHeight = hostRect?.height ?? Math.min(window.innerHeight * 0.72, 595.28);
-    const fitPercentage = Math.floor(Math.min(availableWidth / 841.89, availableHeight / 595.28) * 100);
     setFitToContainer(true);
-    setZoom(Math.max(40, Math.min(120, fitPercentage)));
-  }, [isMobile]);
+    if (!surface) return;
+    const {width: availableWidth, height: availableHeight} = surface.getBoundingClientRect();
+    if (availableWidth <= 0 || availableHeight <= 0) return;
+    const fitPercentage = Math.floor(Math.min(availableWidth / 841.89, availableHeight / 595.28) * 100);
+    setZoom(Math.max(1, Math.min(120, fitPercentage)));
+  }, []);
 
   useEffect(() => {
-    if (!isOpen || !pdfUrl) return;
+    if (!isOpen || !pdfUrl || !fitToContainer) return;
 
-    const host = previewContainerRef.current?.querySelector<HTMLElement>('[data-testid="pdf-preview-host"]');
+    const host = previewContainerRef.current?.querySelector<HTMLElement>('[data-testid="pdf-preview-surface"]');
     const scheduler = createResizeObserverScheduler(fitToPage);
     const observer = typeof ResizeObserver === 'undefined' || !host
       ? null
@@ -88,7 +84,7 @@ export function RacPdfPreviewModal({
       observer?.disconnect();
       scheduler.cancel();
     };
-  }, [fitToPage, isOpen, pageCount, pdfUrl]);
+  }, [fitToContainer, fitToPage, isOpen, pageCount, pdfUrl, isMobile, landscape]);
 
   const closeButton = (
     <Button
@@ -105,7 +101,7 @@ export function RacPdfPreviewModal({
   );
 
   const floatingControls = pdfUrl && !isPreparing ? (
-    <div className='absolute bottom-3 left-1/2 z-10 flex max-w-[calc(100%-1rem)] -translate-x-1/2 flex-col items-center gap-1'>
+    <div className='z-10 flex max-w-full shrink-0 flex-col items-center gap-1 pt-2'>
       <button
         type='button'
         aria-label={isToolbarMinimized ? 'Restaurar barra de ferramentas do PDF' : 'Minimizar barra de ferramentas do PDF'}
@@ -134,7 +130,7 @@ export function RacPdfPreviewModal({
         <span className='block h-1.5 w-16 rounded-full border border-white/70 bg-slate-400/70 shadow-sm' aria-hidden='true'/>
       </button>
       {!isToolbarMinimized ? (
-      <div className='flex max-w-full items-center gap-0.5 rounded-full border border-slate-300/90 bg-slate-100/95 px-1.5 py-1 shadow-lg backdrop-blur-sm'>
+      <div className='flex max-w-full flex-wrap items-center justify-center gap-0.5 rounded-2xl border border-slate-300/90 bg-slate-100/95 px-1.5 py-1 shadow-lg backdrop-blur-sm sm:rounded-full [&>button]:shrink-0'>
       <Button
         type='button'
         variant='ghost'
@@ -151,8 +147,8 @@ export function RacPdfPreviewModal({
         size='icon'
         className='h-8 w-8 rounded-full'
         aria-label='Diminuir zoom da prévia'
-        onClick={() => { setFitToContainer(false); setZoom((value) => Math.max(40, value - 10)); }}
-        disabled={zoom <= 40}
+        onClick={() => { setFitToContainer(false); setZoom((value) => Math.max(10, value - 10)); }}
+        disabled={zoom <= 10}
       >
         <Minus className='h-4 w-4'/>
       </Button>
@@ -224,9 +220,9 @@ export function RacPdfPreviewModal({
   ) : null;
 
   const body = (
-    <div ref={previewContainerRef} className='min-w-0 space-y-3'>
+    <div ref={previewContainerRef} className='flex min-h-0 min-w-0 flex-1 flex-col gap-3'>
       {errorMessage ? (
-        <div role='alert' className='flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900'>
+        <div role='alert' className='flex shrink-0 items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900'>
           <span className='min-w-0 flex-1'>{errorMessage}</span>
           {onRetry ? (
             <Button type='button' size='sm' variant='outline' className='shrink-0 bg-white' onClick={onRetry} disabled={isPreparing}>
@@ -237,7 +233,7 @@ export function RacPdfPreviewModal({
         </div>
       ) : null}
 
-      <div className='relative min-w-0' data-testid='pdf-preview-host'>
+      <div className='relative flex min-h-0 min-w-0 flex-1 flex-col' data-testid='pdf-preview-host'>
         {pdfUrl ? (
           <PdfDocumentPagePreview
             pdfUrl={pdfUrl}
@@ -247,7 +243,7 @@ export function RacPdfPreviewModal({
             fitToContainer={fitToContainer}
           />
         ) : (
-          <div className='grid h-[62vh] min-h-[360px] place-items-center px-6 text-center text-sm text-slate-500'>
+          <div className='grid h-full min-h-0 place-items-center px-6 text-center text-sm text-slate-500'>
             {isPreparing ? 'Gerando uma nova prévia do PDF…' : 'A prévia do PDF ainda não está disponível.'}
           </div>
         )}
@@ -261,11 +257,11 @@ export function RacPdfPreviewModal({
     </div>
   );
 
-  if (!isMobile) {
+  if (!isMobile || landscape) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className='min-w-0 w-[min(94vw,892px)] max-w-none' hideCloseButton>
-          <DialogHeader className='relative pr-10'>
+        <DialogContent className={`flex h-[min(90dvh,760px)] max-h-[calc(100dvh-16px)] min-h-0 min-w-0 ${landscape ? 'w-[50vw]' : 'w-[min(calc(100vw-16px),892px)]'} max-w-none flex-col overflow-hidden rounded-lg gap-3 p-4`} hideCloseButton>
+          <DialogHeader className='relative shrink-0 pr-10 text-left'>
             <DialogTitle className='text-xl'>Prévia da RAC em PDF</DialogTitle>
             <DialogDescription>Revise o documento antes de baixar o arquivo.</DialogDescription>
             <div className='absolute right-0 top-0'>{closeButton}</div>
@@ -278,13 +274,13 @@ export function RacPdfPreviewModal({
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent>
-        <DrawerHeader className='relative pb-2 pr-12 text-left'>
+      <DrawerContent className='mt-0 h-[min(90dvh,760px)] max-h-[calc(100dvh-8px)] min-h-0 min-w-0 overflow-hidden [&>div:first-child]:shrink-0'>
+        <DrawerHeader className='relative shrink-0 pb-2 pr-12 text-left'>
           <DrawerTitle>Prévia da RAC em PDF</DrawerTitle>
           <DrawerDescription>Revise o documento antes de baixar o arquivo.</DrawerDescription>
           <div className='absolute right-4 top-3'>{closeButton}</div>
         </DrawerHeader>
-        <div className='min-w-0 px-4 pb-4'>{body}</div>
+        <div className='flex min-h-0 min-w-0 flex-1 flex-col px-4 pb-4'>{body}</div>
       </DrawerContent>
     </Drawer>
   );

@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useEffect, useLayoutEffect, useRef} from 'react';
 import {toast as sonnerToast, Toaster as Sonner, useSonner, type ExternalToast} from 'sonner';
 import {CircleAlert, CircleCheck, Info, LoaderCircle, TriangleAlert} from 'lucide-react';
 import {CANVAS_MOBILE_QUERY, useCanvasMobileViewport} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
@@ -61,8 +61,23 @@ export function beginToastTask(id: string, loadingTitle: Parameters<typeof toast
 }
 
 const Toaster = ({...props}: ToasterProps) => {
+  const interactionRootRef = useRef<HTMLDivElement>(null);
   const {mobile: isMobile} = useCanvasMobileViewport();
   const {toasts} = useSonner();
+
+  useLayoutEffect(() => {
+    const root = interactionRootRef.current;
+    if (!root) return;
+    const ownerDocument = root.ownerDocument;
+    // No document, depois dos handlers de blur do React e antes da contenção de foco da modal.
+    const allowToastFocus = (event: FocusEvent) => {
+      if (event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) {
+        event.stopImmediatePropagation();
+      }
+    };
+    ownerDocument.addEventListener('focusout', allowToastFocus);
+    return () => ownerDocument.removeEventListener('focusout', allowToastFocus);
+  }, []);
 
   useEffect(() => {
     // Promise resolve/reject permanece nativo; só a duração do estado de erro é padronizada.
@@ -75,7 +90,9 @@ const Toaster = ({...props}: ToasterProps) => {
     }
   }, [toasts]);
 
+  // Interagir com um toast não deve ser tratado como clique ou foco fora da modal.
   return (
+    <div ref={interactionRootRef} onPointerDown={(event) => event.stopPropagation()} onFocus={(event) => event.stopPropagation()}>
     <Sonner
       style={{'--width': '360px'} as React.CSSProperties}
       closeButton
@@ -105,6 +122,7 @@ const Toaster = ({...props}: ToasterProps) => {
       {...props}
       theme='light'
     />
+    </div>
   );
 };
 
