@@ -6,7 +6,7 @@ import { vitePluginManusRuntime } from 'vite-plugin-manus-runtime';
 import { e2eServerProfilePlugin } from './scripts/e2e-server-profile';
 
 const projectRoot = import.meta.dirname;
-const appVersion = process.env.VITE_APP_VERSION ?? '5.1.1';
+const appVersion = process.env.VITE_APP_VERSION ?? '6.0.0';
 const buildTimestamp = process.env.VITE_BUILD_TIMESTAMP ?? new Date().toISOString();
 
 export default defineConfig(({command, mode}) => {
