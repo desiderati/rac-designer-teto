@@ -1,4 +1,4 @@
-import {describe, expect, it} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import {calculateGuidedTourLayout} from '@/components/guided-tour/lib/guided-tour-position.ts';
 
 function rect(left: number, top: number, width: number, height: number): DOMRect {
@@ -16,6 +16,42 @@ function rect(left: number, top: number, width: number, height: number): DOMRect
 }
 
 describe('guided-tour-position', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it.each([
+    ['Status da Casa', [610.78125, 317.5, 60.21875, 24], 226.75],
+    ['Dificuldade', [525.140625, 183.5, 133.859375, 8], 188.25],
+    ['Materiais Extras', [169, 228.5, 98, 54], 207.5],
+    ['Exportar RAC PDF', [269, 228.5, 98, 54], 188.25],
+    ['Casa Construída', [369, 228.5, 98, 54], 207.5],
+    ['Arquivar Casa', [469, 228.5, 98, 54], 207.5],
+  ] as const)('não encobre o destaque de %s em 736×375 e aponta a seta para o alvo', (_title, bounds, height) => {
+    vi.stubGlobal('innerWidth', 736);
+    vi.stubGlobal('innerHeight', 375);
+    const target = rect(bounds[0], bounds[1], bounds[2], bounds[3]);
+    const layout = calculateGuidedTourLayout({
+      targetRect: target,
+      balloonSize: {width: 240, height},
+      placement: 'bottom',
+      alignment: 'center',
+    });
+    const left = Number(layout.balloonStyle.left);
+    const top = Number(layout.balloonStyle.top);
+    const right = left + 240;
+    const bottom = top + height;
+    expect(left).toBeGreaterThanOrEqual(12);
+    expect(top).toBeGreaterThanOrEqual(12);
+    expect(right).toBeLessThanOrEqual(724);
+    expect(bottom).toBeLessThanOrEqual(363);
+    const overlapsHighlight = left < target.right + 6 && right > target.left - 6
+      && top < target.bottom + 6 && bottom > target.top - 6;
+    expect(overlapsHighlight).toBe(false);
+    if (bottom <= target.top - 6) expect(layout.arrowStyle).toHaveProperty('bottom', -8);
+    else if (right <= target.left - 6) expect(layout.arrowStyle).toHaveProperty('right', -8);
+    else if (left >= target.right + 6) expect(layout.arrowStyle).toHaveProperty('left', -8);
+    else expect(layout.arrowStyle).toHaveProperty('top', -8);
+  });
+
   it('positions lateral balloons using vertical alignment and a centered arrow', () => {
     const layout = calculateGuidedTourLayout({
       targetRect: rect(100, 80, 40, 60),

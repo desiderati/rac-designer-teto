@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {writeFileSync} from 'node:fs';
 import {
   createHouse,
   expectNoConsoleErrors,
@@ -20,29 +21,49 @@ test.describe('RAC guided tour', () => {
 
   test.describe('Tours das ações mobile da casa', () => {
     test.use({hasTouch: true});
-    test('segue a ordem dos botões no primeiro tour completo mobile', async ({page}) => {
+    test('segue a ordem dos botões no primeiro tour completo mobile', async ({page}, testInfo) => {
       await page.evaluate(() => {
         for (const key of Object.keys(localStorage)) {
-          if (['guided-tour:rac-house-actions:', 'guided-tour:rac-house-field-analysis:', 'guided-tour:rac-house-reset:'].some(prefix => key.startsWith(prefix))) localStorage.removeItem(key);
+          if (['guided-tour:rac-house-add:', 'guided-tour:rac-house-actions:', 'guided-tour:rac-house-field-analysis:', 'guided-tour:rac-house-reset:'].some(prefix => key.startsWith(prefix))) localStorage.removeItem(key);
         }
       });
       await page.getByRole('button', {name: 'Abrir menu principal'}).click();
       await page.getByRole('button', {name: 'Construções TETO', exact: true}).click();
       await page.setViewportSize({width: 736, height: 375});
+      expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(true);
       await page.getByRole('row', {name: /CC2603.*Andamento/i}).click();
-      for (const title of ['Prévia do Canvas', 'Status da Casa', 'Dificuldade', 'Análise de Campo', 'Materiais Extras', 'Exportar RAC PDF', 'Casa Construída', 'Arquivar Casa', 'Redefinir Casa', 'Voltar para Construções']) {
+      const layouts = [];
+      for (const title of ['Adicionar Casa', 'Prévia do Canvas', 'Status da Casa', 'Dificuldade', 'Análise de Campo', 'Materiais Extras', 'Exportar RAC PDF', 'Casa Construída', 'Arquivar Casa', 'Redefinir Casa', 'Voltar para Construções']) {
         const dialog = page.getByRole('dialog', {name: title, exact: true});
         await expect(dialog).toBeVisible();
-        if (title === 'Análise de Campo' || title === 'Redefinir Casa') {
-          await page.screenshot({path: `.agents/work-items/2026-10/20261021-textos-tours-dicas.work-item.assets/ordem-${title === 'Análise de Campo' ? 'pilotis' : 'redefinir'}-736x375.png`});
+        if (title === 'Prévia do Canvas') {
+          await expect(dialog).toContainText('toque na foto ou nas iniciais da casa');
+          await expect(dialog).toContainText('“Ir pro Canvas” no menu do canto superior direito da prévia');
         }
+        const balloon = (await dialog.boundingBox())!;
+        const highlight = (await page.getByTestId('guided-tour-highlight').boundingBox())!;
+        const ok = (await dialog.getByRole('button', {name: 'OK', exact: true}).boundingBox())!;
+        for (const box of [balloon, highlight, ok]) {
+          expect(box.x, `${title}: margem esquerda`).toBeGreaterThanOrEqual(0);
+          expect(box.y, `${title}: margem superior`).toBeGreaterThanOrEqual(0);
+          expect(box.x + box.width, `${title}: margem direita`).toBeLessThanOrEqual(736);
+          expect(box.y + box.height, `${title}: margem inferior`).toBeLessThanOrEqual(375);
+        }
+        const overlapsHighlight = balloon.x < highlight.x + highlight.width && balloon.x + balloon.width > highlight.x
+          && balloon.y < highlight.y + highlight.height && balloon.y + balloon.height > highlight.y;
+        expect(overlapsHighlight, `${title}: destaque visível`).toBe(false);
+        const screenshot = `${String(layouts.length + 1).padStart(2, '0')}-tour.png`;
+        await page.screenshot({path: testInfo.outputPath(screenshot), animations: 'disabled'});
+        layouts.push({order: layouts.length + 1, title, text: await dialog.innerText(), balloon, highlight, ok, overlapsHighlight, screenshot});
         await dialog.getByRole('button', {name: 'OK', exact: true}).tap();
       }
       await expect(page.getByRole('dialog')).toHaveCount(0);
       await expect(page.getByRole('region', {name: 'Listagem de casas', exact: true})).toBeVisible();
-      for (const key of ['rac-house-actions', 'rac-house-field-analysis', 'rac-house-reset']) {
+      for (const key of ['rac-house-add', 'rac-house-actions', 'rac-house-field-analysis', 'rac-house-reset']) {
         await expect.poll(() => page.evaluate(key => localStorage.getItem(`guided-tour:${key}:completed`), key)).toBe('true');
       }
+      writeFileSync(testInfo.outputPath('tour-layout.json'), JSON.stringify({viewport: {width: 736, height: 375}, hasTouch: true, layouts}, null, 2));
+      await page.screenshot({path: testInfo.outputPath('12-completo.png'), animations: 'disabled'});
     });
     for (const viewport of [{width: 736, height: 375}, {width: 390, height: 844}]) {
       test(`orienta Pilotis e Redefinir em ${viewport.width}×${viewport.height} sem executar as ações`, async ({page}) => {
