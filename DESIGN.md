@@ -2,7 +2,7 @@
 title: 'Design System: RAC Designer TETO'
 doc_role: reference
 lang: en
-updated: 2026-10-24
+updated: 2026-10-25
 ---
 
 # Design System: RAC Designer TETO
@@ -265,6 +265,17 @@ House items should be family-first. A house is identified by its associated fami
 standalone house name. Status, house type, last modification, and active state are secondary. Active
 houses should receive a quiet blue selection treatment.
 
+Use the existing cards throughout native mobile landscape, including widths above 767 px; low
+desktop height with a fine pointer keeps the table. Preserve action availability, pending
+confirmations, filters, sorting and pagination. The native policy is defined in
+[UI-005](docs/ui-definitions/UI-005-menus-laterais-canvas.md).
+
+The materials action opens House Summary as a centered desktop Dialog or a bottom Drawer on mobile.
+Center its title only in the Drawer; keep the desktop title left-aligned. The mobile handle is a 44
+px close target. Only content scrolls, and closing returns focus to the trigger. Keep the plan, door
+and materials intact, including archived houses; use the full contract in
+[UI-007](docs/ui-definitions/UI-007-modais-e-acoes-compartilhadas.md).
+
 ### Forms
 
 Forms should feel stable and approachable. Use two-column layouts only when there is enough width;
@@ -295,9 +306,12 @@ image must feel like different actions.
 
 ### Map Preview
 
-The map preview should be a calm location panel. When Google Maps is unavailable or coordinates are
-invalid, use a structured fallback with a pin, grid, and precise explanation. Never leave an empty
-rectangle.
+The map preview should be a calm location panel. Keep Google Maps through Manus when configured.
+During local development, without a public Forge key or an available Google Maps SDK, the existing
+OpenStreetMap embed provides the map. It requires internet and receives the displayed coordinates;
+it does not replace the provider in published builds. Invalid coordinates, loading, failure and
+retry need explicit states instead of an empty rectangle. The local provider contract and limits are
+described in the [project guide](README.md).
 
 ### Mobile
 
@@ -397,6 +411,12 @@ documented geometry and actions; fullscreen 3D remains exempt from the general l
 [UI-007](docs/ui-definitions/UI-007-modais-e-acoes-compartilhadas.md) for shared composition and
 [UI-006](docs/ui-definitions/UI-006-editores-flutuantes-e-teclado-mobile.md) for keyboard behavior.
 The editor's minimum usable surface remains 360 px; do not impose that minimum on every dialog.
+
+Desktop floating editors start 8 px from the top and remain draggable in both axes without changing
+their dimensions or the house document. Clamp the panel within the viewport as it moves or resizes.
+The desktop drag and mobile keyboard contracts belong to
+[UI-006](docs/ui-definitions/UI-006-editores-flutuantes-e-teclado-mobile.md); they do not turn the
+inline Field Analysis controls into a draggable modal.
 
 In image review, offer “Preserve original quality” only when the image was actually reduced. If
 preparation kept the original file, present the result without a redundant quality choice.

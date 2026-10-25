@@ -24,8 +24,9 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
 ## Estrutura de menus
 
 A apresentação dos dois menus laterais, os estados visuais, a adaptação de viewport e os componentes
-compartilhados estão definidos em [UI-005 — Menus laterais do Canvas](../ui-definitions/UI-005-menus-laterais-canvas.md).
-As regras abaixo determinam os comandos e seus efeitos, independentemente da apresentação.
+compartilhados estão definidos em [UI-005 — Menus laterais do
+Canvas](../ui-definitions/UI-005-menus-laterais-canvas.md). As regras abaixo determinam os comandos
+e seus efeitos, independentemente da apresentação.
 
 1. Menu principal
     - Acesso aos comandos de casa, elementos, objetos geométricos, linhas, lápis, texto, upload e exclusão.

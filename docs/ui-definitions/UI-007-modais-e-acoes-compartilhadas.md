@@ -28,20 +28,20 @@ segue a [UI-008](UI-008-analise-de-campo.md), com editor inline na página.
 
 ## Resumo da Casa
 
-O botão de materiais da listagem abre `Resumo da Casa` como Dialog centralizado no desktop e
-Drawer inferior no mobile. A política nativa usa largura até 767 px ou ponteiro coarse com altura
-até 600 px; a compactação dos menus por altura, sozinha, não troca a apresentação desktop.
+O botão de materiais da listagem abre `Resumo da Casa` como Dialog centralizado no desktop e Drawer
+inferior no mobile. A política nativa usa largura até 767 px ou ponteiro coarse com altura até 600
+px; a compactação dos menus por altura, sozinha, não troca a apresentação desktop.
 
-Abrir por clique, toque ou ativação pelo teclado, sem abertura automática por hover ou foco.
-No mobile, o título fica centralizado e a barra horizontal superior é um botão de fechamento com
-alvo de 44 px. No desktop,
-usar o botão de fechar no cabeçalho. Escape e clique fora também fecham e devolvem o foco ao botão
-de origem. O cabeçalho e o fechamento ficam fixos; somente o conteúdo rola.
+Abrir por clique, toque ou ativação pelo teclado, sem abertura automática por hover ou foco. No
+mobile, o título fica centralizado e a barra horizontal superior é um botão de fechamento com alvo
+de 44 px. No desktop, manter o título à esquerda e usar o botão de fechar no cabeçalho. Escape e
+clique fora também fecham e devolvem o foco ao botão de origem. O cabeçalho e o fechamento ficam
+fixos; somente o conteúdo rola.
 
 Preservar a mini planta, a orientação da porta, os valores e a ordem dos materiais. O resumo
 continua disponível para casas arquivadas, opaco e fora da superfície esmaecida do card. Abrir ou
-fechar o resumo não navega para a edição da casa. Alterar a viewport mantém o resumo aberto e
-troca somente sua apresentação.
+fechar o resumo não navega para a edição da casa. Alterar a viewport mantém o resumo aberto e troca
+somente sua apresentação.
 
 ## Regiões e propriedade da rolagem
 
@@ -139,8 +139,15 @@ cabeçalho, conteúdo e ações quando a composição possuir essas regiões.
 6. Reabrir os fluxos e verificar callbacks de Confirmar/Cancelar, rascunho, histórico, persistência
    e bloqueios nativos. Paridade visual não substitui essa verificação funcional.
 
+7. No Resumo da Casa, conferir 767/768 px, retrato e paisagem com toque e desktop baixo com ponteiro
+   fino. Abrir pelo teclado, fechar pela barra/X e por Escape, devolver o foco e manter o resumo
+   aberto durante a troca de apresentação. Conferir mini planta, porta e materiais, conteúdo longo
+   rolável e título centralizado somente no Drawer.
+
 ## Fontes duráveis
 
+- [Resumo da Casa](../../client/src/components/construction-site/ui/HouseMaterialsSummary.tsx).
+- [Regressão do resumo responsivo](../../e2e/house-summary-responsive.spec.ts).
 - [Composição ModalFrame](../../client/src/components/ui/ModalFrame.tsx).
 - [Ordem responsiva de ações](../../client/src/components/ui/ModalActions.tsx).
 - [ActionDock](../../client/src/components/ui/ActionDock.tsx).

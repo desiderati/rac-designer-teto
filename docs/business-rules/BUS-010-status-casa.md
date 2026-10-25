@@ -92,8 +92,8 @@ arquivamento.
 
 A listagem deriva Inicial/Definida/Indefinida dos dados canônicos e do histórico opcional
 `hasHouseBeenDefined`. O estado interno `draft` continua aceito no transporte, sem exigir migração.
-Filtros, ordenação e badges seguem a mesma classificação descrita em
-[Análise de Campo](BUS-014-analise-de-campo.md).
+Filtros, ordenação e badges seguem a mesma classificação descrita em [Análise de
+Campo](BUS-014-analise-de-campo.md).
 
 O bloqueio de `Construída` deve existir na interface e na camada de sessão/persistência. Se uma
 chamada interna tentar salvar uma mudança editorial em casa construída, a sessão deve ignorar a

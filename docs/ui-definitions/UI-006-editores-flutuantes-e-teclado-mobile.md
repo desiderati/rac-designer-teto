@@ -7,7 +7,7 @@ doc_set: ui-definitions
 status: active
 lang: pt-BR
 created: 2026-10-18
-updated: 2026-10-24
+updated: 2026-10-25
 tags: [mobile, teclado, correction-pattern]
 ---
 
@@ -26,6 +26,22 @@ entre apresentação flutuante e lateral fica na [UI-005](UI-005-menus-laterais-
 O caso de referência é o texto opcional da cerca: foco automático abria o teclado e o painel ficava
 acima da área visível, sem rolagem para recuperar o campo. A regra do texto e sua persistência não
 eram a causa reproduzida.
+
+## Posição e arrasto no desktop
+
+O editor flutuante abre a 8 px do topo e mantém a largura e a composição definidas na UI-005.
+Arrastar pelo cabeçalho move o painel nos dois eixos; quando não há cabeçalho, a superfície externa
+recebe o arrasto. Botões, campos, links e regiões marcadas sem arrasto mantêm suas interações.
+
+O deslocamento parte da posição efetivamente desenhada, inclusive quando o CSS limita a lateral. Não
+fixar novamente o topo após iniciar o movimento. Conservar margem mínima de 8 px e limitar a posição
+à viewport; ao reduzir a altura da janela ou mudar a altura do painel, reajustar sua posição
+vertical para manter o acesso ao conteúdo e às ações. O arrasto não amplia o editor nem modifica a
+casa, seu histórico ou seu documento persistido.
+
+A disposição horizontal abaixo de 730 px de altura e o painel lateral no modo FAB são decisões de
+apresentação, não autorização para descartar o eixo vertical do arrasto. Essas regras não se aplicam
+ao editor inline da Análise de Campo.
 
 ## Foco e intenção de editar
 
@@ -60,6 +76,10 @@ quando essa API não está disponível.
 
 - Manter o campo focado alcançável por rolagem quando o teclado ou a orientação mudar.
 
+- Preservar o contorno completo do foco nos campos, inclusive quando o primeiro campo encosta no
+  início do conteúdo. A região rolável deve reservar espaço de pintura sem deslocar ou estreitar os
+  controles; não remover o indicador nem liberar overflow da modal inteira para evitar o corte.
+
 - Manter as ações na região de rodapé e permitir rolagem somente do conteúdo. Isso também vale
   quando a altura visual diminui; o contêiner externo, o cabeçalho e os botões não se tornam uma
   única região rolável.
@@ -84,6 +104,10 @@ durante resize ou abertura do teclado dentro da mesma orientação.
 
 ## Validação e limites
 
+No desktop, abrir no topo aprovado, arrastar nos dois eixos e conferir dimensões estáveis. Levar o
+painel até o limite inferior, reduzir a altura e verificar a contenção. Cancelar e comparar o
+documento da casa antes e depois: mover o editor não é mover o desenho.
+
 Exercitar o toque no campo e nas ações em paisagem baixa, confirmar e reabrir após recarga e
 cancelar. Conferir o fechamento dos editores ao entrar no mobile e ao girar para retrato; retornar à
 paisagem deve liberar o Canvas sem reabrir o editor anterior. Redimensionar dentro da mesma
@@ -96,6 +120,13 @@ teclado Android real depende de teste no aparelho. O roteiro e as camadas de tes
 ## Fontes duráveis
 
 - [FloatingEditor](../../client/src/components/rac-editor/@modals/ui/editors/FloatingEditor.tsx).
+
+- [Posição e limites do
+  arrasto](../../client/src/components/rac-editor/@modals/hooks/useFloatingEditor.ts).
+
+- [Regressão do arrasto no
+  componente](../../client/src/components/rac-editor/@modals/ui/editors/FloatingEditor.drag.test.tsx)
+  e [no Canvas real](../../e2e/floating-editor-drag.spec.ts).
 
 - [Superfície lateral
   compartilhada](../../client/src/components/rac-editor/@modals/ui/editors/CanvasSideEditorPanel.tsx).

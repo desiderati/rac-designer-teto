@@ -66,8 +66,8 @@ na desestruturação.
 - Estados modais, flags visuais e fluxos temporários continuam distribuídos em hooks locais da
   feature.
 
-- O guided tour usa runtime próprio em `client/src/components/guided-tour` e progresso em storage local
-  próprio; ele não faz parte da coordenação da casa.
+- O guided tour usa runtime próprio em `client/src/components/guided-tour` e progresso em storage
+  local próprio; ele não faz parte da coordenação da casa.
 
 - Não abra automaticamente uma store genérica na raiz.
 
@@ -132,7 +132,8 @@ na desestruturação.
 
 ## O que hooks não podem fazer
 
-- Conter regra de domínio que deveria morar em `client/src/domain` ou em utilitário dedicado da feature.
+- Conter regra de domínio que deveria morar em `client/src/domain` ou em utilitário dedicado da
+  feature.
 
 - Abrir uma segunda fonte compartilhada de estado paralela ao controller/ports da casa sem plano
   explícito.

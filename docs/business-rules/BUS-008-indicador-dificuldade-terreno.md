@@ -93,24 +93,24 @@ No RAC:
 
 | Solo                            | Peso | Pontos no gauge |
 |---------------------------------|-----:|----------------:|
-| Terreno Estável / Argiloso      |    1 |               0 |
-| Não informado                   |  1,5 |            4,17 |
-| Terreno Firme / Duro            |    2 |            8,33 |
-| Solo Molhado / Lama             |    3 |           16,67 |
-| Lençol Freático / Água no Fundo |    4 |              25 |
+| Terreno Estável / Argiloso      | 1    | 0               |
+| Não informado                   | 1,5  | 4,17            |
+| Terreno Firme / Duro            | 2    | 8,33            |
+| Solo Molhado / Lama             | 3    | 16,67           |
+| Lençol Freático / Água no Fundo | 4    | 25              |
 
 `Solo Molhado / Lama` mantém o mesmo peso operacional do perfil técnico interno `alluvial`; a
 mudança desta regra é de nomenclatura visível para a pessoa usuária, sem migração de dados.
 
 ### Desnível
 
-|         Desnível dos pilotis | Complexidade derivada | Pontos no gauge |
+| Desnível dos pilotis         | Complexidade derivada | Pontos no gauge |
 |-----------------------------:|-----------------------|----------------:|
-|   `0 cm <= desnível < 30 cm` | Plano                 |               0 |
-|  `30 cm <= desnível < 60 cm` | Moderado              |             7,5 |
-|  `60 cm <= desnível < 90 cm` | Íngreme               |              15 |
-| `90 cm <= desnível < 120 cm` | Muito íngreme         |            22,5 |
-|         `120 cm <= desnível` | Extremo               |              30 |
+| `0 cm <= desnível < 30 cm`   | Plano                 | 0               |
+| `30 cm <= desnível < 60 cm`  | Moderado              | 7,5             |
+| `60 cm <= desnível < 90 cm`  | Íngreme               | 15              |
+| `90 cm <= desnível < 120 cm` | Muito íngreme         | 22,5            |
+| `120 cm <= desnível`         | Extremo               | 30              |
 
 ### Obstáculos
 
@@ -118,10 +118,10 @@ Cada opção marcada soma:
 
 | Obstáculo                     | Peso | Pontos no gauge |
 |-------------------------------|-----:|----------------:|
-| Hidráulicos                   | 0,80 |            6,15 |
-| Subterrâneos                  | 1,00 |            7,69 |
-| Elevados                      | 0,20 |            1,54 |
-| Servidões vizinhas / Esquadro | 0,60 |            4,62 |
+| Hidráulicos                   | 0,80 | 6,15            |
+| Subterrâneos                  | 1,00 | 7,69            |
+| Elevados                      | 0,20 | 1,54            |
+| Servidões vizinhas / Esquadro | 0,60 | 4,62            |
 
 ### Pilotis
 
@@ -138,29 +138,29 @@ Exemplos:
 
 | Média dos pilotis | Pontos dos pilotis |
 |------------------:|-------------------:|
-|             1,0 m |                  0 |
-|             1,5 m |                 10 |
-|             2,0 m |                 20 |
-|             2,5 m |                 30 |
-|             3,0 m |                 40 |
-|             3,2 m |                 44 |
-|             3,5 m |                 50 |
+| 1,0 m             | 0                  |
+| 1,5 m             | 10                 |
+| 2,0 m             | 20                 |
+| 2,5 m             | 30                 |
+| 3,0 m             | 40                 |
+| 3,2 m             | 44                 |
+| 3,5 m             | 50                 |
 
 Com solo `Lençol Freático / Água no Fundo`, desnível plano e sem obstáculos:
 
 | Média dos pilotis | Pontuação final esperada |
 |------------------:|-------------------------:|
-|             2,5 m |                       55 |
-|             3,0 m |                       65 |
-|             3,5 m |                       75 |
+| 2,5 m             | 55                       |
+| 3,0 m             | 65                       |
+| 3,5 m             | 75                       |
 
 ## Faixas
 
-|  Valor | Faixa   |
+| Valor  | Faixa   |
 |-------:|---------|
-|   0-24 | Baixa   |
-|  25-49 | Média   |
-|  50-74 | Alta    |
+| 0-24   | Baixa   |
+| 25-49  | Média   |
+| 50-74  | Alta    |
 | 75-100 | Crítica |
 
 ## Fundamentação

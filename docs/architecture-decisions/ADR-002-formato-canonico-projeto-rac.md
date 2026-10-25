@@ -84,7 +84,8 @@ A decisão está aceita quando:
 2. A restauração aplica `HouseDrawingDocument` ao estado lógico sem chamar rebuild lógico a partir
    do canvas.
 
-3. `CanvasGroup` e `CanvasObject` permanecem confinados a `client/src/components/rac-editor/@canvas`.
+3. `CanvasGroup` e `CanvasObject` permanecem confinados a
+   `client/src/components/rac-editor/@canvas`.
 
 4. `canvas.toJSON()` e `canvas.loadFromJSON()` não vazam para hooks de aplicação, bootstrap, ports
    gerais ou domínio.

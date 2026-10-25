@@ -24,8 +24,8 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 Esta ADR continua `accepted`. A revisão não altera a decisão central sobre a fronteira entre o
 editor RAC e o runtime Fabric. Ela apenas corrige um detalhe operacional que driftou:
 `TutorialProgressPort` não existe mais como port vigente em `src`. O progresso do tour guiado fica
-hoje no runtime próprio em `client/src/components/guided-tour`, enquanto o editor fornece registry, anchors
-e eventos em `client/src/components/rac-editor/lib/rac-editor-guided-tour.ts`.
+hoje no runtime próprio em `client/src/components/guided-tour`, enquanto o editor fornece registry,
+anchors e eventos em `client/src/components/rac-editor/lib/rac-editor-guided-tour.ts`.
 
 ## 1. Contexto
 

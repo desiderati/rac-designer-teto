@@ -116,7 +116,7 @@ claramente estabelecida.
 
 - [UI-007 — Modais e ações
   compartilhadas](docs/ui-definitions/UI-007-modais-e-acoes-compartilhadas.md), para rolagem
-  exclusiva do conteúdo, ordem das ações e exceções de cada família
+  exclusiva do conteúdo, ordem das ações, Resumo da Casa responsivo e exceções de cada família
 
 - [UI-008 — Análise de Campo](docs/ui-definitions/UI-008-analise-de-campo.md), para planta
   expansível, grupos por largura do card e paridade do editor inline
@@ -126,7 +126,7 @@ claramente estabelecida.
 
 - [UI-006 - Editores flutuantes e teclado no
   mobile](docs/ui-definitions/UI-006-editores-flutuantes-e-teclado-mobile.md), para foco, viewport
-  visual e acesso aos campos e ações em telas baixas
+  visual, arrasto desktop nos dois eixos e acesso aos campos e ações em telas baixas
 
 - [Diagnóstico da publicação Manus](docs/OPS-001-diagnostico-publicacao-manus.md), para localizar
   bloqueios e separar resultado do workflow, código servido e aceite no aparelho

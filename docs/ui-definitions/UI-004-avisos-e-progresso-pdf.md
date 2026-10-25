@@ -7,7 +7,7 @@ doc_set: ui-definitions
 order: 4
 status: active
 lang: pt-BR
-updated: 2026-10-24
+updated: 2026-10-25
 ---
 
 # Identidade visual e comportamento dos Toasts
@@ -112,8 +112,13 @@ que a operação não fornece.
 
 As atualizações pertencem à mesma tentativa e mantêm a identidade da notificação. Falha de PDF
 inicia a contagem de 30 segundos quando o erro é exibido, com pausa por hover e fechamento manual.
-Fechar dispensa a comunicação; não cancela a geração. Tentar novamente pertence à prévia do PDF, não
-a uma ação nova inventada no toast.
+Durante a geração, o X é a ação de cancelar a tentativa; após conclusão ou falha, apenas dispensa a
+notificação. O fluxo usa um cancelamento compartilhado entre Canvas, listagem e ZIP, interrompe a
+espera no cliente e impede efeitos tardios de prévia, download, cache ou mudança de status. Isso não
+comprova interrupção do processamento no provedor remoto. Essa distinção substitui a orientação
+antiga de somente fechar o progresso e segue a
+[BUS-012](../business-rules/BUS-012-checklist-exportacao-rac.md). Tentar novamente pertence à prévia
+do PDF, não a uma ação nova inventada no toast.
 
 A barra da prévia do PDF mantém seu controle de minimização e restauração, independentemente do
 toast. A notificação não substitui os bloqueios ou as validações da exportação.
@@ -195,6 +200,9 @@ reverificar os estados afetados, conforme o
 - [Composição responsiva do produto](../../client/src/rac-ui.css).
 
 - [Prévia de PDF](../../client/src/components/rac-editor/@modals/ui/RacPdfPreviewModal.tsx).
+
+- [Tentativa e cancelamento
+  compartilhados](../../client/src/components/rac-editor/lib/rac-pdf-export-task.ts).
 
 - [Viewer 3D](../../client/src/components/rac-editor/@viewer-3d/ui/House3DViewer.tsx).
 

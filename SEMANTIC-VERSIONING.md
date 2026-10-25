@@ -1,3 +1,9 @@
+---
+title: Versionamento Semântico
+doc_role: reference
+lang: pt-BR
+---
+
 # Versionamento Semântico
 
 Este documento é o contrato padrão de versionamento do repositório. Regras locais mais específicas,

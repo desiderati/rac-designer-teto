@@ -102,8 +102,8 @@ alturas dos pilotis. Essa preferência pertence ao editor/usuário e não ao reg
 2. Ao confirmar alteração, o valor deve ser aplicado imediatamente.
 
 3. Na modal de edição de piloti existente em modo automático, slider e digitação de nível são
-   desabilitados. Os botões de tamanho continuam habilitados. A altura escolhida é preservada;
-   sua redução continua respeitando o limite `nível <= altura / 2`.
+   desabilitados. Os botões de tamanho continuam habilitados. A altura escolhida é preservada; sua
+   redução continua respeitando o limite `nível <= altura / 2`.
 
 4. Ao alterar o nível pelo slider ou pela digitação no modo manual:
     - a altura atual do piloti é preservada;
@@ -118,8 +118,8 @@ alturas dos pilotis. Essa preferência pertence ao editor/usuário e não ao reg
 
 6. A modal de edição de piloti exibe as 8 alturas habilitadas para a casa em 2 linhas de 4 opções.
 
-7. Tipo, mestre, altura, nível e contraventamento ficam visíveis nos dois modos. Somente pilotis de canto podem
-   ser definidos como mestre; a revisão não altera as regras de contraventamento.
+7. Tipo, mestre, altura, nível e contraventamento ficam visíveis nos dois modos. Somente pilotis de
+   canto podem ser definidos como mestre; a revisão não altera as regras de contraventamento.
 
 8. Ao abrir a modal em modo manual e ao navegar entre pilotis, o campo de nível recebe foco. Em modo
    automático, o foco respeita o bloqueio do campo. Na definição inicial da casa, o nível é editável
@@ -143,12 +143,12 @@ alturas dos pilotis. Essa preferência pertence ao editor/usuário e não ao reg
 
 ### Síntese operacional
 
-| Ação do usuário                  | Altura recalculada?                                | Nível recalculado?                                     |
-|----------------------------------|----------------------------------------------------|--------------------------------------------------------|
+| Ação do usuário                      | Altura recalculada?                                | Nível recalculado?                                     |
+|--------------------------------------|----------------------------------------------------|--------------------------------------------------------|
 | Definir nível na inserção automática | **Sim**, pela recomendação (`altura >= nível * 3`) | Não (mantém o valor escolhido dentro do limite global) |
-| Alterar nível no modo manual     | Não                                                | Sim, se nível > altura atual / 2                       |
-| Botão de altura (menor)          | Não                                                | Sim, se nível > nova altura / 2                        |
-| Botão de altura (maior)          | Não                                                | Não                                                    |
+| Alterar nível no modo manual         | Não                                                | Sim, se nível > altura atual / 2                       |
+| Botão de altura (menor)              | Não                                                | Sim, se nível > nova altura / 2                        |
+| Botão de altura (maior)              | Não                                                | Não                                                    |
 
 ## Regras de limite
 

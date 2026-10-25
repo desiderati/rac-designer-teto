@@ -563,5 +563,8 @@ de `Solo Aluvial`, usando terminologia mais adequada ao uso de campo.
 
 ### Documentos complementares
 
-- [Plano de exclusão física de Construções TETO arquivadas](PRD-005-rodada-pos-release-rac.prd.assets/exclusao-fisica-construcao-arquivada-plan.md)
-- [Checklist de validação manual](PRD-005-rodada-pos-release-rac.prd.assets/manual-validation-checklist.md)
+- [Plano de exclusão física de Construções TETO
+  arquivadas](PRD-005-rodada-pos-release-rac.prd.assets/exclusao-fisica-construcao-arquivada-plan.md)
+
+- [Checklist de validação
+  manual](PRD-005-rodada-pos-release-rac.prd.assets/manual-validation-checklist.md)

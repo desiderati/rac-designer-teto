@@ -6,7 +6,7 @@ doc_type: technical-reference
 status: active
 lang: pt-BR
 created: 2026-10-17
-updated: 2026-10-17
+updated: 2026-10-25
 tags: [arquitetura, modulos, persistencia]
 ---
 
@@ -21,21 +21,28 @@ RAC](../engineering-playbook/PLAY-006-ports-and-adapters.md). Não atesta implan
 disponibilidade ou configuração de serviços remotos.
 
 Os três arquivos Mermaid deste pacote são a fonte canônica dos diagramas; seus blocos nesta nota
-devem permanecer sincronizados. Os PNGs são representações derivadas aprovadas visualmente pelo
-responsável pelo projeto na sessão de origem. Não substituem os contratos do código.
+devem permanecer sincronizados. Os PNGs históricos foram representações derivadas aprovadas
+visualmente na sessão de origem; seus hashes continuam no manifesto, mas os arquivos não estão
+presentes nem versionados neste checkout. Os blocos Mermaid abaixo preservam a leitura conectada das
+três visões. Não substituem os contratos do código.
 
 ### Atualidade das imagens e das fontes
 
-As imagens aprovadas de 16/10/2026 foram preservadas sem regeneração. A conferência atual encontrou
-uma atualização de rota: novos uploads retornam `/api/private-storage/key`, enquanto
-`/manus-storage/*` permanece legível por compatibilidade. As cópias Mermaid atuais corrigem somente
-esses rótulos na macro e na persistência, sem alterar nós, conexões, agrupamentos ou estilos. As
-legendas junto aos PNGs apontam a diferença; a imagem de camadas continua correspondente.
+O manifesto registra o aceite das imagens de 16/10/2026 e a revisão das fontes de 17/10/2026.
+Naquela conferência, novos uploads passaram a ser descritos pela rota `/api/private-storage/key`,
+mantendo `/manus-storage/*` legível por compatibilidade. As cópias Mermaid corrigiram somente esses
+rótulos na macro e na persistência, sem alterar nós, conexões, agrupamentos ou estilos.
 
 Os snapshots Mermaid de 16/10/2026 e os hashes dos arquivos acompanham o [manifesto de
 preservação](TECH-001-arquitetura-atual.assets/manifesto.json), para relacionar as imagens
-preservadas às fontes que as originaram. Essa diferença de rótulo não implica troca de
-armazenamento: o servidor continua transferindo bytes para S3 e intermediando a leitura.
+históricas às fontes que as originaram. Essa diferença de rótulo não implica troca de armazenamento:
+o servidor continua transferindo bytes para S3 e intermediando a leitura.
+
+A revisão documental de 25/10/2026 não regenerou imagens nem modificou as fontes ou os blocos
+Mermaid. A estrutura retratada continua sendo o recorte de 17/10/2026; os contratos posteriores de
+fotos, ledger e backup estão no [TECH-002](../TECH-002-contrato-fotos-privadas.md) e no
+[OPS-002](../OPS-002-backup-storage.md). O manifesto histórico não atesta a disponibilidade atual
+dos PNGs nem representa uma nova validação da arquitetura ou do ambiente publicado.
 
 ## Escolha da visão
 
@@ -111,10 +118,9 @@ blocos abaixo são cópias sincronizadas para leitura nesta nota.
 
 ## 01 · Visão macro — módulos e conexões
 
-A imagem preserva o rótulo legado do proxy. O Mermaid abaixo inclui a rota privada atual e sua
-compatibilidade. Abra o PNG no tamanho original para ler os rótulos.
-
-![Visão macro — módulos e conexões](TECH-001-arquitetura-atual.assets/macro.png)
+O Mermaid abaixo inclui a rota privada e sua compatibilidade no recorte documentado. A [fonte macro
+versionada](TECH-001-arquitetura-atual.assets/01-arquitetura-macro.mmd) permite ler e renderizar o
+diagrama sem depender do PNG histórico ausente.
 
 ```mermaid
 flowchart LR
@@ -161,10 +167,9 @@ flowchart LR
 
 ## 02 · Camadas internas — navegador
 
-A imagem e o Mermaid mantêm as mesmas responsabilidades e conexões. Abra o PNG no tamanho original
-para ler os rótulos.
-
-![Camadas internas — navegador](TECH-001-arquitetura-atual.assets/camadas.png)
+O Mermaid preserva as responsabilidades e conexões documentadas. A [fonte de camadas
+versionada](TECH-001-arquitetura-atual.assets/02-camadas-e-modulos.mmd) permite renderizar a visão
+sem depender do PNG histórico ausente.
 
 ```mermaid
 flowchart TB
@@ -222,11 +227,10 @@ flowchart TB
 
 ## 03 · Dados — o que vai para cada armazenamento
 
-Na imagem, o retorno de upload ainda diz `/manus-storage/key`; para novas gravações, leia
-`/api/private-storage/key`, como no Mermaid abaixo. Abra o PNG no tamanho original para ler os
-rótulos.
-
-![Dados — o que vai para cada armazenamento](TECH-001-arquitetura-atual.assets/dados.png)
+O retorno de upload na imagem histórica usava a rota `/manus-storage/key`; a [fonte de dados
+versionada](TECH-001-arquitetura-atual.assets/03-dados-e-persistencia.mmd) e o Mermaid abaixo
+registram a rota `/api/private-storage/key`. O PNG histórico não é necessário para consultar essa
+fonte.
 
 ```mermaid
 flowchart LR
@@ -321,10 +325,10 @@ fallback de storage local quando a sessão não é injetada; a composição norm
 ou IndexedDB conforme o modo. Isso não configura sincronização offline geral.
 
 A promoção preserva os 12 componentes/15 relações da macro, 15/19 de camadas e 11/11 de dados. A
-revisão visual e o aceite anteriores dos PNGs são preservados; não representam uma nova geração nem
-validação no ambiente publicado. Para leitura detalhada, abra cada imagem em tamanho original; a
-apresentação lado a lado reduz os rótulos. A estrutura e a equivalência das cópias Mermaid são
-conferidas separadamente da renderização visual.
+revisão visual e o aceite anteriores dos PNGs permanecem registrados no manifesto; não representam
+uma nova geração nem validação no ambiente publicado. A conferência de 25/10/2026 verifica os links
+e preserva as fontes disponíveis; não declara recuperação dos PNGs ausentes. A estrutura e a
+equivalência das cópias Mermaid são conferidas separadamente da renderização visual.
 
 ## Proveniência local
 
@@ -337,7 +341,9 @@ O levantamento inicial ocorreu em 05/10/2026 e foi revisado em 16/10/2026. Os in
 output/arquitetura-macro-diagrams e output/arquitetura-imagegen-v6.assets/diagrams, com registros em
 .agents/changelogs/2026-10/20261016.changelog.md e no work-item de geração. Esses insumos e
 tentativas permanecem como evidência local, sem serem necessários para navegar neste pacote. Esta
-promoção inclui somente as fontes, imagens aprovadas e explicações reutilizáveis.
+promoção original registrou fontes, imagens aprovadas e explicações reutilizáveis. No checkout atual
+estão disponíveis as fontes e o manifesto; a revisão documental não substitui nem recria as imagens
+aprovadas na origem.
 
 ## Fontes verificadas
 

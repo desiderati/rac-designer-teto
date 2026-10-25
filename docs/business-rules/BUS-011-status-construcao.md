@@ -65,8 +65,8 @@ de suas casas.
 ## Disponibilidade do Canvas
 
 O Canvas pode ser aberto quando existir uma construção não arquivada com uma casa não arquivada.
-Casas construídas e construções concluídas permitem consulta, com edição bloqueada. Sem casa apta,
-o retorno ao Canvas fica indisponível.
+Casas construídas e construções concluídas permitem consulta, com edição bloqueada. Sem casa apta, o
+retorno ao Canvas fica indisponível.
 
 ## Segurança
 

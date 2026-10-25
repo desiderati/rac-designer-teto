@@ -53,8 +53,8 @@ A migração não está completa se o upload aceita a rota e o resolver ou a nor
 ## Lifecycle do objeto
 
 O `storagePut` devolve uma chave física única; essa chave é registrada no ledger como `pending`
-antes de retornar ao formulário. Quando o save CAS do documento aceita a referência, a mesma chave
-é promovida para `active` no mesmo fluxo transacional do documento. Remover a foto do formulário
+antes de retornar ao formulário. Quando o save CAS do documento aceita a referência, a mesma chave é
+promovida para `active` no mesmo fluxo transacional do documento. Remover a foto do formulário
 remove apenas a referência do ledger: o objeto nunca é apagado automaticamente. A eventual
 `quarantined` é uma classificação reversível no banco, não uma alteração no bucket.
 

@@ -40,13 +40,18 @@ licença para expandir a arquitetura sem necessidade real.
 
 ## Build e gerenciador de pacotes
 
-- O perfil operacional detectado é `build-npm`.
+- O perfil detectado no bootstrap foi `build-npm`; esse identificador não substitui o contrato atual
+  de instalação.
 
-- `package-lock.json`, scripts em `package.json` e comandos oficiais do `README.md` padronizam o uso
-  de npm.
+- O [README](../../README.md) define pnpm para instalar e atualizar dependências, com
+  `pnpm-lock.yaml` como lockfile de referência. `pnpm-workspace.yaml` concentra permissões de build
+  e overrides.
 
-- `bun.lock` existe no repositório, mas não há documentação operacional vigente que padronize Bun
-  para este projeto.
+- Os comandos `npm run` do README executam os scripts de `package.json` após a instalação com pnpm.
+  Não significam uma segunda política de instalação com npm.
+
+- `package-lock.json` e `bun.lock` continuam no repositório, mas não são a referência da instalação
+  atual; não os usar para inferir uma troca de gerenciador.
 
 - Não troque o gerenciador de pacotes nem reescreva lockfiles sem decisão explícita.
 

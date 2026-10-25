@@ -7,7 +7,7 @@ doc_set: ui-definitions
 order: 5
 status: active
 lang: pt-BR
-updated: 2026-10-24
+updated: 2026-10-25
 ---
 
 # Menus laterais do Canvas
@@ -222,7 +222,8 @@ limitada à viewport e coloca os grupos lado a lado. Esse ponto de transição p
 flutuante; a decisão de trocar os menus por FABs continua baseada na política medida acima. Ao
 entrar em modo FAB, a apresentação lateral tem prioridade. Não ampliar progressivamente os botões
 quadrados num intervalo intermediário de largura. As ações do editor flutuante conservam os 40 px,
-conforme a [UI-007](UI-007-modais-e-acoes-compartilhadas.md).
+conforme a [UI-007](UI-007-modais-e-acoes-compartilhadas.md). A posição inicial, o arrasto nos dois
+eixos e seus limites ficam na [UI-006](UI-006-editores-flutuantes-e-teclado-mobile.md).
 
 ### Edição compacta dos demais objetos e do terreno
 

@@ -46,13 +46,20 @@ Definir a exportação em lote das RACs de uma Construção TETO para um arquivo
 ## Fonte dos Dados
 
 1. Cada PDF deve usar os dados persistidos da casa correspondente.
+
 2. A geração do modelo PDF deve aceitar `houseId` explícito para evitar depender da casa ativa.
+
 3. A imagem 2D de cada RAC deve ser renderizada a partir do documento visual persistido da casa.
+
 4. Cada PDF do lote deve incluir o snapshot 3D na segunda página, como a exportação individual.
-5. Cor de parede e pose de câmera (posição, alvo, campo de visão e zoom) devem vir do documento da própria casa.
-   Casas legadas sem configuração documental usam o enquadramento padrão; preferências locais legadas só podem
-   ser consultadas pela identidade da mesma casa.
-6. Se a captura 3D falhar, aquela casa entra no relatório de falhas; não exportar uma RAC silenciosamente incompleta.
+
+5. Cor de parede e pose de câmera (posição, alvo, campo de visão e zoom) devem vir do documento da
+   própria casa. Casas legadas sem configuração documental usam o enquadramento padrão; preferências
+   locais legadas só podem ser consultadas pela identidade da mesma casa.
+
+6. Se a captura 3D falhar, aquela casa entra no relatório de falhas; não exportar uma RAC
+   silenciosamente incompleta.
+
 7. A planta (vista superior) é obrigatória em cada casa, conforme o checklist da RAC. Validar antes
    de consultar o cache ou capturar imagens. Casa sem planta entra no relatório de falhas, com
    orientação para inseri-la; as demais casas válidas continuam a ser exportadas.

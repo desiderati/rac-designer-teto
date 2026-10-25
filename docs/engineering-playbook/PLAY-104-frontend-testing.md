@@ -64,6 +64,8 @@ ou rolagem para famílias com apresentação própria.
 | Modais e ações          | Conteúdo longo em altura baixa; cabeçalho e ações fora da rolagem; limites de 459/460/461 px; ordem visual e teclado iguais; ausência de padding duplicado.                                                             |
 | Compactação do Canvas   | Conferir largura e altura com ponteiro fino e coarse, rótulos ligados/desligados e resize nos dois sentidos. PDF e tour não podem reabrir as barras. Compactar por altura não ativa gestos mobile.                      |
 | Pilotis e terreno       | Conferir o flutuante a 730 e 729 px de altura, a troca para o painel no modo FAB e a ausência de crescimento intermediário dos botões. Confirmar, Cancelar e reabrir preservam os contratos de rascunho e persistência. |
+| Resumo da Casa          | Conferir Dialog desktop e Drawer mobile, título centralizado somente no Drawer, fechamento pela barra/X, Escape, foco de retorno e continuidade durante resize.                                                         |
+| Arrasto do editor       | Conferir posição inicial, movimento nos dois eixos, dimensões estáveis, limites após resize e igualdade do documento persistido antes/depois.                                                                           |
 | Análise de Campo        | Medir o card nos limites de 407/408 e 605/606 px internos, não apenas a janela. Conferir planta proporcional, ausência de reserva inferior, nível em uma linha, botões nas pontas e o ciclo preparar/retomar/inserir.   |
 | Imagem, PDF, fotos e 3D | Conferir revisão com recuos alinhados; PDF a 510 × 493 e 390 × 240 com toolbar acessível; visualizador escuro de fotos; cena 3D com quadro efetivamente desenhado e fullscreen preservado.                              |
 | Toasts e orientação     | Conferir mensagens simples e progresso, conteúdo longo com X fixo, centralização mobile, cores e durações nativas. Preservar o tour amarelo e a prioridade do aviso de orientação.                                      |
@@ -73,8 +75,10 @@ responsivos](../../e2e/toolbar-responsive.spec.ts), [painel lateral de
 pilotis](../../e2e/mobile-piloti-tabs.spec.ts), [assistente inicial e
 terreno](../../e2e/mobile-initial-pilotis-terrain.spec.ts), [Análise de
 Campo](../../e2e/house-field-analysis.spec.ts), [exportação PDF](../../e2e/pdf-export.spec.ts) e
-[viewer 3D](../../e2e/viewer-3d.spec.ts). Execute os cenários afetados pela mudança; não ampliar ou
-repetir a regressão sem mudança ou incerteza que justifique isso.
+[viewer 3D](../../e2e/viewer-3d.spec.ts), [Resumo da
+Casa](../../e2e/house-summary-responsive.spec.ts) e [arrasto do
+editor](../../e2e/floating-editor-drag.spec.ts). Execute os cenários afetados pela mudança; não
+ampliar ou repetir a regressão sem mudança ou incerteza que justifique isso.
 
 Mantenha separadas três evidências: comparação visual com a referência aprovada; comportamento
 nativo e persistência nos componentes reais; aceite humano na aplicação ou no aparelho. Uma cena do
@@ -89,6 +93,11 @@ inclusive em relação aos defaults injetados pelo Sonner. Não trocar a referê
 anterior à última revisão nem suprimir falhas preexistentes para apresentar uma suíte inteiramente
 verde. Artefatos locais e hashes ficam na continuidade operacional; os documentos duráveis apontam
 para fontes e testes do produto.
+
+Ao validar texto responsivo, medir também `scrollWidth`, `clientWidth`, altura e `white-space` do
+número, da unidade e do controle editável, após carregar a fonte. O retângulo externo pode caber
+enquanto o valor quebra internamente; não resolver a regressão diminuindo a fonte ou mudando os
+botões aprovados. Usar as transições internas e o intervalo de larguras da UI-008.
 
 Em WebGL, aguarde um quadro efetivamente desenhado antes de inspecionar a cena. Toque, orientação e
 VisualViewport emulados não comprovam o comportamento do teclado ou da renderização em Android real.

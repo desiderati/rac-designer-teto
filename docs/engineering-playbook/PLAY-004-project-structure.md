@@ -26,11 +26,11 @@ tratadas explicitamente. Ele existe para evitar dois erros comuns:
 
 - `client/src/domain/construction-site` concentra o contrato de repositório de Construções TETO.
 
-- `client/src/infra` concentra persistência in-memory, repositório local de Construções TETO, storage local
-  e settings.
+- `client/src/infra` concentra persistência in-memory, repositório local de Construções TETO,
+  storage local e settings.
 
-- `client/src/components/guided-tour` concentra o runtime reutilizável do tour guiado, incluindo hooks, UI,
-  ports e storage local de progresso.
+- `client/src/components/guided-tour` concentra o runtime reutilizável do tour guiado, incluindo
+  hooks, UI, ports e storage local de progresso.
 
 - `client/src/components/rac-editor` concentra a feature principal como miniaplicação interna, hoje
   organizada em slices como `@canvas/`, `@menus/`, `@modals/`, `@viewer-3d/`, `ui/`, `hooks/`,
@@ -40,61 +40,63 @@ tratadas explicitamente. Ele existe para evitar dois erros comuns:
 
 - `client/src/shared` concentra tipos, constantes e utilitários compartilhados.
 
-- `client/src/pages`, `client/src/App.tsx` e `client/src/main.tsx` montam a aplicação e o roteamento.
+- `client/src/pages`, `client/src/App.tsx` e `client/src/main.tsx` montam a aplicação e o
+  roteamento.
 
 ## Estado atual do editor
 
-- `client/src/components/rac-editor/lib/editor-house-controller.ts` é hoje o controller transitório do
-  estado compartilhado da casa.
+- `client/src/components/rac-editor/lib/editor-house-controller.ts` é hoje o controller transitório
+  do estado compartilhado da casa.
 
-- `client/src/components/rac-editor/@canvas/lib/canvas-house-controller.ts` compõe o controller da casa com
-  o runtime visual do canvas.
+- `client/src/components/rac-editor/@canvas/lib/canvas-house-controller.ts` compõe o controller da
+  casa com o runtime visual do canvas.
 
 - `client/src/components/rac-editor/lib/house-store.ts` funciona como bridge reativa baseada em
   `useSyncExternalStore`.
 
-- `client/src/bootstrap/editor-bootstrap.ts` e `client/src/bootstrap/editor-context.tsx` compõem `EditorStore`,
-  ports e providers por contexto React.
+- `client/src/bootstrap/editor-bootstrap.ts` e `client/src/bootstrap/editor-context.tsx` compõem
+  `EditorStore`, ports e providers por contexto React.
 
-- `client/src/bootstrap/editor-house-ports.ts` e `client/src/bootstrap/editor-house-port-adapters.ts` compõem, por
-  factory, as portas transitórias da casa para o editor.
+- `client/src/bootstrap/editor-house-ports.ts` e
+  `client/src/bootstrap/editor-house-port-adapters.ts` compõem, por factory, as portas transitórias
+  da casa para o editor.
 
 - `client/src/components/rac-editor/lib/editor-house-*-command-service.ts` separa comandos de setup,
   terreno, vistas e piloti, deixando `EditorHouseCommandService` como roteador transitório.
 
-- `client/src/components/rac-editor/store/editor-state-store.ts` concentra estado serializável de interação
-  do editor, começando pela seleção pública; ele não substitui o controller da casa.
+- `client/src/components/rac-editor/store/editor-state-store.ts` concentra estado serializável de
+  interação do editor, começando pela seleção pública; ele não substitui o controller da casa.
 
 - `client/src/components/rac-editor/store/editor-selection.ts`, `editor-ids.ts`, `editor-view.ts` e
   `editor-contraventamento.ts` concentram modelos serializáveis de interação do editor sem depender
   do canvas.
 
-- `client/src/components/rac-editor/@canvas` concentra a borda visual 2D: contratos do canvas, hooks de
-  canvas, helpers, factories e adapters Fabric.
+- `client/src/components/rac-editor/@canvas` concentra a borda visual 2D: contratos do canvas, hooks
+  de canvas, helpers, factories e adapters Fabric.
 
-- `client/src/components/rac-editor/@canvas/lib/contraventamento-geometry.ts` concentra a geometria visual
-  de contraventamento, como coordenadas e inferência visual de lado.
+- `client/src/components/rac-editor/@canvas/lib/contraventamento-geometry.ts` concentra a geometria
+  visual de contraventamento, como coordenadas e inferência visual de lado.
 
 - `client/src/components/rac-editor/@canvas/hooks/useCanvasDebugBridge.ts` e
-  `client/src/components/rac-editor/@canvas/lib/canvas-debug-bridge.ts` concentram a ponte global de debug
-  que conhece runtime visual concreto.
+  `client/src/components/rac-editor/@canvas/lib/canvas-debug-bridge.ts` concentram a ponte global de
+  debug que conhece runtime visual concreto.
 
 - `client/src/components/rac-editor/@menus` concentra a superfície de menus do editor, como
   `RacEditorMenus`, `CanvasToolsMenu`, menus superiores, tipos e configs locais.
 
-- `client/src/components/rac-editor/@modals` concentra dialogs, selectors, editors flutuantes e hooks
-  específicos de modais.
+- `client/src/components/rac-editor/@modals` concentra dialogs, selectors, editors flutuantes e
+  hooks específicos de modais.
 
-- `client/src/components/rac-editor/@viewer-3d` concentra a visualização 3D, incluindo UI, hooks, parsers,
-  geometria e meshes.
+- `client/src/components/rac-editor/@viewer-3d` concentra a visualização 3D, incluindo UI, hooks,
+  parsers, geometria e meshes.
 
-- `client/src/components/rac-editor/ports` concentra Ports internos da feature ligados à casa, vistas,
-  pilotis, runtime e leitura/escrita lógica.
+- `client/src/components/rac-editor/ports` concentra Ports internos da feature ligados à casa,
+  vistas, pilotis, runtime e leitura/escrita lógica.
 
 - `client/src/components/rac-editor/@canvas/ports` concentra os Ports próprios da borda visual 2D.
 
-- `client/src/components/rac-editor/lib/rac-editor-guided-tour.ts` registra tours e dicas específicos do
-  editor; o runtime genérico permanece em `client/src/components/guided-tour`.
+- `client/src/components/rac-editor/lib/rac-editor-guided-tour.ts` registra tours e dicas
+  específicos do editor; o runtime genérico permanece em `client/src/components/guided-tour`.
 
 - Handles imperativos do canvas devem ser importados por capacidade específica, como
   `CanvasDocumentHandle`, `CanvasHistoryHandle`, `CanvasSnapshotHandle` ou
@@ -116,8 +118,8 @@ tratadas explicitamente. Ele existe para evitar dois erros comuns:
   `@canvas/ui/adapters` e nos helpers visuais de `@canvas/lib`. Código de domínio, infra e hooks
   gerais do editor não deve importar Fabric diretamente.
 
-- `client/src/test/rac-editor-boundary.smoke.test.ts` protege o núcleo lógico contra imports diretos de
-  Fabric, `@canvas`, tipos concretos `CanvasGroup`/`CanvasObject` e reintrodução de
+- `client/src/test/rac-editor-boundary.smoke.test.ts` protege o núcleo lógico contra imports diretos
+  de Fabric, `@canvas`, tipos concretos `CanvasGroup`/`CanvasObject` e reintrodução de
   `CanvasInteractionPort`.
 
 - Esse é o estado real atual e deve ser documentado como tal.
@@ -137,8 +139,8 @@ tratadas explicitamente. Ele existe para evitar dois erros comuns:
 - Regras puras de contraventamento e orientação de vistas/lados vivem em
   `client/src/domain/house/use-cases`, não no canvas nem em `client/src/shared/types`.
 
-- `client/src/domain/construction-site/construction-site-repository.port.ts` define o contrato assíncrono
-  de persistência de Construções TETO.
+- `client/src/domain/construction-site/construction-site-repository.port.ts` define o contrato
+  assíncrono de persistência de Construções TETO.
 
 - O domínio não deve importar React, Fabric, componentes visuais nem adapters concretos de storage.
 
@@ -152,8 +154,8 @@ tratadas explicitamente. Ele existe para evitar dois erros comuns:
 
 - Novas integrações de persistência, storage local e browser APIs devem preferir `client/src/infra`.
 
-- Não mova Fabric para `client/src/infra` por generalização; a integração atual com canvas é borda da
-  feature editor.
+- Não mova Fabric para `client/src/infra` por generalização; a integração atual com canvas é borda
+  da feature editor.
 
 - Fábricas que adaptam o controller transitório da casa para ports internos do RAC editor devem
   ficar no bootstrap de composição, não em `client/src/infra`.
@@ -200,8 +202,8 @@ tratadas explicitamente. Ele existe para evitar dois erros comuns:
 
 - Pages e `client/src/App.tsx` devem continuar como composição de UI, sem absorver regra de domínio.
 
-- `client/src/App.tsx` monta providers globais, roteamento e `GuidedTourHost`; não deve virar camada de
-  regra do editor.
+- `client/src/App.tsx` monta providers globais, roteamento e `GuidedTourHost`; não deve virar camada
+  de regra do editor.
 
 ## Restrições estruturais
 
@@ -209,11 +211,11 @@ tratadas explicitamente. Ele existe para evitar dois erros comuns:
 
 - Não usar shared como lixeira para regra de negócio.
 
-- Não espalhar novas integrações de Fabric para fora de `client/src/components/rac-editor/@canvas` sem
-  justificativa clara e atualização simultânea deste playbook.
+- Não espalhar novas integrações de Fabric para fora de `client/src/components/rac-editor/@canvas`
+  sem justificativa clara e atualização simultânea deste playbook.
 
-- Não introduzir `CanvasGroup` ou `CanvasObject` fora de `client/src/components/rac-editor/@canvas`; se uma
-  rotina precisar desses tipos, ela pertence ao slice `@canvas`.
+- Não introduzir `CanvasGroup` ou `CanvasObject` fora de `client/src/components/rac-editor/@canvas`;
+  se uma rotina precisar desses tipos, ela pertence ao slice `@canvas`.
 
 - Não reintroduzir `CanvasInteractionPort` como atalho para evitar escolher uma capacidade do
   canvas.

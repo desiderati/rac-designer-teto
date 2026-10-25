@@ -23,6 +23,12 @@ lang: pt-BR
   inclusive quando ela já foi definida ou inserida no Canvas. Casa construída ou arquivada e
   construção concluída ou arquivada exibem o motivo do bloqueio.
 
+No mobile horizontal nativo, a listagem usa cards mesmo acima de 767 px; as ações `Pilotis` e
+`Redefinir Casa` permanecem disponíveis com os mesmos bloqueios. Essa apresentação não muda a regra
+de entrada inicial por largura nem transforma desktop baixo em mobile. O contrato da listagem está
+na [UI-005](../ui-definitions/UI-005-menus-laterais-canvas.md) e a composição da análise na
+[UI-008](../ui-definitions/UI-008-analise-de-campo.md).
+
 ## Status da casa na listagem
 
 - **Inicial**: a casa ainda não possui tipo/configuração definidos.
@@ -66,7 +72,7 @@ definição e a preparação da Análise de Campo para começar uma nova configu
    salvos por construção e casa; a casa ativa e o documento de outra casa são preservados.
 
 5. Mestre, níveis, alturas e contraventamentos mantêm as regras do editor. Para adicionar um
-   contraventamento, o destino é escolhido nos controles, entre os pilotis válidos.
+   contraventamento, o destino é escolhido na planta, entre os pilotis válidos.
 
 6. Os salvamentos confirmados são agrupados em janelas de 10 segundos para exibir um único toast,
    com a duração padrão de sucesso. A gravação não espera essa janela. Falhas preservam a

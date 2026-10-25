@@ -38,24 +38,24 @@ reduzir acoplamento sem negar que o canvas ainda é uma borda central da aplica�
 
 - `client/src/components/rac-editor` é tratado como uma miniaplicação interna do editor.
 
-- `client/src/components/rac-editor/@canvas` concentra a borda visual 2D, com ports, hooks, factories e
-  adapters Fabric.
+- `client/src/components/rac-editor/@canvas` concentra a borda visual 2D, com ports, hooks,
+  factories e adapters Fabric.
 
 - `client/src/components/rac-editor/ports` já concentra contratos internos de casa, vistas, pilotis,
   runtime e leitura/escrita lógica.
 
 - `client/src/bootstrap/editor-bootstrap.ts`, `client/src/bootstrap/editor-house-ports.ts` e
-  `client/src/bootstrap/editor-house-port-adapters.ts` já funcionam como pontos de composição de store e
-  ports.
+  `client/src/bootstrap/editor-house-port-adapters.ts` já funcionam como pontos de composição de
+  store e ports.
 
-- `client/src/components/rac-editor/lib/editor-house-controller.ts` ainda é o controller transitório do
-  estado compartilhado da casa.
+- `client/src/components/rac-editor/lib/editor-house-controller.ts` ainda é o controller transitório
+  do estado compartilhado da casa.
 
 - `client/src/components/rac-editor/lib/editor-house-*-command-service.ts` já separa comandos por
   responsabilidade.
 
-- `client/src/components/rac-editor/lib/editor-house-state.ts` recebe `HousePersistencePort`; o adapter
-  concreto padrão é composto em `client/src/bootstrap/editor-house-ports.ts`.
+- `client/src/components/rac-editor/lib/editor-house-state.ts` recebe `HousePersistencePort`; o
+  adapter concreto padrão é composto em `client/src/bootstrap/editor-house-ports.ts`.
 
 - `client/src/components/rac-editor/lib/construction-site-session.ts` recebe storage por porta; a
   composição com `localStorage` ocorre no bootstrap.
@@ -63,17 +63,18 @@ reduzir acoplamento sem negar que o canvas ainda é uma borda central da aplica�
 - Configurações do editor são expostas por `SettingsPort`, com composição concreta em
   `client/src/bootstrap/editor-infra-ports.ts`.
 
-- O tour guiado possui runtime próprio em `client/src/components/guided-tour`; o editor fornece registry em
-  `client/src/components/rac-editor/lib/rac-editor-guided-tour.ts` e anchors/eventos `data-guided-tour-*`.
+- O tour guiado possui runtime próprio em `client/src/components/guided-tour`; o editor fornece
+  registry em `client/src/components/rac-editor/lib/rac-editor-guided-tour.ts` e anchors/eventos
+  `data-guided-tour-*`.
 
-- `client/src/components/rac-editor/lib/house-store.ts` já assina ports injetados e separa snapshot lógico
-  de snapshot de runtime visual.
+- `client/src/components/rac-editor/lib/house-store.ts` já assina ports injetados e separa snapshot
+  lógico de snapshot de runtime visual.
 
-- `client/src/shared/types/house-drawing-document.ts` define o `HouseDrawingDocument`, contrato canônico
-  interno para persistir o estado lógico e visual da casa ativa.
+- `client/src/shared/types/house-drawing-document.ts` define o `HouseDrawingDocument`, contrato
+  canônico interno para persistir o estado lógico e visual da casa ativa.
 
-- `client/src/components/rac-editor/ports/HouseDrawingDocumentPort.ts` compõe o documento lógico da casa
-  sem expor JSON Fabric aos hooks gerais do editor.
+- `client/src/components/rac-editor/ports/HouseDrawingDocumentPort.ts` compõe o documento lógico da
+  casa sem expor JSON Fabric aos hooks gerais do editor.
 
 - `client/src/components/rac-editor/@canvas/ports/CanvasDocumentPort.ts` representa documento visual
   serializável, não dump do runtime Fabric.
@@ -87,12 +88,13 @@ reduzir acoplamento sem negar que o canvas ainda é uma borda central da aplica�
 - `client/src/domain/house/use-cases/house-view-orientation.use-case.ts` concentra a semântica de
   orientação entre `HouseViewType`, `HouseSide` e metadados legados de vista.
 
-- `client/src/components/rac-editor/@canvas/lib/contraventamento-geometry.ts` concentra geometria visual de
-  contraventamento, mantendo coordenadas e inferência de lado fora de `client/src/shared/types`.
+- `client/src/components/rac-editor/@canvas/lib/contraventamento-geometry.ts` concentra geometria
+  visual de contraventamento, mantendo coordenadas e inferência de lado fora de
+  `client/src/shared/types`.
 
-- `client/src/test/rac-editor-boundary.smoke.test.ts` já protege o núcleo lógico contra Fabric, `@canvas`,
-  `CanvasGroup`, `CanvasObject`, reintrodução de `CanvasInteractionPort` e imports concretos de
-  `client/src/infra` no código produtivo do editor.
+- `client/src/test/rac-editor-boundary.smoke.test.ts` já protege o núcleo lógico contra Fabric,
+  `@canvas`, `CanvasGroup`, `CanvasObject`, reintrodução de `CanvasInteractionPort` e imports
+  concretos de `client/src/infra` no código produtivo do editor.
 
 - `docs/architecture-decisions/ADR-001-fronteira-editor-runtime-fabric.md` já aceita a fronteira do
   editor com o runtime Fabric como decisão arquitetural vigente.
@@ -147,8 +149,8 @@ reduzir acoplamento sem negar que o canvas ainda é uma borda central da aplica�
   storage concreto de settings diretamente.
 
 - O progresso do guided tour é responsabilidade atual de
-  `client/src/components/guided-tour/store/guided-tour-storage.ts`; não existe `TutorialProgressPort`
-  vigente no código.
+  `client/src/components/guided-tour/store/guided-tour-storage.ts`; não existe
+  `TutorialProgressPort` vigente no código.
 
 - `HouseStatePort` representa estado lógico; `HouseRuntimeSnapshotPort<TGroup>` representa projeção
   visual observável; `HouseVisualRuntimePort<TGroup>` representa capacidades mínimas do runtime
@@ -158,8 +160,8 @@ reduzir acoplamento sem negar que o canvas ainda é uma borda central da aplica�
   de tela, e consumidores novos devem escolher handles menores.
 
 - `client/src/components/rac-editor/hooks/useRacEditorController.ts` e
-  `client/src/components/rac-editor/ui/RacEditorCanvas.tsx` usam `CanvasHandle`, um composite explícito de
-  capacidades menores.
+  `client/src/components/rac-editor/ui/RacEditorCanvas.tsx` usam `CanvasHandle`, um composite
+  explícito de capacidades menores.
 
 - `client/src/bootstrap/editor-house-port-adapters.ts` deve permanecer genérico sobre
   `HouseRuntimeGroupRef`; adapters que precisam interpretar `CanvasGroup`, como a projeção 3D

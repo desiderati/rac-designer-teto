@@ -117,7 +117,9 @@ técnico, siga esta ordem:
 
 Consulte a [Arquitetura atual do RAC Designer
 TETO](docs/architecture-diagrams/TECH-001-arquitetura-atual.md) para as três visões conectadas de
-módulos, camadas e persistência, com Mermaid e imagens.
+módulos, camadas e persistência, com fontes Mermaid versionadas e o recorte histórico das imagens
+aprovadas. Os PNGs históricos não estão disponíveis no checkout atual; os diagramas continuam
+legíveis nos blocos Mermaid da nota.
 
 - `client/src/domain/house/` concentra agregado, casos de uso e contratos do domínio da casa
 
@@ -186,6 +188,24 @@ fotos e fullscreen 3D.
   `PLAY-101` a `PLAY-105`
 
 ---
+
+### Criar ou retomar uma prévia isolada
+
+Quando disponível no Codex local, `$design-system-playground` organiza a prévia executável com
+componentes reais, comparação Atual/Proposta e controles independentes de largura e altura.
+`$ui-ux-review` mantém o feedback e o aceite; aprovação da prévia não incorpora a mudança à
+aplicação nem autoriza publicação.
+
+Para criar, pedir uma prévia isolada do escopo desejado, preservando o produto. Para retomar,
+informar a prévia existente e a revisão aprovada: conferir projeto, comando de execução, origem
+servida e manifests/hashes antes de reutilizar o servidor. Preservar decisões, evidências e
+exceções; comparar a mesma cena, dados e viewport. Uma referência congelada não deve importar
+componentes vivos que já foram alterados.
+
+Portas, revisões e estado dos servidores pertencem à continuidade local, não a um default do Design
+System. Manter um servidor rodando quando solicitado; fechar uma aba não o encerra. Integrar ao
+produto é uma etapa explicitamente autorizada, validada nos componentes nativos e nos contratos da
+R48 acima, sem tomar o cenário forçado da prévia como roteamento real da aplicação.
 
 ## 🗂️ Estrutura do Repositório
 

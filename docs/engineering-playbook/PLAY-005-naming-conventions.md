@@ -27,8 +27,8 @@ variáveis, funções e componentes é crucial para legibilidade e manutenibilid
 
 - Exemplos a evitar: nomes como my-component.tsx ou user_profile_card.js.
 
-- Exceção vigente: primitives base de shadcn/ui em `client/src/components/ui` preservam o padrão gerado em
-  lowercase ou kebab-case, como `client/src/components/ui/button.tsx` e
+- Exceção vigente: primitives base de shadcn/ui em `client/src/components/ui` preservam o padrão
+  gerado em lowercase ou kebab-case, como `client/src/components/ui/button.tsx` e
   `client/src/components/ui/alert-dialog.tsx`.
 
 - Não renomeie arquivos de `client/src/components/ui` apenas para forçar PascalCase.
@@ -103,7 +103,8 @@ variáveis, funções e componentes é crucial para legibilidade e manutenibilid
 
 - Adapter: `{location}-{model}-{concern}.adapter.ts`, como `in-memory-house-persistence.adapter.ts`.
 
-- Caso de uso: `{action}.use-case.ts`, como `client/src/domain/house/use-cases/house-state.use-case.ts`.
+- Caso de uso: `{action}.use-case.ts`, como
+  `client/src/domain/house/use-cases/house-state.use-case.ts`.
 
 - Estratégia: `{element}.strategy.ts`, como
   `client/src/components/rac-editor/@canvas/lib/factory/elements/door.strategy.ts`.

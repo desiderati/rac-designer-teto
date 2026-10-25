@@ -15,6 +15,15 @@ lang: pt-BR
 > Este é o artefato humano primário da iniciativa. Não há JSON derivado nem sidecar de assets nesta
 > versão do PRD.
 
+## Atualidade do recorte
+
+Este PRD preserva o escopo da iniciativa de cadastro RD-008. Exportação e impressão ficaram fora
+daquela entrega, mas a implementação atual já inclui os monitores ativos da Construção TETO no PDF
+da casa, nas páginas após a planta, com continuação quando necessário. O contrato vigente está na
+[BUS-012](../business-rules/BUS-012-checklist-exportacao-rac.md); as menções a exportações futuras e
+a pergunta da seção 9 devem ser lidas como histórico, sem alterar o vínculo dos monitores com a
+construção.
+
 ## 1. Visão Geral
 
 - problema: O RAC Designer TETO já organiza Construções TETO, casas e famílias, mas ainda não possui

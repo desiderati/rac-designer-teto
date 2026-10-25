@@ -95,8 +95,9 @@ RAC.
 
 - TanStack Query gerencia dados remotos.
 
-- `editor-house-controller` e a bridge reativa em `client/src/components/rac-editor/lib/house-store.ts`
-  coordenam hoje o estado compartilhado da casa.
+- `editor-house-controller` e a bridge reativa em
+  `client/src/components/rac-editor/lib/house-store.ts` coordenam hoje o estado compartilhado da
+  casa.
 
 - O canvas continua sendo projeção do estado, não fonte de verdade.
 

@@ -27,23 +27,33 @@ Definir quais verificações o editor apresenta antes da exportação padrão de
 1. Ao confirmar, o checklist fecha e a geração exibe um toast com as etapas de captura 2D,
    captura/ilustração 3D, fotos, dados, composição e preparação da prévia. O mesmo feedback vale
    para Canvas e listagem; o ZIP informa também a casa em processamento.
-2. Alertas recomendados permanecem no checklist, sem um segundo toast repetindo as mesmas pendências.
+
+2. Alertas recomendados permanecem no checklist, sem um segundo toast repetindo as mesmas
+   pendências.
+
 3. Durante a geração, o X do progresso cancela a operação. O cliente interrompe a espera e a
    solicitação HTTP de ilustração; respostas tardias não podem gerar prévia, download, cache ou
    mudança de status posteriores ao cancelamento.
-4. O cancelamento libera uma nova tentativa e não deve ser apresentado como falha. A conclusão
-   ou falha encerra o modo cancelável; depois disso o X apenas fecha a notificação.
-5. Cancelar no cliente não confirma que um provedor remoto já em processamento interrompeu
-   seu trabalho. Etapas síncronas locais só podem responder quando devolvem controle ao navegador.
+
+4. O cancelamento libera uma nova tentativa e não deve ser apresentado como falha. A conclusão ou
+   falha encerra o modo cancelável; depois disso o X apenas fecha a notificação.
+
+5. Cancelar no cliente não confirma que um provedor remoto já em processamento interrompeu seu
+   trabalho. Etapas síncronas locais só podem responder quando devolvem controle ao navegador.
 
 ## Itens Obrigatórios
 
 Itens obrigatórios bloqueiam a geração do PDF:
 
 1. Existe Construção TETO ativa.
+
 2. Existe casa ativa ou primeira casa não arquivada disponível.
+
 3. A casa possui documento de desenho sincronizado.
-4. A planta (vista superior) da casa está inserida no Canvas. Elevações isoladas não substituem a planta.
+
+4. A planta (vista superior) da casa está inserida no Canvas. Elevações isoladas não substituem a
+   planta.
+
 5. O tipo da casa está definido.
 
 ## Itens Recomendados
@@ -74,14 +84,29 @@ Itens recomendados não bloqueiam a geração, mas aparecem como alertas:
 
 3. Alertas não devem impedir a geração, pois parte dos campos é operacionalmente opcional.
 
-4. Sem planta, o checklist bloqueia a geração antes de abrir a prévia, consultar o cache ou
-   capturar imagens. Orientação exibida: `Insira a planta (vista superior) da casa no Canvas antes de gerar o PDF.`
+4. Sem planta, o checklist bloqueia a geração antes de abrir a prévia, consultar o cache ou capturar
+   imagens. Orientação exibida: `Insira a planta (vista superior) da casa no Canvas antes de gerar o
+   PDF.`
 
 5. No editor, a confirmação e a tentativa posterior devem revalidar o documento atual e a presença
    da planta no estado corrente do Canvas. Se a casa ativa mudar, exigir revisão do checklist.
 
-6. A mesma exigência de planta vale para a impressão individual pela listagem e para cada casa no ZIP.
-   Falha técnica de captura 3D com planta presente continua sendo erro, sem gerar PDF incompleto.
+6. A mesma exigência de planta vale para a impressão individual pela listagem e para cada casa no
+   ZIP. Falha técnica de captura 3D com planta presente continua sendo erro, sem gerar PDF
+   incompleto.
+
+## Monitoria no PDF
+
+O modelo usa os monitores ativos da Construção TETO da casa exportada, preservando o vínculo com a
+construção; não cria uma associação própria por casa. A seção `MONITORIA` vem nas páginas após a
+planta. Volume maior de monitores gera continuação, sem descartar a equipe para acomodar
+justificativas ou observações longas.
+
+O [modelo](../../client/src/components/rac-editor/lib/rac-pdf-report-model.ts), o
+[renderer](../../client/src/components/rac-editor/lib/rac-pdf-report-renderer.ts) e os [testes do
+PDF](../../client/src/components/rac-editor/lib/rac-pdf-report-model.smoke.test.ts) sustentam esse
+comportamento. O escopo histórico de cadastro do PRD-002 não representa uma proibição de exportar
+monitores na aplicação atual.
 
 ## Conteúdo padrão do PDF
 
