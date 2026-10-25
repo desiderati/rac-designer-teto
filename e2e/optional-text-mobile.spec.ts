@@ -1,7 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {setupSeededRacEditorPage} from './helpers/construction-site.helpers';
 import {readConstructionSiteDocument} from './helpers/construction-site-storage.helpers';
-import {expectCanvasObjectsPersisted, getCanvasPosition, setCanvasPositionByDebug, triggerElementsAction} from './helpers/rac-editor.helpers';
+import {expectCanvasObjectsPersisted, selectCanvasObjectByMyTypeByDebug, triggerElementsAction} from './helpers/rac-editor.helpers';
 
 test.use({viewport: {width: 680, height: 320}, isMobile: true, hasTouch: true});
 
@@ -13,20 +13,14 @@ async function fenceText(page: Page) {
 
 async function openFence(page: Page) {
   await expectCanvasObjectsPersisted(page, ['fence']);
-  const doc = (await readConstructionSiteDocument(page))!;
-  const fence = doc.constructionSites[0].houses[0].drawingDocument.canvas.objects.find(object => object.kind === 'fence')!;
-  const zoom = (await getCanvasPosition(page))!.zoom;
-  const viewport = page.viewportSize()!;
-  const x = Math.max(0, fence.geometry.left! * zoom - viewport.width / 2);
-  const y = Math.max(0, fence.geometry.top! * zoom - viewport.height / 2);
-  await setCanvasPositionByDebug(page, x, y);
-  await expect.poll(async () => (await getCanvasPosition(page))!.x).toBeCloseTo(x, 0);
-  const surface = (await page.getByTestId('rac-canvas-surface').boundingBox())!;
-  await page.touchscreen.tap(surface.x + fence.geometry.left! * zoom, surface.y + fence.geometry.top! * zoom);
+  // A suíte exercita o campo/teclado; seleção e gestos possuem cenários próprios.
+  expect(await selectCanvasObjectByMyTypeByDebug(page, 'fence', true)).toBe(true);
+  await page.getByRole('button', {name: 'Editar', exact: true}).tap();
   await expect(page.getByRole('dialog', {name: 'Editar Cerca'})).toBeVisible();
 }
 
 test.beforeEach(async ({page}) => {
+  await page.addInitScript(() => localStorage.setItem('guided-tour:rac-tip:fence', 'true'));
   await page.setViewportSize({width: 1280, height: 900});
   await setupSeededRacEditorPage(page, {insertInitialViews: true});
   await triggerElementsAction(page, 'Cerca');
@@ -102,16 +96,18 @@ test('acompanha a viewport visual do teclado sem redimensionar a janela', async 
   await expect.poll(() => fenceText(page)).toBe('Limite do terreno');
 });
 
-test('mantém o rascunho ao girar entre retrato e paisagem', async ({page}) => {
+test('cancela o rascunho ao voltar ao retrato e permite reabrir em paisagem', async ({page}) => {
   const input = page.getByPlaceholder('Texto opcional');
   await input.fill('Rascunho da cerca');
   await page.setViewportSize({width: 375, height: 740});
-  await expect(input).toHaveValue('Rascunho da cerca');
   await expect(page.getByRole('heading', {name: 'Gire seu celular', exact: true})).toBeVisible();
+  await expect(page.getByRole('dialog', {name: 'Editar Cerca'})).toHaveCount(0);
   await page.setViewportSize({width: 680, height: 320});
   await expect(page.getByRole('heading', {name: 'Gire seu celular', exact: true})).toBeHidden();
+  await expect(page.getByRole('dialog', {name: 'Editar Cerca'})).toHaveCount(0);
+  await openFence(page);
   await expect(page.getByRole('dialog', {name: 'Editar Cerca'})).toBeVisible();
-  await expect(input).toHaveValue('Rascunho da cerca');
+  await expect(input).toHaveValue('');
   await page.getByRole('button', {name: 'Cancelar', exact: true}).tap();
   await expect.poll(() => fenceText(page)).toBe('');
 });

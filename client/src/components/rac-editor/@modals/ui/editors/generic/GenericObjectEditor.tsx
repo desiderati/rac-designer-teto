@@ -165,6 +165,7 @@ export function GenericObjectEditor({
 
   return (
     <FloatingEditor
+      className='rac-generic-floating-editor'
       ariaLabel={`Editar ${title}`}
       cardContent={editorContent}
       isOpen={isOpen}

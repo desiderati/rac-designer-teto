@@ -18,6 +18,11 @@
 .rac-floating-editor .rac-modal-actions > button { min-height: 40px; height: 40px; padding: 8px 16px; border-radius: 8px; }
 .rac-floating-editor .rac-modal-actions > button[data-action='cancel'] { color: hsl(var(--foreground)); }
 .rac-floating-content { min-width: 0; }
+.rac-generic-floating-editor .rac-floating-frame > [data-rac-modal-region='content'] {
+  /* Paint focus inside the shell padding without moving or narrowing the controls. */
+  margin: -6px;
+  padding: 6px;
+}
 .rac-floating-content > * + * { margin-top: 16px; }
 .rac-floating-actions { position: static; margin: 0; padding: 0; }
 .rac-floating-drawer-inner { display: flex; flex: 1 1 auto; min-height: 0; padding: var(--rac-modal-padding, 16px); }
