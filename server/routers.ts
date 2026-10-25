@@ -6,6 +6,7 @@ import {
   ConstructionSiteVersionConflictError,
   getConstructionSiteDocument,
   listConstructionSiteSummaries,
+  registerPendingStorageAsset,
   removeConstructionSiteDocument,
   saveConstructionSiteDocument,
 } from './db.ts';
@@ -145,6 +146,12 @@ export const appRouter = router({
         const scope = input.constructionSiteId ? sanitizePathSegment(input.constructionSiteId) : 'unassigned';
         const objectKey = `rac-designer-teto/${scope}/photos/${safeFileName}.${extension}`;
         const uploaded = await storagePut(objectKey, bytes, input.mimeType);
+        await registerPendingStorageAsset({
+          storageKey: uploaded.key,
+          purpose: 'house-photo',
+          contentType: input.mimeType,
+          sizeBytes: bytes.byteLength,
+        });
 
         return {
           key: uploaded.key,
@@ -218,6 +225,12 @@ export const appRouter = router({
           bytes,
           'image/png',
         );
+        await registerPendingStorageAsset({
+          storageKey: uploaded.key,
+          purpose: 'generated-3d',
+          contentType: 'image/png',
+          sizeBytes: bytes.byteLength,
+        });
 
         return {
           key: uploaded.key,
@@ -280,6 +293,12 @@ export const appRouter = router({
           colorCorrectedPng,
           'image/png',
         );
+        await registerPendingStorageAsset({
+          storageKey: processed.key,
+          purpose: 'generated-3d',
+          contentType: 'image/png',
+          sizeBytes: colorCorrectedPng.byteLength,
+        });
 
         return {
           url: processed.url,

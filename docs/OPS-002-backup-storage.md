@@ -30,6 +30,46 @@ O `updatedAt` dos assets capturados por GET usa `Last-Modified` quando presente;
 registra o instante de leitura. Esse fallback não é a data comprovada de upload e não serve para
 decisões de retenção.
 
+## Ledger de lifecycle e quarentena lógica
+
+O ledger relacional (`storage_assets`, `storage_asset_references` e `storage_asset_backfill_runs`)
+registra exclusivamente objetos conhecidos pela aplicação. Um PUT confirmado cria um registro
+`pending`; o salvamento CAS do documento canônico promove chaves efetivamente referenciadas para
+`active` e mantém uma referência por Construção. A remoção de uma referência nunca remove bytes:
+apenas pode tornar o registro elegível para **quarentena lógica** depois da janela configurada.
+
+O comando abaixo reconcilia documentos existentes. Sem parâmetros é `dry_run`; o modo de escrita
+requer dois argumentos explícitos. Ambos geram uma linha auditável em `storage_asset_backfill_runs`.
+O backfill é idempotente, não reescreve o payload do documento e não toca no bucket.
+
+```sh
+# Simulação segura, sem mudar o ledger de assets
+pnpm exec tsx scripts/admin/backfill-storage-assets.ts
+
+# Reconciliação idempotente do ledger, sem exclusão física
+pnpm exec tsx scripts/admin/backfill-storage-assets.ts \
+  --apply --confirm-apply-ledger-backfill
+```
+
+Após publicação do callback `/api/scheduled/storage-retention-quarantine`, um Heartbeat pode
+marcar registros sem referência como `quarantined`. O callback aceita somente uma identidade
+cron autenticada e procura a política pelo `taskUid`; ele não confia no payload HTTP. A configuração
+persiste o `taskUid`, os dias de carência de `pending` e a idade mínima sem referência. Não criar
+o Heartbeat antes de a versão com o callback estar publicada.
+
+```sh
+# Executar somente depois de criar o Heartbeat na plataforma e receber o task_uid.
+pnpm exec tsx scripts/admin/configure-storage-retention.ts \
+  --task-uid <task_uid> --enabled true \
+  --min-unreferenced-age-days 30 --pending-grace-days 7
+```
+
+`quarantined` é um estado reversível no banco; não existe deleção física automática. Objetos que
+nunca chegaram ao documento só podem ser conhecidos se o PUT também chegou ao ledger. O Forge ainda
+não oferece a listagem integral necessária para descobrir objetos históricos desconhecidos; portanto,
+qualquer deleção remota continua bloqueada até existir inventário completo, delete condicional e
+autorização operacional específica.
+
 O modo `backup` offline aceita snapshots e binários fornecidos. Para limpeza, a origem, contagem
 total e instante de captura do inventário de **todos os objetos** e dos uploads pendentes são
 obrigatórios. Uma contagem autodeclarada não prova completude externa; confirme essa evidência no

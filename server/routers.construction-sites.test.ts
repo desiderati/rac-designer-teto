@@ -6,6 +6,7 @@ const db = vi.hoisted(() => ({
   getConstructionSiteDocument: vi.fn(),
   saveConstructionSiteDocument: vi.fn(),
   removeConstructionSiteDocument: vi.fn(),
+  registerPendingStorageAsset: vi.fn(),
 }));
 const storage = vi.hoisted(() => ({ storagePut: vi.fn() }));
 const imageGeneration = vi.hoisted(() => ({ generateImage: vi.fn() }));
@@ -200,6 +201,12 @@ describe('constructionSites procedures', () => {
       expect.any(Buffer),
       'image/png',
     );
+    expect(db.registerPendingStorageAsset).toHaveBeenCalledWith({
+      storageKey: 'rac-designer-teto/unassigned/photos/terreno_123.png',
+      purpose: 'house-photo',
+      contentType: 'image/png',
+      sizeBytes: 8,
+    });
   });
 
   it('generates a house illustration behind a protected procedure', async () => {
@@ -225,6 +232,11 @@ describe('constructionSites procedures', () => {
       expect.any(Buffer),
       'image/png',
     );
+    expect(db.registerPendingStorageAsset).toHaveBeenCalledWith(expect.objectContaining({
+      storageKey: 'rac-designer-teto/generated/house-illustration-processed.png',
+      purpose: 'generated-3d',
+      contentType: 'image/png',
+    }));
     expect(imageGeneration.generateImage).toHaveBeenCalledWith(expect.objectContaining({
       model: 'MODEL_GPT_IMAGE_2',
       quality: 'medium',

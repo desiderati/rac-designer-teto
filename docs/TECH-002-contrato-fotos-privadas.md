@@ -50,6 +50,19 @@ não comprova existência da imagem ou autorização para acessá-la.
 Ao mudar uma rota, revisar as quatro fronteiras e os usos em fotos de construção, família e monitor.
 A migração não está completa se o upload aceita a rota e o resolver ou a normalização a descarta.
 
+## Lifecycle do objeto
+
+O `storagePut` devolve uma chave física única; essa chave é registrada no ledger como `pending`
+antes de retornar ao formulário. Quando o save CAS do documento aceita a referência, a mesma chave
+é promovida para `active` no mesmo fluxo transacional do documento. Remover a foto do formulário
+remove apenas a referência do ledger: o objeto nunca é apagado automaticamente. A eventual
+`quarantined` é uma classificação reversível no banco, não uma alteração no bucket.
+
+Essa sequência não simula uma transação distribuída com o Storage. Se o PUT tiver êxito e o ledger
+ou o save falhar, o objeto poderá permanecer desconhecido ou pendente; o formulário deve reportar a
+falha e a reconciliação administrativa só considera chaves observáveis no documento/ledger. Não
+substituir esse limite por uma exclusão especulativa.
+
 ## Feedback no formulário da casa
 
 O erro da foto deve chegar ao controle com identificação acessível e integrar a abertura da seção e
