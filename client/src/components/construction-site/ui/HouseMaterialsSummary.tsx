@@ -51,7 +51,7 @@ export function HouseMaterialsSummary({familyName, materials, guidedTourId, hous
           </button>
         </DrawerClose>
         <ModalFrame header={<DrawerHeader>
-          <DrawerTitle>Resumo da Casa</DrawerTitle>
+          <DrawerTitle className='text-center'>Resumo da Casa</DrawerTitle>
           <DrawerDescription className='sr-only'>Planta e materiais da casa de {familyName}.</DrawerDescription>
         </DrawerHeader>}>{content}</ModalFrame>
       </DrawerContent>

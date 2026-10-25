@@ -33,7 +33,8 @@ Drawer inferior no mobile. A política nativa usa largura até 767 px ou ponteir
 até 600 px; a compactação dos menus por altura, sozinha, não troca a apresentação desktop.
 
 Abrir por clique, toque ou ativação pelo teclado, sem abertura automática por hover ou foco.
-No mobile, a barra horizontal superior é um botão de fechamento com alvo de 44 px. No desktop,
+No mobile, o título fica centralizado e a barra horizontal superior é um botão de fechamento com
+alvo de 44 px. No desktop,
 usar o botão de fechar no cabeçalho. Escape e clique fora também fecham e devolvem o foco ao botão
 de origem. O cabeçalho e o fechamento ficam fixos; somente o conteúdo rola.
 
