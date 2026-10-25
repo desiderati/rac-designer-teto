@@ -1,6 +1,8 @@
 import {useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import {PanelsTopLeft, LoaderCircle, Menu, RotateCw, X} from 'lucide-react';
 import {HoverCard, HoverCardContent, HoverCardTrigger} from '@/components/ui/hover-card.tsx';
+import {ModalFrame} from '@/components/ui/ModalFrame.tsx';
+import {usePersistFn} from '@/hooks/usePersistFn.ts';
 import {
   Dialog,
   DialogContent,
@@ -33,10 +35,12 @@ export function HousePhotoPreviewTrigger({
   guidedTourId,
 }: HousePhotoPreviewTriggerProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const previewIdentity = useMemo(() => ({houseId: house.id, document: house.drawingDocument}),
+  const previewIdentity = useMemo(() => ({
+    houseId: house.id, document: house.drawingDocument, updatedAt: house.updatedAt, version: house.version,
+  }),
     [house.id, house.updatedAt, house.version, house.drawingDocument]);
   const [preview, setPreview] = useState({identity: previewIdentity, imageDataUrl: null as string | null, isLoading: false, loadError: false});
-  const requestGeneration = useRef(0);
+  const previewRequests = useRef({generation: 0});
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const normalizedFamilyName = familyName.trim() || 'casa';
   const previewLabel = `Pré-visualizar Canvas da casa ${normalizedFamilyName}`;
@@ -46,7 +50,7 @@ export function HousePhotoPreviewTrigger({
     : {identity: previewIdentity, imageDataUrl: null, isLoading: false, loadError: false};
   const {imageDataUrl: canvasImageDataUrl, isLoading, loadError} = currentPreview;
 
-  const loadCanvasPreview = async (force = false) => {
+  const loadCanvasPreview = usePersistFn(async (force = false) => {
     if (isLoading || (canvasImageDataUrl && !force)) return;
 
     if (!hasPersistedDrawing) {
@@ -56,28 +60,32 @@ export function HousePhotoPreviewTrigger({
 
     if (force) clearHouseDrawingCanvasImageCache();
 
-    const generation = ++requestGeneration.current;
+    const generation = ++previewRequests.current.generation;
     setPreview({identity: previewIdentity, imageDataUrl: null, isLoading: true, loadError: false});
     try {
       const result = await renderHouseDrawingCanvasImageDataUrl(house);
-      if (requestGeneration.current === generation) {
+      if (previewRequests.current.generation === generation) {
         setPreview({identity: previewIdentity, imageDataUrl: result.imageDataUrl, isLoading: false, loadError: false});
       }
     } catch (error) {
-      if (requestGeneration.current === generation) {
+      if (previewRequests.current.generation === generation) {
         console.warn('[HousePhotoPreviewTrigger] Não foi possível renderizar a prévia do Canvas:', error);
         setPreview({identity: previewIdentity, imageDataUrl: null, isLoading: false, loadError: true});
       }
     }
-  };
+  });
 
   useEffect(() => {
-    ++requestGeneration.current;
+    const requests = previewRequests.current;
+    ++requests.generation;
     setPreview({identity: previewIdentity, imageDataUrl: null, isLoading: false, loadError: false});
     setActionMenuOpen(false);
-    if (dialogOpen) void loadCanvasPreview();
-    return () => { ++requestGeneration.current; };
+    return () => { ++requests.generation; };
   }, [previewIdentity]);
+
+  useEffect(() => {
+    if (dialogOpen) void loadCanvasPreview();
+  }, [dialogOpen, loadCanvasPreview, previewIdentity]);
 
   const handleOpenCanvas = async () => {
     if (!onOpenCanvas) return;
@@ -179,8 +187,8 @@ export function HousePhotoPreviewTrigger({
           <DialogDescription id='house-canvas-preview-description' className='sr-only'>
             Prévia do desenho persistido da casa.
           </DialogDescription>
-          <div className='relative overflow-hidden rounded-xl bg-slate-50'>
-            <div className='flex max-h-[82vh] min-h-[18rem] items-center justify-center overflow-hidden'>
+          <ModalFrame contentClassName='pt-4'><div className='relative overflow-hidden rounded-xl bg-slate-50'>
+            <div className='flex max-h-[82vh] min-h-0 items-center justify-center overflow-hidden'>
               {canvasImageDataUrl ? (
                 <img
                   src={canvasImageDataUrl}
@@ -263,7 +271,7 @@ export function HousePhotoPreviewTrigger({
                 <Menu className='h-5 w-5' aria-hidden='true'/>
               </button>
             </div>
-          </div>
+          </div></ModalFrame>
         </DialogContent>
       </Dialog>
     </>

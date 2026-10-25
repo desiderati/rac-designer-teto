@@ -126,6 +126,34 @@ describe('PilotiEditor.tsx', () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
+  it('preserva nível digitado e seleção ao trocar o encaixe, inclusive com destino pendente', () => {
+    const updatePiloti = vi.fn((id: string, patch: Partial<HousePiloti>) => ({...pilotis[id], ...patch}));
+    const ports = createEditorPorts({updatePiloti, settings: {autoAdjustPilotiHeightsFromNivel: false}});
+    const wrapper = ({children}: {children: ReactNode}) => <EditorPortsContext.Provider value={ports}>{children}</EditorPortsContext.Provider>;
+    const onClose = vi.fn(), onCancelDestination = vi.fn(), onBrace = vi.fn();
+    const props = {isOpen: true, isMobile: false, onClose, pilotiId: 'piloti_0_0', currentHeight: 1,
+      currentNivel: 0.2, currentIsMaster: true, pilotiIds: ['piloti_0_0', 'piloti_1_0'],
+      selectedPilotiHeights: [1, 1.5, 2], onHeightChange: vi.fn(), onCancelDestination,
+      destinationPilotiIds: ['piloti_1_0'], onContraventamentoSelect: onBrace, contraventamentoRightDisabled: false};
+    const {rerender} = render(<PilotiEditor {...props}/>, {wrapper});
+    const input = screen.getByRole('textbox', {name: 'Nível do piloti em metros'});
+    input.textContent = '040';
+    fireEvent.input(input);
+    rerender(<PilotiEditor {...props} presentation='mobile-panel'/>);
+    expect(screen.getByRole('textbox', {name: 'Nível do piloti em metros'})).toHaveTextContent('0,40');
+    fireEvent.click(screen.getByRole('tab', {name: 'Contraventar'}));
+    expect(screen.getByText('Selecione o piloti onde o contraventamento termina.')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', {name: 'Direito'}));
+    expect(onBrace).toHaveBeenCalledExactlyOnceWith('right', 'piloti_0_0');
+    rerender(<PilotiEditor {...props} presentation='floating'/>);
+    expect(screen.getByRole('textbox', {name: 'Nível do piloti em metros'})).toHaveTextContent('0,40');
+    expect(onClose).not.toHaveBeenCalled();
+    expect(onCancelDestination).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', {name: 'Confirmar'}));
+    expect(updatePiloti).toHaveBeenLastCalledWith('piloti_0_0', expect.objectContaining({nivel: 0.4}));
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
   it('preserva altura e nível manuais de A2 ao confirmar', () => {
     const currentPilotis: Record<string, HousePiloti> = {
       ...pilotis,

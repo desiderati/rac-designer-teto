@@ -51,9 +51,11 @@ export function ActionDock({
   placement = 'content-column',
   spacing = 'standard',
   mobileDocked = true,
-  edgeToEdge = false,
   className,
 }: ActionDockProps) {
+  if (surface !== 'form') {
+    return <div data-testid={testId} className={cn('rac-modal-actions-dock', className)}>{children}</div>;
+  }
   const surfaceClasses = SURFACE_CLASSES[surface];
   const desktopClasses = cn(
     surfaceClasses.desktop,
@@ -83,7 +85,6 @@ export function ActionDock({
       className={cn(
         surfaceClasses.mobile,
         desktopClasses,
-        edgeToEdge && surface === 'drawer' ? 'mx-0 w-full px-4' : null,
         className,
       )}
     >

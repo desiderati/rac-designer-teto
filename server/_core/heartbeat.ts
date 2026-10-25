@@ -1,5 +1,5 @@
-import { TRPCError } from "@trpc/server";
-import { ENV } from "./env";
+import { TRPCError } from '@trpc/server';
+import { ENV } from './env';
 
 export type HeartbeatJob = {
   name: string;
@@ -11,7 +11,7 @@ export type HeartbeatJob = {
   cron: string;
   /** Callback path. MUST start with `/api/scheduled/`. */
   path: string;
-  method?: "POST" | "PUT";
+  method?: 'POST' | 'PUT';
   payload?: unknown;
   description?: string;
 };
@@ -21,7 +21,7 @@ export type HeartbeatJob = {
  * `enable`: true = resume, false = pause; omit = unchanged.
  * `name` is the (project, owner)-scope key and cannot be changed.
  */
-export type HeartbeatJobUpdate = Partial<Omit<HeartbeatJob, "name">> & {
+export type HeartbeatJobUpdate = Partial<Omit<HeartbeatJob, 'name'>> & {
   enable?: boolean;
 };
 
@@ -40,23 +40,23 @@ export type HeartbeatJobInfo = {
   nextExecutionAt?: string | null;
 };
 
-const SERVICE = "webdevtoken.v1.WebDevService";
+const SERVICE = 'webdevtoken.v1.WebDevService';
 
 const buildEndpoint = (rpc: string): string => {
   if (!ENV.forgeApiUrl) {
     throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Heartbeat service URL is not configured (BUILT_IN_FORGE_API_URL).",
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Heartbeat service URL is not configured (BUILT_IN_FORGE_API_URL).',
     });
   }
   if (!ENV.forgeApiKey) {
     throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Heartbeat service API key is not configured (BUILT_IN_FORGE_API_KEY).",
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Heartbeat service API key is not configured (BUILT_IN_FORGE_API_KEY).',
     });
   }
   const baseUrl = ENV.forgeApiUrl;
-  const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+  const normalizedBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
   return new URL(`${SERVICE}/${rpc}`, normalizedBase).toString();
 };
 
@@ -67,33 +67,33 @@ const callForge = async <T>(
 ): Promise<T> => {
   const endpoint = buildEndpoint(rpc);
   const headers: Record<string, string> = {
-    accept: "application/json",
+    accept: 'application/json',
     authorization: `Bearer ${ENV.forgeApiKey}`,
-    "content-type": "application/json",
-    "connect-protocol-version": "1",
+    'content-type': 'application/json',
+    'connect-protocol-version': '1',
   };
   // userSession is the decoded `app_session_id` cookie value (NOT the raw
   // Cookie header). Empty string falls back to the project owner identity.
   if (userSession) {
-    headers["x-manus-user-session"] = userSession;
+    headers['x-manus-user-session'] = userSession;
   }
 
   let response: Response;
   try {
     response = await fetch(endpoint, {
-      method: "POST",
+      method: 'POST',
       headers,
       body: JSON.stringify(body),
     });
   } catch (error) {
     throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
+      code: 'INTERNAL_SERVER_ERROR',
       message: `Heartbeat ${rpc} network error: ${String(error)}`,
     });
   }
 
   if (!response.ok) {
-    const detail = await response.text().catch(() => "");
+    const detail = await response.text().catch(() => '');
     throw mapForgeError(response, detail, rpc);
   }
   return (await response.json()) as T;
@@ -105,30 +105,30 @@ const mapForgeError = (
   rpc: string
 ): TRPCError => {
   const status = response.status;
-  let code: TRPCError["code"] = "INTERNAL_SERVER_ERROR";
-  if (status === 401) code = "UNAUTHORIZED";
-  else if (status === 403) code = "FORBIDDEN";
-  else if (status === 404) code = "NOT_FOUND";
-  else if (status === 400 || status === 422) code = "BAD_REQUEST";
-  else if (status === 409) code = "CONFLICT";
-  else if (status === 429) code = "TOO_MANY_REQUESTS";
+  let code: TRPCError['code'] = 'INTERNAL_SERVER_ERROR';
+  if (status === 401) code = 'UNAUTHORIZED';
+  else if (status === 403) code = 'FORBIDDEN';
+  else if (status === 404) code = 'NOT_FOUND';
+  else if (status === 400 || status === 422) code = 'BAD_REQUEST';
+  else if (status === 409) code = 'CONFLICT';
+  else if (status === 429) code = 'TOO_MANY_REQUESTS';
   return new TRPCError({
     code,
-    message: `Heartbeat ${rpc} failed (${status})${detail ? `: ${detail}` : ""}`,
+    message: `Heartbeat ${rpc} failed (${status})${detail ? `: ${detail}` : ''}`,
   });
 };
 
 const stringifyPayload = (payload: unknown): string => {
-  if (payload === undefined || payload === null) return "{}";
-  if (typeof payload === "string") return payload;
+  if (payload === undefined || payload === null) return '{}';
+  if (typeof payload === 'string') return payload;
   return JSON.stringify(payload);
 };
 
 const validateCallbackPath = (path: string): void => {
-  if (!path || !path.startsWith("/api/scheduled/")) {
+  if (!path || !path.startsWith('/api/scheduled/')) {
     throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "callback path must start with /api/scheduled/",
+      code: 'BAD_REQUEST',
+      message: 'callback path must start with /api/scheduled/',
     });
   }
 };
@@ -143,14 +143,14 @@ export async function createHeartbeatJob(
 ): Promise<{ taskUid: string; nextExecutionAt?: string | null }> {
   validateCallbackPath(job.path);
   return callForge<{ taskUid: string; nextExecutionAt?: string | null }>(
-    "CreateHeartbeatJob",
+    'CreateHeartbeatJob',
     {
       name: job.name,
       cronExpression: job.cron,
       callbackPath: job.path,
-      callbackMethod: job.method ?? "POST",
+      callbackMethod: job.method ?? 'POST',
       callbackPayload: stringifyPayload(job.payload),
-      description: job.description ?? "",
+      description: job.description ?? '',
     },
     userSession
   );
@@ -176,7 +176,7 @@ export async function updateHeartbeatJob(
   if (patch.description !== undefined) body.description = patch.description;
   if (patch.enable !== undefined) body.enable = patch.enable;
   return callForge<{ nextExecutionAt?: string | null }>(
-    "UpdateHeartbeatJob",
+    'UpdateHeartbeatJob',
     body,
     userSession
   );
@@ -187,7 +187,7 @@ export async function deleteHeartbeatJob(
   taskUid: string,
   userSession: string
 ): Promise<void> {
-  await callForge("DeleteHeartbeatJob", { taskUid }, userSession);
+  await callForge('DeleteHeartbeatJob', { taskUid }, userSession);
 }
 
 /**
@@ -209,5 +209,5 @@ export async function listHeartbeatJobs(
     total: number;
     actorUserId: string;
     jobs: HeartbeatJobInfo[];
-  }>("ListHeartbeatJobs", body, userSession);
+  }>('ListHeartbeatJobs', body, userSession);
 }

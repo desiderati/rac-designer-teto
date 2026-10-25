@@ -48,15 +48,15 @@ export function CanvasToolsMenu({
   disabled = false,
   showToolMenuLabels = false,
 }: CanvasToolsMenuProps) {
-  const {landscape, mobile} = useCanvasMobileViewport();
-  const showLabels = showToolMenuLabels && !mobile;
+  const {compact} = useCanvasMobileViewport({showToolMenuLabels});
+  const showLabels = showToolMenuLabels && !compact;
   const houseMenuItems = houseType ? HOUSE_MENU_CONFIG[houseType] : [];
   const isHouseMenuOpen = activeSubmenu === 'house' && !!houseType;
   const isToolbarCollapseViewport = useToolbarCollapseViewport();
   const shouldDefaultCollapse = usePhoneToolbarCollapseViewport();
   const [collapsedOverride, setCollapsedOverride] = useState<boolean | null>(null);
   const shouldShowMobileHandle = isMobile && isToolbarCollapseViewport;
-  const isCollapsed = !landscape && shouldShowMobileHandle && (collapsedOverride ?? shouldDefaultCollapse);
+  const isCollapsed = !compact && shouldShowMobileHandle && (collapsedOverride ?? shouldDefaultCollapse);
   const dragStartXRef = useRef<number | null>(null);
   const didDragRef = useRef(false);
   const radialItems: RadialMenuItem[] = [
@@ -85,13 +85,13 @@ export function CanvasToolsMenu({
   ];
 
   useEffect(() => {
-    if (!landscape || !activeSubmenu) return;
+    if (!compact || !activeSubmenu) return;
     const closeSubmenu = activeSubmenu === 'house' ? actions.toggleHouseMenu
       : activeSubmenu === 'elements' ? actions.toggleElementsMenu
         : activeSubmenu === 'geometry' ? actions.toggleGeometryMenu
           : activeSubmenu === 'lines' ? actions.toggleLinesMenu : undefined;
     closeSubmenu?.();
-  }, [landscape, activeSubmenu, actions]);
+  }, [compact, activeSubmenu, actions]);
 
   const handleHandlePointerDown = (event: PointerEvent<HTMLButtonElement>) => {
     dragStartXRef.current = event.clientX;
@@ -119,7 +119,7 @@ export function CanvasToolsMenu({
     setCollapsedOverride((current) => !(current ?? shouldDefaultCollapse));
   };
 
-  const mobileHandle = !landscape && shouldShowMobileHandle ? (
+  const mobileHandle = !compact && shouldShowMobileHandle ? (
     <button
       type='button'
       aria-label={isCollapsed ? 'Abrir menu lateral' : 'Recolher menu lateral'}
@@ -158,6 +158,7 @@ export function CanvasToolsMenu({
           'border border-slate-200 shadow-lg',
         )}
         aria-label='Barra de ferramentas principal'
+        data-canvas-rail-labels={showToolMenuLabels}
         data-guided-tour-id='rac-toolbar'
         aria-disabled={disabled}
       >
@@ -279,7 +280,7 @@ export function CanvasToolsMenu({
           label='Imagem'
         />
 
-        {!landscape ? <RailDivider showLabels={showLabels}/> : null}
+        {!compact ? <RailDivider showLabels={showLabels}/> : null}
 
         <RailButton
           icon={MAIN_MENU_ICONS.delete}

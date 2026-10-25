@@ -1,6 +1,10 @@
+import {Button} from '@/components/ui/button.tsx';
+import {Dialog, DialogContent, DialogTitle, DialogDescription} from '@/components/ui/dialog.tsx';
+import {ConfirmationLayout} from '@/components/ui/ConfirmationLayout.tsx';
+import {ModalActions} from '@/components/ui/ModalActions.tsx';
+import {ConfirmationErrorToast} from '@/components/ui/ConfirmationErrorToast.tsx';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {useEffect, useRef, useState, type MouseEvent} from 'react';
-import {createPortal} from 'react-dom';
 import {TOP_BAR_ICONS} from '../lib/menu-config.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {APP_BUILD_TIMESTAMP, APP_VERSION} from '@/shared/app-version.ts';
@@ -73,14 +77,7 @@ export function UserMenu({
     };
   }, [menuOpen]);
 
-  useEffect(() => {
-    if (!logoutOpen) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !logoutPending) setLogoutOpen(false);
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [logoutOpen, logoutPending]);
+
 
   return (
     <>
@@ -179,52 +176,20 @@ export function UserMenu({
         ) : null}
       </div>
 
-      {logoutOpen ? createPortal(
-        <div className='fixed inset-0 z-[1000] flex items-center justify-center p-4' role='presentation'>
-          <button
-            type='button'
-            aria-label='Fechar confirmação de saída'
-            className='absolute inset-0 bg-slate-950/35 backdrop-blur-[2px]'
-            onClick={() => {
-              if (!logoutPending) setLogoutOpen(false);
-            }}
-          />
-          <div
-            role='dialog'
-            aria-modal='true'
-            aria-labelledby='logout-dialog-title'
-            aria-describedby='logout-dialog-description'
-            className='relative z-[1001] w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl'
-          >
-            <div className='space-y-2'>
-              <h2 id='logout-dialog-title' className='text-lg font-semibold text-slate-900'>Sair do RAC Designer?</h2>
-              <p id='logout-dialog-description' className='text-sm leading-6 text-slate-600'>
-                Sua sessão será encerrada. As alterações já sincronizadas continuarão salvas.
-              </p>
-            </div>
-            {logoutError ? <p role='alert' className='mt-4 text-sm font-medium text-red-600'>{logoutError}</p> : null}
-            <div className='mt-6 grid grid-cols-2 gap-2 [&>button]:whitespace-normal [&>button]:py-2'>
-              <button
-                type='button'
-                onClick={() => setLogoutOpen(false)}
-                disabled={logoutPending}
-                className='inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50'
-              >
-                Cancelar
-              </button>
-              <button
-                type='button'
-                onClick={confirmLogout}
-                disabled={logoutPending}
-                className='inline-flex min-h-10 items-center justify-center rounded-lg bg-red-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60'
-              >
-                {logoutPending ? 'Saindo…' : 'Sair'}
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body,
-      ) : null}
+      <Dialog open={logoutOpen} onOpenChange={open => {if (!logoutPending) setLogoutOpen(open);}}>
+        <DialogContent hideCloseButton className='z-[1001] max-w-md' overlayClassName='z-[1000]'
+          onEscapeKeyDown={event => {if (logoutPending) event.preventDefault();}}
+          onPointerDownOutside={event => {if (logoutPending) event.preventDefault();}}
+          onCloseAutoFocus={event => {event.preventDefault(); menuRef.current?.querySelector<HTMLButtonElement>('[aria-label="Abrir menu da conta"]')?.focus();}}>
+          <ConfirmationErrorToast message={logoutError}/>
+          <ConfirmationLayout
+            title={<DialogTitle>Sair do RAC Designer?</DialogTitle>}
+            description={<DialogDescription>Sua sessão será encerrada. As alterações já sincronizadas continuarão salvas.</DialogDescription>}
+            actions={<ModalActions
+              cancel={<Button data-action='cancel' type='button' variant='outline' onClick={() => setLogoutOpen(false)} disabled={logoutPending}>Cancelar</Button>}
+              confirm={<Button type='button' onClick={confirmLogout} disabled={logoutPending} className='bg-red-600 text-white hover:bg-red-700'>{logoutPending ? 'Saindo…' : 'Sair'}</Button>}/>}/>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

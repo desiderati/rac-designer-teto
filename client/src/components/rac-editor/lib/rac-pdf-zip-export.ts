@@ -1,5 +1,5 @@
 import type JSZip from 'jszip';
-import type {RacPdfExportStepId} from '@/components/rac-editor/@modals/ui/RacPdfExportProgress.tsx';
+import type {RacPdfExportStepId} from '@/components/rac-editor/lib/rac-pdf-export-progress.ts';
 import type {jsPDF as JsPDFDocument} from 'jspdf';
 import type {ConstructionSiteState, PersistedHouseRecord} from '@/shared/types/construction-site.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';

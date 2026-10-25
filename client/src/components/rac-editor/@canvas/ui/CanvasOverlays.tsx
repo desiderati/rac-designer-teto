@@ -61,7 +61,7 @@ export function CanvasOverlays({
   onSiteAssessmentChange,
   children,
 }: CanvasOverlaysProps) {
-  const {mobile, landscape} = useCanvasMobileViewport();
+  const {mobile, compact} = useCanvasMobileViewport();
   const showMinimap = showZoomControls || (mobile && (isPanning || isObjectMoving));
 
   return (
@@ -96,7 +96,7 @@ export function CanvasOverlays({
       )}
 
       {difficultyIndicator ? (
-        landscape ? <HouseDifficultyControls indicator={difficultyIndicator} siteAssessment={siteAssessment}
+        compact ? <HouseDifficultyControls indicator={difficultyIndicator} siteAssessment={siteAssessment}
           onSiteAssessmentChange={onSiteAssessmentChange} showToolMenuLabels={showToolMenuLabels} enableMobileCollapse/> :
         <>
           <div className='absolute right-4 top-1/2 z-10 hidden -translate-y-1/2 min-[767px]:block'>

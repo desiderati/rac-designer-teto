@@ -64,8 +64,13 @@ describe('proporções e controles dos elementos', () => {
     const house = create('siteHouse'), roof = body(house), center = roof.getRelativeCenterPoint();
     const diagonal = house.getCanvasObjects().find(child => child.type === 'line' && child.x1 === 0 && child.y1 === 0)!;
     const midpoint = diagonal.getRelativeCenterPoint();
-    expect(midpoint.x).toBeCloseTo(center.x + 25 - roof.width / 2, 6);
-    expect(midpoint.y).toBeCloseTo(center.y + 27.5 - roof.height / 2, 6);
+    const ridge = house.getCanvasObjects().find(child => child.type === 'line' && child.x1 > 0 && child.y1 === child.y2)!;
+    const ridgeCenter = ridge.getRelativeCenterPoint();
+    // As extremidades conectam a quina à cumeeira, inclusive com a altura interna do telhado.
+    expect(midpoint.x - diagonal.width / 2).toBeCloseTo(center.x - roof.width / 2, 6);
+    expect(midpoint.y - diagonal.height / 2).toBeCloseTo(center.y - roof.height / 2, 6);
+    expect(midpoint.x + diagonal.width / 2).toBeCloseTo(ridgeCenter.x - ridge.width / 2, 6);
+    expect(midpoint.y + diagonal.height / 2).toBeCloseTo(ridgeCenter.y, 6);
     house.set({scaleX: 4, scaleY: 4});
     expect(diagonal.toSVG()).toContain('non-scaling-stroke');
     expect(roof.toSVG()).toContain('non-scaling-stroke');

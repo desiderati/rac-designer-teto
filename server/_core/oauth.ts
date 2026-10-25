@@ -4,17 +4,17 @@ import {
   OAUTH_STATE_COOKIE,
   OAUTH_STATE_COOKIE_LOCAL,
   decodeOAuthState,
-} from "@shared/const";
-import { parse as parseCookieHeader } from "cookie";
-import type { Express, Request, Response } from "express";
-import * as db from "../db";
-import { getOAuthStateCookieOptions, getSessionCookieOptions } from "./cookies";
-import { sdk } from "./sdk";
-import { logSafeServerError } from "./safe-error-log";
+} from '@shared/const';
+import { parse as parseCookieHeader } from 'cookie';
+import type { Express, Request, Response } from 'express';
+import * as db from '../db';
+import { getOAuthStateCookieOptions, getSessionCookieOptions } from './cookies';
+import { sdk } from './sdk';
+import { logSafeServerError } from './safe-error-log';
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
-  return typeof value === "string" ? value : undefined;
+  return typeof value === 'string' ? value : undefined;
 }
 
 function redirectToOAuthError(res: Response, code: string) {
@@ -22,12 +22,12 @@ function redirectToOAuthError(res: Response, code: string) {
 }
 
 export function registerOAuthRoutes(app: Express) {
-  app.get("/api/oauth/callback", async (req: Request, res: Response) => {
-    const code = getQueryParam(req, "code");
-    const state = getQueryParam(req, "state");
+  app.get('/api/oauth/callback', async (req: Request, res: Response) => {
+    const code = getQueryParam(req, 'code');
+    const state = getQueryParam(req, 'state');
 
     if (!code || !state) {
-      redirectToOAuthError(res, "missing_parameters");
+      redirectToOAuthError(res, 'missing_parameters');
       return;
     }
 
@@ -35,11 +35,11 @@ export function registerOAuthRoutes(app: Express) {
     // startLogin set in the browser that began this login. An attacker can
     // forge `state`, but cannot plant this cookie in the victim's browser.
     const { nonce } = decodeOAuthState(state);
-    const cookies = parseCookieHeader(req.headers.cookie ?? "");
+    const cookies = parseCookieHeader(req.headers.cookie ?? '');
     const oauthStateCookieOptions = getOAuthStateCookieOptions(req);
     const expectedNonce = cookies[oauthStateCookieOptions.secure ? OAUTH_STATE_COOKIE : OAUTH_STATE_COOKIE_LOCAL];
     if (!nonce || nonce !== expectedNonce) {
-      redirectToOAuthError(res, "invalid_state");
+      redirectToOAuthError(res, 'invalid_state');
       return;
     }
     res.clearCookie(OAUTH_STATE_COOKIE, oauthStateCookieOptions);
@@ -50,7 +50,7 @@ export function registerOAuthRoutes(app: Express) {
       const userInfo = await sdk.getUserInfo(tokenResponse.accessToken);
 
       if (!userInfo.openId) {
-        redirectToOAuthError(res, "profile_unavailable");
+        redirectToOAuthError(res, 'profile_unavailable');
         return;
       }
 
@@ -63,17 +63,17 @@ export function registerOAuthRoutes(app: Express) {
       });
 
       const sessionToken = await sdk.createSessionToken(userInfo.openId, {
-        name: userInfo.name || "",
+        name: userInfo.name || '',
         expiresInMs: ONE_YEAR_MS,
       });
 
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-      res.redirect(302, "/");
+      res.redirect(302, '/');
     } catch (error) {
-      logSafeServerError("[OAuth] Callback failed", error);
-      redirectToOAuthError(res, "callback_failed");
+      logSafeServerError('[OAuth] Callback failed', error);
+      redirectToOAuthError(res, 'callback_failed');
     }
   });
 }

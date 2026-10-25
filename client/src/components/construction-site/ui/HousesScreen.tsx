@@ -48,6 +48,7 @@ import {HouseMaterialsSummary} from './HouseMaterialsSummary.tsx';
 import {HousePhotoPreviewTrigger} from './HousePhotoPreviewTrigger.tsx';
 import {getHouseFieldAnalysisDisabledReason} from '@/components/construction-site/lib/house-field-analysis.ts';
 import {getHousePresentationStatus} from '@/components/construction-site/lib/house-status.ts';
+import {useCanvasMobileViewport} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
 
 export function HousesScreen({
   constructionSite,
@@ -77,6 +78,7 @@ export function HousesScreen({
   const [statusFilter, setStatusFilter] = useState<HouseStatusFilter>('all');
   const [sortKey, setSortKey] = useState<HouseSortKey>('updatedAt');
   const [page, setPage] = useState(1);
+  const {landscape} = useCanvasMobileViewport();
 
   const filteredHouses = useMemo(() => {
     return [...constructionSite.houses]
@@ -142,7 +144,8 @@ export function HousesScreen({
         </div>
         <div
           data-testid='house-desktop-pagination'
-          className='hidden items-center justify-between gap-3 text-xs font-semibold text-slate-500 min-[768px]:flex min-[768px]:justify-start'
+          className={cn('hidden items-center justify-between gap-3 text-xs font-semibold text-slate-500',
+            !landscape && 'min-[768px]:flex min-[768px]:justify-start')}
         >
           <span>{formatPaginationText(firstIndex, lastIndex, filteredHouses.length, 'casas')}</span>
           <div className='flex items-center gap-1'>
@@ -164,7 +167,7 @@ export function HousesScreen({
         </div>
       </div>
 
-      <div data-testid='house-desktop-table' className='hidden overflow-x-auto min-[768px]:block'>
+      <div data-testid='house-desktop-table' className={cn('hidden overflow-x-auto', !landscape && 'min-[768px]:block')}>
         <table className='min-w-full table-fixed border-separate border-spacing-y-3'>
           <colgroup>
             <col className='w-[32%]'/>
@@ -194,8 +197,11 @@ export function HousesScreen({
               house={house}
               active={activeHouse?.id === house.id}
               showGuidedTourTargets={house.id === guidedTourHouseId}
+              showPreparationActions={landscape}
               onOpenHouse={onEditHouse}
               onOpenHouseCanvas={onOpenHouseCanvas}
+              onOpenHouseFieldAnalysis={onOpenHouseFieldAnalysis}
+              onResetHouse={onResetHouse}
               onExportHouseRacPdf={onExportHouseRacPdf}
               exportingRacPdfHouseId={exportingRacPdfHouseId}
               onRequestHouseStatusChange={onRequestHouseStatusChange}
@@ -207,7 +213,7 @@ export function HousesScreen({
         </table>
       </div>
 
-      <div data-testid='house-mobile-list' className='space-y-3 min-[768px]:hidden'>
+      <div data-testid='house-mobile-list' className={cn('space-y-3', !landscape && 'min-[768px]:hidden')}>
         {pageHouses.map((house) => (
           <HouseMobileCard
             key={house.id}
@@ -231,7 +237,7 @@ export function HousesScreen({
 
       <MobilePagination
         testId='house-mobile-pagination'
-        visibilityClassName='min-[768px]:hidden'
+        visibilityClassName={landscape ? '' : 'min-[768px]:hidden'}
         text={formatPaginationText(firstIndex, lastIndex, filteredHouses.length, 'casas')}
         page={normalizedPage}
         pageCount={pageCount}
@@ -475,8 +481,11 @@ export function HouseTableRow({
   house,
   active,
   showGuidedTourTargets = false,
+  showPreparationActions = false,
   onOpenHouse,
   onOpenHouseCanvas,
+  onOpenHouseFieldAnalysis,
+  onResetHouse,
   onExportHouseRacPdf,
   exportingRacPdfHouseId,
   onRequestHouseStatusChange,
@@ -487,14 +496,18 @@ export function HouseTableRow({
   house: PersistedHouseRecord;
   active: boolean;
   showGuidedTourTargets?: boolean;
+  showPreparationActions?: boolean;
   onOpenHouse(houseId: string): Promise<void>;
   onOpenHouseCanvas?(houseId: string): Promise<void>;
+  onOpenHouseFieldAnalysis?(houseId: string): Promise<void>;
+  onResetHouse?(houseId: string): Promise<void>;
   onExportHouseRacPdf(houseId: string): Promise<void>;
   exportingRacPdfHouseId?: string | null;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
   onRequestHousePermanentDelete(houseId: string): void;
   readOnly?: boolean;
 }) {
+  const [resetOpen, setResetOpen] = useState(false);
   const family = getHouseFamily(constructionSite, house);
   const familyName = family?.name ?? getHouseFamilyName(constructionSite, house);
   const houseTypeLabel = formatHouseType(house.houseType);
@@ -503,6 +516,9 @@ export function HouseTableRow({
   const formattedDate = formatTimestampDate(house.updatedAt);
   const difficultyIndicator = getHouseDifficultyIndicator(house);
   const isExportingRacPdf = exportingRacPdfHouseId === house.id;
+  const fieldAnalysisDisabledReason = readOnly
+    ? 'A construção está bloqueada para edição.'
+    : getHouseFieldAnalysisDisabledReason(constructionSite, house);
   const exportRacPdfLabel = isExportingRacPdf
     ? `Gerando PDF da RAC da casa ${familyName}`
     : `Exportar RAC PDF da casa ${familyName}`;
@@ -605,8 +621,16 @@ export function HouseTableRow({
           )}
         </span>
       </td>
-      <td className='w-[11.5rem] rounded-r-lg px-3 py-3 align-middle'>
-        <div data-testid='house-table-actions' className='flex min-h-14 items-center justify-end gap-2'>
+      <td className='w-[11.5rem] rounded-r-lg px-3 py-3 align-middle' onClick={(event) => event.stopPropagation()}>
+        <div data-testid='house-table-actions' className={cn('min-h-14 items-center gap-2',
+          showPreparationActions ? 'grid grid-cols-3 justify-items-end [&_button]:h-11 [&_button]:w-11' : 'flex justify-end')}>
+          {showPreparationActions && onOpenHouseFieldAnalysis ? (
+            <RoundIconActionButton label={`Pilotis da casa ${familyName}`}
+              disabled={Boolean(fieldAnalysisDisabledReason)} disabledReason={fieldAnalysisDisabledReason ?? undefined}
+              onClick={() => void onOpenHouseFieldAnalysis(house.id)}>
+              <HousePilotisMinimap/>
+            </RoundIconActionButton>
+          ) : null}
           <HouseMaterialsSummary house={house} familyName={familyName} materials={house.extraMaterials}
             guidedTourId={showGuidedTourTargets ? 'rac-house-extra-materials' : undefined}/>
           {house.status !== 'archived' ? (
@@ -638,6 +662,13 @@ export function HouseTableRow({
             guidedTourId={showGuidedTourTargets ? 'rac-house-archive' : undefined}
             disabled={readOnly}
           />
+          {showPreparationActions && house.status !== 'archived' && onResetHouse ? (
+            <RoundIconActionButton label={`Redefinir casa ${familyName}`}
+              disabled={Boolean(fieldAnalysisDisabledReason)} disabledReason={fieldAnalysisDisabledReason ?? undefined}
+              onClick={() => setResetOpen(true)}>
+              <House className='h-4 w-4'/>
+            </RoundIconActionButton>
+          ) : null}
           {house.status === 'archived' ? (
             <PermanentDeleteActionButton
               label={`Excluir definitivamente casa ${familyName}`}
@@ -646,6 +677,7 @@ export function HouseTableRow({
             />
           ) : null}
         </div>
+        <ResetHouseDialog open={resetOpen} onOpenChange={setResetOpen} onConfirm={() => onResetHouse!(house.id)}/>
       </td>
     </tr>
   );

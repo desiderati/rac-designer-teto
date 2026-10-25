@@ -5,7 +5,7 @@ import {HouseConfigurationScreen} from './HouseConfigurationScreen.tsx';
 import type {CreateHouseInput} from '@/components/rac-editor/lib/construction-site-session.ts';
 
 const uploadImage = vi.hoisted(() => vi.fn());
-vi.mock('@/contexts/StorageImageUploadContext.tsx', () => ({
+vi.mock('@/contexts/useStorageImageUpload.ts', () => ({
   useStorageImageUpload: () => ({isUploading: false, uploadImage}),
 }));
 vi.mock('@/components/ui/ProtectedImage.tsx', () => ({

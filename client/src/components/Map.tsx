@@ -1,9 +1,9 @@
 /// <reference types="@types/google.maps" />
 
-import { Component, type ReactNode, useEffect, useRef, useState } from "react";
-import { MapPin, RefreshCw } from "lucide-react";
-import { usePersistFn } from "@/hooks/usePersistFn";
-import { cn } from "@/lib/utils";
+import { Component, type ReactNode, useEffect, useRef, useState } from 'react';
+import { MapPin, RefreshCw } from 'lucide-react';
+import { usePersistFn } from '@/hooks/usePersistFn';
+import { cn } from '@/lib/utils';
 
 declare global {
   interface Window {
@@ -11,11 +11,13 @@ declare global {
   }
 }
 
-const DEFAULT_FORGE_BASE_URL = "https://forge.butterfly-effect.dev";
-const COMPACT_MAP_CONTROLS_QUERY = "(max-width: 767px)";
+const DEFAULT_FORGE_BASE_URL = 'https://forge.butterfly-effect.dev';
+const COMPACT_MAP_CONTROLS_QUERY = '(max-width: 767px)';
+const DEFAULT_MAP_CENTER = {lat: 37.7749, lng: -122.4194};
+const DEFAULT_MAP_ZOOM = 12;
 let mapsScriptPromise: Promise<void> | null = null;
 
-type MapLoadState = "loading" | "ready" | "error";
+type MapLoadState = 'loading' | 'ready' | 'error';
 
 function getMapsProxyScriptUrl(): string {
   const apiKey = import.meta.env.VITE_FRONTEND_FORGE_API_KEY;
@@ -23,22 +25,22 @@ function getMapsProxyScriptUrl(): string {
     import.meta.env.VITE_FRONTEND_FORGE_API_URL || DEFAULT_FORGE_BASE_URL;
 
   if (!apiKey) {
-    throw new Error("A credencial pública do proxy Google Maps não está disponível.");
+    throw new Error('A credencial pública do proxy Google Maps não está disponível.');
   }
 
-  const baseUrl = forgeBaseUrl.replace(/\/+$/, "");
+  const baseUrl = forgeBaseUrl.replace(/\/+$/, '');
   const params = new URLSearchParams({
     key: apiKey,
-    v: "weekly",
-    loading: "async",
-    libraries: "marker,places,geocoding,geometry",
+    v: 'weekly',
+    loading: 'async',
+    libraries: 'marker,places,geocoding,geometry',
   });
 
   return `${baseUrl}/v1/maps/proxy/maps/api/js?${params.toString()}`;
 }
 
 function loadMapScript(): Promise<void> {
-  if (typeof window !== "undefined" && window.google?.maps?.Map) {
+  if (typeof window !== 'undefined' && window.google?.maps?.Map) {
     return Promise.resolve();
   }
 
@@ -48,7 +50,7 @@ function loadMapScript(): Promise<void> {
     const existingScript = document.querySelector<HTMLScriptElement>(
       'script[data-manus-google-maps="true"]',
     );
-    const script = existingScript ?? document.createElement("script");
+    const script = existingScript ?? document.createElement('script');
 
     const handleLoad = () => {
       if (window.google?.maps?.Map) {
@@ -56,22 +58,22 @@ function loadMapScript(): Promise<void> {
         return;
       }
 
-      reject(new Error("O SDK do Google Maps foi carregado sem disponibilizar a API de mapas."));
+      reject(new Error('O SDK do Google Maps foi carregado sem disponibilizar a API de mapas.'));
     };
 
     const handleError = () => {
       script.remove();
-      reject(new Error("Não foi possível carregar o SDK do Google Maps pelo proxy Manus."));
+      reject(new Error('Não foi possível carregar o SDK do Google Maps pelo proxy Manus.'));
     };
 
-    script.addEventListener("load", handleLoad, { once: true });
-    script.addEventListener("error", handleError, { once: true });
+    script.addEventListener('load', handleLoad, { once: true });
+    script.addEventListener('error', handleError, { once: true });
 
     if (!existingScript) {
       script.async = true;
       script.defer = true;
-      script.crossOrigin = "anonymous";
-      script.dataset.manusGoogleMaps = "true";
+      script.crossOrigin = 'anonymous';
+      script.dataset.manusGoogleMaps = 'true';
       script.src = getMapsProxyScriptUrl();
       document.head.appendChild(script);
     }
@@ -88,7 +90,7 @@ function toError(error: unknown): Error {
 }
 
 function getCompactMapControls(): boolean {
-  return typeof window !== "undefined" && typeof window.matchMedia === "function"
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
     ? window.matchMedia(COMPACT_MAP_CONTROLS_QUERY).matches
     : false;
 }
@@ -108,27 +110,33 @@ function getMapControlsOptions(compact: boolean): Pick<google.maps.MapOptions,
 function MapFallback({onRetry}: {onRetry?: () => void}) {
   return (
     <div
-      role="alert"
-      className="absolute inset-0 z-10 grid place-items-center bg-blue-50 px-4 text-center text-sm font-semibold text-slate-600"
+      role='alert'
+      className='absolute inset-0 z-10 grid place-items-center bg-blue-50 px-4 text-center text-sm font-semibold text-slate-600'
     >
-      <div className="flex max-w-sm flex-col items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-blue-600 shadow-sm">
-          <MapPin className="h-5 w-5" aria-hidden="true"/>
+      <div className='flex max-w-sm flex-col items-center gap-3'>
+        <span className='grid h-10 w-10 place-items-center rounded-full bg-white text-blue-600 shadow-sm'>
+          <MapPin className='h-5 w-5' aria-hidden='true'/>
         </span>
         <p>Não foi possível carregar o mapa agora.</p>
         {onRetry ? (
           <button
-            type="button"
+            type='button'
             onClick={onRetry}
-            className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className='inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200'
           >
-            <RefreshCw className="h-3.5 w-3.5" aria-hidden="true"/>
+            <RefreshCw className='h-3.5 w-3.5' aria-hidden='true'/>
             Tentar novamente
           </button>
         ) : null}
       </div>
     </div>
   );
+}
+
+function MapLoading() {
+  return <div role='status' className='absolute inset-0 z-10 grid place-items-center bg-blue-50/90 text-sm font-semibold text-slate-600'>
+    Carregando mapa...
+  </div>;
 }
 
 interface MapViewProps {
@@ -139,6 +147,63 @@ interface MapViewProps {
   markerTitle?: string;
   onMapReady?: (map: google.maps.Map) => void;
   onError?: (error: Error) => void;
+}
+
+function getOpenStreetMapUrl({initialCenter = DEFAULT_MAP_CENTER, initialZoom = DEFAULT_MAP_ZOOM, markerPosition}: MapViewProps) {
+  const validPoint = ({lat, lng}: google.maps.LatLngLiteral) => Number.isFinite(lat) && Number.isFinite(lng)
+    && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+  if (!validPoint(initialCenter) || (markerPosition && !validPoint(markerPosition))) {
+    throw new Error('As coordenadas do mapa local são inválidas.');
+  }
+
+  const mercatorLimit = 85.05112878;
+  const latitude = Math.max(-mercatorLimit, Math.min(mercatorLimit, initialCenter.lat));
+  const zoom = Number.isFinite(initialZoom) ? Math.max(1, Math.min(19, initialZoom)) : DEFAULT_MAP_ZOOM;
+  const longitudeRadius = 360 / 2 ** zoom;
+  const latitudeRadius = longitudeRadius * Math.cos(latitude * Math.PI / 180) / 2;
+  const url = new URL('https://www.openstreetmap.org/export/embed.html');
+  url.searchParams.set('bbox', [
+    Math.max(-180, initialCenter.lng - longitudeRadius),
+    Math.max(-mercatorLimit, latitude - latitudeRadius),
+    Math.min(180, initialCenter.lng + longitudeRadius),
+    Math.min(mercatorLimit, latitude + latitudeRadius),
+  ].join(','));
+  url.searchParams.set('layer', 'mapnik');
+  if (markerPosition) url.searchParams.set('marker', `${markerPosition.lat},${markerPosition.lng}`);
+  return url.toString();
+}
+
+function OpenStreetMapFrame({src, className, markerTitle = 'Local informado', onError}: Pick<MapViewProps, 'className' | 'markerTitle' | 'onError'> & {src: string}) {
+  const [loadState, setLoadState] = useState<MapLoadState>('loading');
+  const [retryKey, setRetryKey] = useState(0);
+  const handleError = usePersistFn(() => {
+    setLoadState('error');
+    onError?.(new Error('Não foi possível carregar o mapa local do OpenStreetMap.'));
+  });
+
+  useEffect(() => {
+    if (loadState !== 'loading') return;
+    // O iframe não expõe falhas HTTP de outra origem. O prazo cobre carga sem resposta.
+    const timeout = window.setTimeout(handleError, 15_000);
+    return () => window.clearTimeout(timeout);
+  }, [handleError, loadState, retryKey]);
+
+  return <div data-testid='openstreetmap-map' data-map-state={loadState} aria-label='Mapa do local informado'
+    aria-busy={loadState === 'loading'} className={cn('relative h-full min-h-40 w-full overflow-hidden', className)}>
+    {loadState !== 'error' ? <iframe key={retryKey} src={src} title={`${markerTitle} — mapa OpenStreetMap`}
+      className='absolute inset-0 h-full w-full border-0' referrerPolicy='strict-origin-when-cross-origin'
+      onLoad={() => setLoadState('ready')}/> : null}
+    {loadState === 'loading' ? <MapLoading/> : null}
+    {loadState === 'error' ? <MapFallback onRetry={() => {
+      setLoadState('loading');
+      setRetryKey(current => current + 1);
+    }}/> : null}
+  </div>;
+}
+
+function OpenStreetMapView(props: MapViewProps) {
+  const src = getOpenStreetMapUrl(props);
+  return <OpenStreetMapFrame key={src} src={src} className={props.className} markerTitle={props.markerTitle} onError={props.onError}/>;
 }
 
 interface MapViewErrorBoundaryProps {
@@ -180,10 +245,10 @@ class MapViewErrorBoundary extends Component<MapViewErrorBoundaryProps, MapViewE
 
 function MapViewContent({
   className,
-  initialCenter = {lat: 37.7749, lng: -122.4194},
-  initialZoom = 12,
+  initialCenter = DEFAULT_MAP_CENTER,
+  initialZoom = DEFAULT_MAP_ZOOM,
   markerPosition,
-  markerTitle = "Local informado",
+  markerTitle = 'Local informado',
   onMapReady,
   onError,
 }: MapViewProps) {
@@ -192,16 +257,16 @@ function MapViewContent({
   const marker = useRef<google.maps.marker.AdvancedMarkerElement | google.maps.Marker | null>(null);
   const mounted = useRef(true);
   const responsiveControlsCleanup = useRef<(() => void) | null>(null);
-  const [loadState, setLoadState] = useState<MapLoadState>("loading");
+  const [loadState, setLoadState] = useState<MapLoadState>('loading');
   const [retryKey, setRetryKey] = useState(0);
 
   const cleanupMap = usePersistFn(() => {
     const currentMarker = marker.current;
     try {
       if (currentMarker) {
-        if ("setMap" in currentMarker && typeof currentMarker.setMap === "function") {
+        if ('setMap' in currentMarker && typeof currentMarker.setMap === 'function') {
           currentMarker.setMap(null);
-        } else if ("map" in currentMarker) {
+        } else if ('map' in currentMarker) {
           currentMarker.map = null;
         }
       }
@@ -232,7 +297,7 @@ function MapViewContent({
 
       const googleApi = window.google;
       if (!googleApi?.maps?.Map) {
-        throw new Error("A API de mapas não está disponível após o carregamento do SDK.");
+        throw new Error('A API de mapas não está disponível após o carregamento do SDK.');
       }
 
       const compactControls = getCompactMapControls();
@@ -242,18 +307,18 @@ function MapViewContent({
         // O Maps aceita controlSize somente na criação, não no resize.
         controlSize: compactControls ? 32 : 40,
         ...getMapControlsOptions(compactControls),
-        mapId: "DEMO_MAP_ID",
+        mapId: 'DEMO_MAP_ID',
       });
 
       map.current = mapInstance;
 
-      if (typeof window.matchMedia === "function") {
+      if (typeof window.matchMedia === 'function') {
         const mediaQuery = window.matchMedia(COMPACT_MAP_CONTROLS_QUERY);
         const updateControls = () => {
           mapInstance.setOptions(getMapControlsOptions(mediaQuery.matches));
         };
-        mediaQuery.addEventListener?.("change", updateControls);
-        responsiveControlsCleanup.current = () => mediaQuery.removeEventListener?.("change", updateControls);
+        mediaQuery.addEventListener?.('change', updateControls);
+        responsiveControlsCleanup.current = () => mediaQuery.removeEventListener?.('change', updateControls);
       }
 
       if (markerPosition) {
@@ -274,20 +339,20 @@ function MapViewContent({
       }
 
       if (!mounted.current) return;
-      setLoadState("ready");
+      setLoadState('ready');
       onMapReady?.(mapInstance);
     } catch (error) {
       if (!mounted.current) return;
       const normalizedError = toError(error);
-      setLoadState("error");
+      setLoadState('error');
       onError?.(normalizedError);
-      console.error("[Google Maps] Falha ao inicializar o mapa:", normalizedError);
+      console.error('[Google Maps] Falha ao inicializar o mapa:', normalizedError);
     }
   });
 
   useEffect(() => {
     mounted.current = true;
-    setLoadState("loading");
+    setLoadState('loading');
     void init();
 
     return () => {
@@ -298,41 +363,38 @@ function MapViewContent({
 
   const handleRetry = () => {
     cleanupMap();
-    setLoadState("loading");
+    setLoadState('loading');
     setRetryKey((current) => current + 1);
   };
 
   return (
     <div
-      data-testid="google-maps-map"
+      data-testid='google-maps-map'
       data-map-state={loadState}
-      aria-label="Mapa do local informado"
-      className={cn("relative h-full min-h-40 w-full overflow-hidden", className)}
+      aria-label='Mapa do local informado'
+      className={cn('relative h-full min-h-40 w-full overflow-hidden', className)}
     >
       {/* O SDK recebe um host sem filhos React. Ele pode reescrever seu conteúdo sem
           provocar uma remoção duplicada durante o próximo commit do React. */}
       <div
         ref={mapHost}
-        data-testid="google-maps-surface"
-        className="absolute inset-0"
+        data-testid='google-maps-surface'
+        className='absolute inset-0'
       />
-      {loadState === "loading" ? (
-        <div
-          role="status"
-          className="absolute inset-0 z-10 grid place-items-center bg-blue-50/90 text-sm font-semibold text-slate-600"
-        >
-          Carregando mapa...
-        </div>
-      ) : null}
-      {loadState === "error" ? <MapFallback onRetry={handleRetry}/> : null}
+      {loadState === 'loading' ? <MapLoading/> : null}
+      {loadState === 'error' ? <MapFallback onRetry={handleRetry}/> : null}
     </div>
   );
 }
 
 export function MapView(props: MapViewProps) {
+  // O desenvolvimento sem credencial usa a incorporação oficial. Builds publicados
+  // e ambientes com Manus (ou SDK Google já carregado) conservam o caminho original.
+  const localMap = import.meta.env.DEV && !import.meta.env.VITE_FRONTEND_FORGE_API_KEY
+    && (typeof window === 'undefined' || !window.google?.maps?.Map);
   return (
     <MapViewErrorBoundary onError={props.onError}>
-      <MapViewContent {...props}/>
+      {localMap ? <OpenStreetMapView {...props}/> : <MapViewContent {...props}/>}
     </MapViewErrorBoundary>
   );
 }

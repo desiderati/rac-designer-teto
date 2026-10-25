@@ -1,0 +1,30 @@
+.rac-floating-editor {
+  position: fixed;
+  z-index: 50;
+  display: flex;
+  width: var(--rac-editor-width, 304px);
+  min-width: 0;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow: hidden;
+  padding: var(--rac-modal-padding, 16px);
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  background: white;
+  box-shadow: var(--rac-shadow);
+}
+.rac-floating-frame { width: 100%; min-width: 0; }
+.rac-floating-editor.rac-standard-modal { font-size: 16px; line-height: 1.5; }
+.rac-floating-editor .rac-modal-actions > button { min-height: 40px; height: 40px; padding: 8px 16px; border-radius: 8px; }
+.rac-floating-editor .rac-modal-actions > button[data-action='cancel'] { color: hsl(var(--foreground)); }
+.rac-floating-content { min-width: 0; }
+.rac-floating-content > * + * { margin-top: 16px; }
+.rac-floating-actions { position: static; margin: 0; padding: 0; }
+.rac-floating-drawer-inner { display: flex; flex: 1 1 auto; min-height: 0; padding: var(--rac-modal-padding, 16px); }
+.rac-floating-drawer > [aria-hidden='true'] { flex: 0 0 auto; }
+.rac-floating-inline-frame { overflow: visible; }
+.rac-floating-inline-frame > [data-rac-modal-region='content'] { overflow: visible; }
+.rac-floating-inline .piloti-inline-card { padding: 8px; border-radius: 12px; background: white; }
+.rac-terrain-editor { --rac-editor-width: 304px; }
+.rac-terrain-editor .rac-floating-frame { --rac-header-gap: 24px; }
+.rac-terrain-editor .rac-floating-frame > [data-rac-modal-region='content'] { padding-bottom: 1px; }

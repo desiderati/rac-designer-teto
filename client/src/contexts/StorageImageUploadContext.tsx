@@ -1,4 +1,6 @@
-import { createContext, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import {StorageImageUploadContext, readFileAsDataUrl, type StorageImageUploadPort, type StorageUploadProgress} from './useStorageImageUpload.ts';
+export type {StorageUploadPhase, StorageUploadProgress, StorageImageUploadOptions, StorageImageUploadPort} from './useStorageImageUpload.ts';
+import {type ReactNode, useEffect, useMemo, useRef, useState} from 'react';
 import { trpc } from '@/lib/trpc.ts';
 import { toast } from '@/components/ui/sonner.tsx';
 import {
@@ -9,35 +11,6 @@ import {
   isSupportedPhotoDataUrl,
 } from '@/shared/lib/photo-data-url.ts';
 import { toStorageImageUploadPayload } from '@/shared/lib/storage-image-upload.ts';
-
-export type StorageUploadPhase = 'compressing' | 'reading' | 'uploading' | 'complete';
-
-export interface StorageUploadProgress {
-  phase: StorageUploadPhase;
-  percent: number;
-  fileName: string;
-  originalBytes?: number;
-  finalBytes?: number;
-  reductionPercent?: number;
-  preservedOriginalQuality?: boolean;
-}
-
-export interface StorageImageUploadOptions {
-  preserveOriginalQuality?: boolean;
-  preparedFile?: PreparedPhotoFile;
-}
-
-export interface StorageImageUploadPort {
-  uploadImage(file: File, constructionSiteId?: string, options?: StorageImageUploadOptions): Promise<string>;
-  isUploading: boolean;
-  progress?: StorageUploadProgress | null;
-}
-
-const StorageImageUploadContext = createContext<StorageImageUploadPort>({
-  uploadImage: async (file) => readFileAsDataUrl(file),
-  isUploading: false,
-  progress: null,
-});
 
 /** Mantém as fotos no documento local, sem criar requisições de upload. */
 export function LocalStorageImageUploadProvider({children}: {children: ReactNode}) {
@@ -154,25 +127,6 @@ export function StorageImageUploadProvider({ children }: { children: ReactNode }
   }), [isUploading, mutation, progress]);
 
   return <StorageImageUploadContext.Provider value={value}>{children}</StorageImageUploadContext.Provider>;
-}
-
-export function useStorageImageUpload(): StorageImageUploadPort {
-  return useContext(StorageImageUploadContext);
-}
-
-function readFileAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Não foi possível ler a imagem selecionada.'));
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result);
-        return;
-      }
-      reject(new Error('Resultado de imagem inválido.'));
-    };
-    reader.readAsDataURL(file);
-  });
 }
 
 function formatFileSize(bytes: number): string {

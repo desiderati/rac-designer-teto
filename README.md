@@ -103,13 +103,15 @@ técnico, siga esta ordem:
   usuário. A recarga é bloqueada enquanto houver edição local ou sincronização remota pendente.
 
 - O cache inicial cobre os arquivos da interface. Após autenticação, o editor preserva as intenções
-  pendentes no IndexedDB antes de enviá-las, recupera a recarga da mesma sessão da aba e tenta reenviar
-  ao reconectar. Autenticação e confirmação remota exigem conexão; conflitos pedem decisão explícita.
-  Falha de armazenamento local bloqueia o envio e mostra erro. Em outra sessão da aba, o editor pede confirmação para retomar uma fila
-  pendente da mesma conta. Limpar dados do navegador remove essa proteção local.
+  pendentes no IndexedDB antes de enviá-las, recupera a recarga da mesma sessão da aba e tenta
+  reenviar ao reconectar. Autenticação e confirmação remota exigem conexão; conflitos pedem decisão
+  explícita. Falha de armazenamento local bloqueia o envio e mostra erro. Em outra sessão da aba, o
+  editor pede confirmação para retomar uma fila pendente da mesma conta. Limpar dados do navegador
+  remove essa proteção local.
 
 - O procedimento de [backup e inventário administrativo](docs/OPS-002-backup-storage.md) descreve
-  exportação versionada, reconstituição isolada e dry-run de órfãos, com limites da integração Manus.
+  exportação versionada, reconstituição isolada e dry-run de órfãos, com limites da integração
+  Manus.
 
 ## 🏗️ Arquitetura Atual
 
@@ -157,6 +159,19 @@ módulos, camadas e persistência, com Mermaid e imagens.
   Construção TETO e documento RAC
 
 - O projeto usa alias `@/` para imports absolutos
+
+### Contratos de interface
+
+A identidade compartilhada incorporada da R48 está no [DESIGN.md](DESIGN.md). Modais e editores
+reutilizam `ModalFrame` para separar cabeçalho, conteúdo rolável e ações; `ModalActions` mantém a
+ordem visual e de teclado nos limites responsivos. Consulte [Modais e ações
+compartilhadas](docs/ui-definitions/UI-007-modais-e-acoes-compartilhadas.md) antes de criar uma
+variação local.
+
+A [Análise de Campo](docs/ui-definitions/UI-008-analise-de-campo.md) mantém a planta expansível e o
+editor inline responsivo pela largura do card. Os demais contratos estão no [índice de definições de
+UI](docs/ui-definitions/README.md). Preservar as apresentações próprias de Landing, tour, toasts,
+fotos e fullscreen 3D.
 
 - O projeto não adota uma camada de store genérica na raiz; o estado compartilhado do editor
   permanece concentrado na própria feature
@@ -265,6 +280,12 @@ geral do projeto e os comandos reais de trabalho.
    sincronização entre dispositivos; descrição de fotos e ilustrações por IA ficam indisponíveis.
    A visualização 3D e sua captura para PDF continuam locais. Limpar os dados do site no navegador
    remove os projetos desse perfil. O perfil `isolated` não pode ser usado para gerar um build.
+
+   Durante o desenvolvimento, sem a chave pública do proxy Manus, a prévia de localização usa o
+   [mapa incorporado do OpenStreetMap](https://wiki.openstreetmap.org/wiki/Export#Embeddable_HTML).
+   Esse mapa precisa de internet e envia ao OpenStreetMap as coordenadas exibidas. Com a chave Manus
+   configurada ou o SDK Google já disponível, a integração original é preservada. Builds publicados
+   continuam usando o mapa Google Maps/Manus.
 
 3. Desenvolvimento local sem integração Manus:
 

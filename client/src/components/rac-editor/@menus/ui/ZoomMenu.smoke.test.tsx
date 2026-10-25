@@ -24,7 +24,9 @@ describe('ZoomMenu.tsx', () => {
   it('shows labels and shortcuts on desktop', async () => {
     const {user} = renderZoomMenu({isMobile: false});
 
-    await user.click(screen.getByRole('button', {name: /Zoom atual 125%/}));
+    const trigger = screen.getByRole('button', {name: /Zoom atual 125%/});
+    expect(trigger.querySelector('[data-icon="magnifying-glass"]')).toBeInTheDocument();
+    await user.click(trigger);
 
     expect(screen.getByText('Seleção')).toBeVisible();
     expect(screen.getByText('Panning')).toBeVisible();
@@ -55,6 +57,6 @@ describe('ZoomMenu.tsx', () => {
     const trigger = screen.getByRole('button', {name: /Zoom atual 125%/});
 
     expect(screen.getByText('125%')).toBeVisible();
-    expect(trigger.querySelector('svg')).not.toBeInTheDocument();
+    expect(trigger.querySelector('[data-icon="magnifying-glass"]')).not.toBeInTheDocument();
   });
 });

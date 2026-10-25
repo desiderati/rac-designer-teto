@@ -251,7 +251,7 @@ export function HouseFieldAnalysisScreen({
   return (
     <section aria-label={`Análise de Campo da casa ${familyName}`} aria-busy={isSaving}
       onKeyDown={(event) => {if (event.key === 'Escape' && pendingBraceSide) {setPendingBraceSide(null); event.stopPropagation();}}}
-      className='min-w-0 space-y-2 pb-8'>
+      className='house-field-analysis-screen min-w-0 space-y-2'>
       <div className='flex min-w-0 items-center gap-3'>
         <button type='button' aria-label='Voltar às casas' onClick={() => void leave()} disabled={isLeaving || isSaving || stage === 'saving-setup'}
           className='grid h-11 w-11 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50'>

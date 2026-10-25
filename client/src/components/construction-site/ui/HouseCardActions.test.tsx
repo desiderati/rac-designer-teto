@@ -2,7 +2,8 @@ import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {HouseCardActions, HouseCardActionLabel} from './HouseCardActions.tsx';
-import {HouseMobileCard} from './HousesScreen.tsx';
+import {HouseMobileCard, HousesScreen, HouseTableRow} from './HousesScreen.tsx';
+import {CANVAS_MOBILE_QUERY} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
 import {TooltipProvider} from '@/components/ui/tooltip.tsx';
 import {createConstructionSiteSession} from '@/components/rac-editor/lib/construction-site-session.ts';
 import {HouseAggregate} from '@/domain/house/house.aggregate.ts';
@@ -36,13 +37,72 @@ function showCard(props = fixture()) {
   return props;
 }
 
+function showTableRow(props = fixture()) {
+  render(<TooltipProvider><table><tbody><HouseTableRow {...props} showPreparationActions/></tbody></table></TooltipProvider>);
+  return props;
+}
+
+describe('Ações na tabela de casas em mobile horizontal', () => {
+  it('abre análise e exige confirmação da redefinição sem abrir a configuração da casa', async () => {
+    const props = showTableRow();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', {name: 'Pilotis da casa Aline'}));
+    expect(props.onOpenHouseFieldAnalysis).toHaveBeenCalledWith(props.house.id);
+    await user.click(screen.getByRole('button', {name: 'Redefinir casa Aline'}));
+    expect(props.onResetHouse).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button', {name: 'Cancelar'}));
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    expect(props.onResetHouse).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button', {name: 'Redefinir casa Aline'}));
+    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', {name: 'Redefinir Casa'}));
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    expect(props.onResetHouse).toHaveBeenCalledWith(props.house.id);
+    expect(props.onOpenHouse).not.toHaveBeenCalled();
+  });
+
+  it.each(['built', 'archived', 'readOnly'] as const)('preserva os bloqueios de %s', condition => {
+    const props = fixture();
+    if (condition !== 'readOnly') props.house.status = condition;
+    render(<TooltipProvider><table><tbody><HouseTableRow {...props} showPreparationActions readOnly={condition === 'readOnly'}/></tbody></table></TooltipProvider>);
+    expect(screen.getByRole('button', {name: 'Pilotis da casa Aline'})).toBeDisabled();
+    if (condition === 'archived') expect(screen.queryByRole('button', {name: 'Redefinir casa Aline'})).not.toBeInTheDocument();
+    else expect(screen.getByRole('button', {name: 'Redefinir casa Aline'})).toBeDisabled();
+  });
+
+  it.each([
+    {width: 852, height: 393, coarse: true, visible: true},
+    {width: 915, height: 320, coarse: true, visible: true},
+    {width: 1024, height: 600, coarse: true, visible: true},
+    {width: 1024, height: 601, coarse: true, visible: false},
+    {width: 915, height: 393, coarse: false, visible: false},
+    {width: 1280, height: 900, coarse: false, visible: false},
+  ])('usa a política nativa em $width × $height, toque=$coarse', ({width, height, coarse, visible}) => {
+    vi.stubGlobal('innerWidth', width);
+    vi.stubGlobal('innerHeight', height);
+    vi.stubGlobal('matchMedia', (query: string) => ({media: query,
+      get matches() {return query === CANVAS_MOBILE_QUERY && (window.innerWidth <= 767 || (coarse && window.innerHeight <= 600));},
+      addEventListener: vi.fn(), removeEventListener: vi.fn()}));
+    const props = fixture();
+    render(<TooltipProvider><HousesScreen constructionSite={props.constructionSite} activeHouse={null}
+      onEditHouse={props.onOpenHouse} onOpenHouseFieldAnalysis={props.onOpenHouseFieldAnalysis}
+      onResetHouse={props.onResetHouse} onExportHouseRacPdf={props.onExportHouseRacPdf}
+      onRequestHouseStatusChange={props.onRequestHouseStatusChange}
+      onRequestHousePermanentDelete={props.onRequestHousePermanentDelete}/></TooltipProvider>);
+    const table = within(screen.getByTestId('house-desktop-table'));
+    for (const name of ['Pilotis da casa Aline', 'Redefinir casa Aline']) {
+      if (visible) expect(table.getByRole('button', {name})).toBeEnabled();
+      else expect(table.queryByRole('button', {name})).not.toBeInTheDocument();
+    }
+  });
+});
+
 describe('Card aprovado da listagem de casas', () => {
   it('renderiza o resumo da casa arquivada fora do card esmaecido', async () => {
     const props = fixture();
     props.house.status = 'archived';
     showCard(props);
     fireEvent.click(screen.getByRole('button', {name: 'Resumo da Casa de Aline'}));
-    const summary = await screen.findByRole('tooltip');
+    const summary = await screen.findByRole('dialog', {name: 'Resumo da Casa'});
     expect(screen.getByTestId('house-mobile-card').contains(summary)).toBe(false);
     expect(summary).toHaveTextContent('Resumo da Casa');
     expect(props.onOpenHouse).not.toHaveBeenCalled();
@@ -66,14 +126,14 @@ describe('Card aprovado da listagem de casas', () => {
     expect(screen.getByRole('meter')).toHaveAttribute('aria-valuetext', expect.stringContaining('Dificuldade'));
   });
 
-  it('mantém callbacks, tooltip, teclado e confirmação sem abrir a edição do card', async () => {
+  it('mantém callbacks, resumo, teclado e confirmação sem abrir a edição do card', async () => {
     const props = showCard();
     const user = userEvent.setup();
     screen.getByRole('button', {name: 'Pilotis da casa Aline'}).focus();
     await user.keyboard('{Enter}');
     expect(props.onOpenHouseFieldAnalysis).toHaveBeenCalledWith(props.house.id);
     await user.click(screen.getByRole('button', {name: 'Resumo da Casa de Aline'}));
-    expect(await screen.findByRole('tooltip')).toHaveTextContent('Resumo da Casa');
+    expect(await screen.findByRole('dialog', {name: 'Resumo da Casa'})).toHaveTextContent('Resumo da Casa');
     await user.keyboard('{Escape}');
     await user.click(screen.getByRole('button', {name: 'Exportar RAC PDF da casa Aline'}));
     expect(props.onExportHouseRacPdf).toHaveBeenCalledWith(props.house.id);

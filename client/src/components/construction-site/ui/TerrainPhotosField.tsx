@@ -2,14 +2,17 @@ import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {useEffect, useRef, useState, type ChangeEvent, type DragEvent} from 'react';
 import {Camera, Plus, RefreshCw, Trash2, UploadCloud} from 'lucide-react';
 import type {TerrainPhoto} from '@/shared/types/construction-site.ts';
-import {useStorageImageUpload} from '@/contexts/StorageImageUploadContext.tsx';
-import {useTerrainPhotoDescription, type TerrainPhotoDescriptionInput} from '@/contexts/TerrainPhotoDescriptionContext.tsx';
+import {useStorageImageUpload} from '@/contexts/useStorageImageUpload.ts';
+import {useTerrainPhotoDescription} from '@/contexts/useTerrainPhotoDescription.ts';
+import {type TerrainPhotoDescriptionInput} from '@/contexts/TerrainPhotoDescriptionContext.tsx';
 import {isManusStoragePhotoUrl, PHOTO_UPLOAD_ACCEPT, validatePhotoFile} from '@/shared/lib/photo-data-url.ts';
 import {toStorageImageUploadPayload} from '@/shared/lib/storage-image-upload.ts';
-import {createLocalPreviewUrl, TextField} from '@/components/construction-site/ui/lib/shared-controls.tsx';
+import {createLocalPreviewUrl} from '@/components/construction-site/ui/lib/local-preview-url.ts';
+import {TextField} from '@/components/construction-site/ui/lib/shared-controls.tsx';
 import {ImageUploadReview, type ImageUploadReviewSelection} from '@/components/ui/ImageUploadReview.tsx';
 import {Progress} from '@/components/ui/progress.tsx';
 import {PhotoViewer} from '@/components/ui/PhotoViewer.tsx';
+import {ConfirmationLayout} from '@/components/ui/ConfirmationLayout.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {beginToastTask, toast} from '@/components/ui/sonner.tsx';
 import {
@@ -377,21 +380,18 @@ export function TerrainPhotosField({
         }}
       >
         <AlertDialogContent className='max-w-md rounded-2xl'>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir foto do terreno?</AlertDialogTitle>
-            <AlertDialogDescription>
+          <ConfirmationLayout
+            title={<AlertDialogTitle>Excluir foto do terreno?</AlertDialogTitle>}
+            description={<AlertDialogDescription>
               A foto selecionada será removida da ficha do terreno. Essa ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
+            </AlertDialogDescription>}
+            actions={<AlertDialogFooter cancel={<AlertDialogCancel>Cancelar</AlertDialogCancel>}
+            confirm={<AlertDialogAction
               onClick={confirmRemovePhoto}
               className='bg-red-600 text-white hover:bg-red-700'
             >
               Excluir foto
-            </AlertDialogAction>
-          </AlertDialogFooter>
+            </AlertDialogAction>}/>}/>
         </AlertDialogContent>
       </AlertDialog>
     </div>

@@ -3,6 +3,7 @@ import {Loader2} from 'lucide-react';
 import {Canvas} from '@react-three/fiber';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Button} from '@/components/ui/button.tsx';
+import {ModalFrame} from '@/components/ui/ModalFrame.tsx';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {
@@ -134,9 +135,10 @@ export function House3DViewer({readOnly = false, open, onOpenChange, canvasRef, 
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent
         hideCloseButton
+        data-rac-expanded={isFullscreen}
         className={`p-0 gap-0 flex min-h-0 min-w-0 max-h-[calc(100dvh-16px)] flex-col overflow-hidden rounded-lg ${dialogClass}`}
       >
-        <DialogHeader className='shrink-0 p-4 pb-2 border-b text-left'>
+        <ModalFrame contentClassName='flex flex-col' header={<DialogHeader className='text-left'>
           <div className='flex flex-wrap items-center justify-between gap-2'>
             <DialogTitle className='text-lg font-semibold'>
               Visualizador 3D
@@ -153,7 +155,7 @@ export function House3DViewer({readOnly = false, open, onOpenChange, canvasRef, 
                     <FontAwesomeIcon icon={faPalette}/>
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className='w-auto p-3' side='bottom' align='end'>
+                <PopoverContent className='rac-theme w-auto p-3' side='bottom' align='end'>
                   <p className='text-xs font-medium mb-2 text-muted-foreground'>Cor das paredes</p>
                   <div className='grid grid-cols-4 gap-1.5'>
                     {HOUSE_3D_WALL_COLOR_OPTIONS.map((colorOption) => (
@@ -225,12 +227,12 @@ export function House3DViewer({readOnly = false, open, onOpenChange, canvasRef, 
               </Button>
             </div>
           </div>
-          <DialogDescription className='text-sm text-muted-foreground'>
+          <DialogDescription className='sr-only'>
             {mobile
               ? 'Arraste para rotacionar • Use dois dedos para zoom e mover'
               : 'Arraste para rotacionar • Scroll para zoom • Shift+arraste para mover'}
           </DialogDescription>
-        </DialogHeader>
+        </DialogHeader>}>
 
         <div className='relative min-h-0 min-w-0 flex-1 overflow-hidden bg-gradient-to-b from-muted to-muted/50' data-testid='house-3d-viewport'>
           {isProjectionLoading ? (
@@ -299,6 +301,7 @@ export function House3DViewer({readOnly = false, open, onOpenChange, canvasRef, 
             </Suspense>
           )}
         </div>
+        </ModalFrame>
       </DialogContent>
     </Dialog>
   );

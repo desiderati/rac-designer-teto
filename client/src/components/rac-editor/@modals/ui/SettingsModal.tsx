@@ -178,6 +178,8 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
       isMobile={isMobile}
       isOpen={isOpen}
       title='Configurações'
+      headerTone='section'
+      contentClassName='px-4 pb-4'
       content={content}
       confirmLabel='Confirmar'
       handleConfirm={handleConfirm}

@@ -35,6 +35,25 @@ describe('limite dos rótulos de elementos', () => {
     expect(onApply).toHaveBeenCalledWith('Confirmado', '#333333');
   });
 
+  it.each(['wall', 'siteHouse', 'siteBuilding', 'fence', 'terrainEntry'] as const)(
+    'preserva nome e cor de %s ao trocar entre floating e painel compacto', editorType => {
+      const onApply = vi.fn(), onClose = vi.fn();
+      const props = {editorType, currentValue: 'Original', currentColor: '#000000', isOpen: true,
+        isMobile: false, onApply, onClose};
+      const {rerender} = render(<GenericObjectEditor {...props}/>);
+      fireEvent.change(screen.getByRole('textbox'), {target: {value: 'Rascunho'}});
+      fireEvent.click(screen.getByRole('button', {name: 'Azul'}));
+      rerender(<GenericObjectEditor {...props} presentation='mobile-panel'/>);
+      expect(screen.getByRole('textbox')).toHaveValue('Rascunho');
+      expect(screen.getByRole('button', {name: 'Azul'})).toHaveAttribute('aria-pressed', 'true');
+      rerender(<GenericObjectEditor {...props} presentation='floating'/>);
+      expect(screen.getByRole('textbox')).toHaveValue('Rascunho');
+      expect(onApply).not.toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByRole('button', {name: 'Confirmar'}));
+      expect(onApply).toHaveBeenCalledExactlyOnceWith('Rascunho', '#3498db');
+    });
+
   it('abre a edição mobile sem focar o texto opcional e disparar o teclado', () => {
     render(<GenericObjectEditor editorType='fence' currentValue='' currentColor='#333333'
       isOpen isMobile onApply={vi.fn()} onClose={vi.fn()}/>);

@@ -14,7 +14,7 @@ import {House3DImagePendingToast} from '@/components/rac-editor/@viewer-3d/ui/Ho
 import {useAuth} from '@/_core/hooks/useAuth.ts';
 import {clearLoginLock, startLogin} from '@/const.ts';
 import {RemoteSyncProvider, type RemoteSyncConflict} from '@/contexts/RemoteSyncContext.tsx';
-import {useRemoteSync} from '@/contexts/RemoteSyncContext.tsx';
+import {useRemoteSync} from '@/contexts/useRemoteSync.ts';
 import {useReportPwaUpdateSafety} from '@/components/pwa/PwaUpdateSafetyContext.ts';
 import type {HouseDocumentSaveStatus} from '@/components/rac-editor/ports/HouseDocumentSaveStatus.ts';
 import {RemoteSyncStatus} from './RemoteSyncStatus.tsx';
@@ -349,7 +349,7 @@ function LandingRevealSection({
 
     observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [eager]);
 
   return (
     <section
@@ -396,6 +396,7 @@ function RacEditorEntryPoint({onLogout}: {onLogout: () => Promise<void>}) {
 
   return (
     <>
+      <div className='rac-theme contents'>
       <RemoteSyncStatus visible={isEditorVisible || (Boolean(syncConflict) && requestedConflict === syncConflict)}/>
       {isEditorVisible ? (
         <RacEditorContent
@@ -414,6 +415,7 @@ function RacEditorEntryPoint({onLogout}: {onLogout: () => Promise<void>}) {
         </div>
       )}
       <House3DImagePendingToast/>
+      </div>
     </>
   );
 }

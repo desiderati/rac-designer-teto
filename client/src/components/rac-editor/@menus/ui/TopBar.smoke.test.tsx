@@ -4,9 +4,9 @@ import userEvent from '@testing-library/user-event';
 import {TopBar} from './TopBar.tsx';
 import type {MenuActionMap} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 import {HOUSE_FAMILY_NAME_MAX_LENGTH} from '@/shared/constants.ts';
-import {useRemoteSync} from '@/contexts/RemoteSyncContext.tsx';
+import {useRemoteSync} from '@/contexts/useRemoteSync.ts';
 
-vi.mock('@/contexts/RemoteSyncContext.tsx', () => ({
+vi.mock('@/contexts/useRemoteSync.ts', () => ({
   useRemoteSync: vi.fn(),
 }));
 

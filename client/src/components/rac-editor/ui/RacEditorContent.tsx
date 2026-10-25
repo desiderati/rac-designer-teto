@@ -1,6 +1,6 @@
 import {useRacEditorController} from '@/components/rac-editor/hooks/useRacEditorController.ts';
 import {RacEditorLayout} from '@/components/rac-editor/ui/RacEditorLayout.tsx';
-import {useHouse3DImageInsertion} from '@/contexts/House3DImageInsertionContext.tsx';
+import {useHouse3DImageInsertion} from '@/contexts/useHouse3DImageInsertion.ts';
 import {useEffect} from 'react';
 import type {HouseDocumentSaveStatus} from '@/components/rac-editor/ports/HouseDocumentSaveStatus.ts';
 

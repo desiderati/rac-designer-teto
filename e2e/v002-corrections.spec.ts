@@ -67,7 +67,7 @@ for (const width of [360, 767]) {
     await preview.screenshot({path: test.info().outputPath('A-008-planta.png')});
     await page.getByRole('button', {name: 'Resumo', exact: true}).click();
     await page.getByRole('button', {name: 'Resumo da Casa de Validação V-002', exact: true}).click();
-    const content = page.locator('[data-radix-popper-content-wrapper]');
+    const content = page.getByRole('dialog', {name: 'Resumo da Casa'});
     await expect(content).toBeVisible();
     await expect(content).not.toContainText(/Tipo da casa|Tamanho da casa|Pilotis .* m:/);
     await expect(content).toContainText('Vigas p/ Escada');
@@ -98,8 +98,8 @@ test('A-021 volta às construções em retrato usando a navegação real e prese
     const style = getComputedStyle(element);
     return {background: style.backgroundColor, foreground: style.color};
   });
-  expect(colors.background).toBe('rgb(37, 99, 235)');
-  expect(colors.foreground).toBe('rgb(255, 255, 255)');
+  expect(colors.background).toBe('rgba(226, 232, 240, 0.6)');
+  expect(colors.foreground).toBe('rgb(15, 23, 42)');
   await back.focus();
   await page.keyboard.press('Escape');
   await expect(dialog).toBeVisible();

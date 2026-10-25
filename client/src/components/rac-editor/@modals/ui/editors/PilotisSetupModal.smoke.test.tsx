@@ -46,7 +46,7 @@ describe('PilotisSetupModal', () => {
     expect(screen.getAllByText('(8/8 selecionados)')).toHaveLength(1);
   });
 
-  it('usa no mobile a grade compacta do editor de piloti', () => {
+  it('distribui quatro colunas por toda a faixa das ações no mobile', () => {
     vi.mocked(useIsMobile).mockReturnValue(true);
 
     render(
@@ -57,6 +57,7 @@ describe('PilotisSetupModal', () => {
       />,
     );
 
-    expect(screen.getByRole('button', {name: '1,0'})).toHaveClass('h-12', 'w-12', 'rounded-lg');
+    expect(screen.getByRole('button', {name: '1,0'})).toHaveClass('aspect-square', 'w-full', 'rounded-lg');
+    expect(screen.getByRole('button', {name: '1,0'}).parentElement).toHaveClass('grid-cols-4', 'w-full');
   });
 });

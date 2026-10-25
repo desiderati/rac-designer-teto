@@ -19,7 +19,7 @@ describe('painel lateral compartilhado', () => {
     expect(onClose).toHaveBeenCalledTimes(2);
   });
 
-  it('segue a viewport visual com teclado, mantém o campo acessível e libera as ações em altura extrema', () => {
+  it('segue a viewport visual e mantém ações fora do conteúdo rolável em altura extrema', () => {
     const visual = Object.assign(new EventTarget(), {height: 320, offsetTop: 0});
     vi.stubGlobal('innerHeight', 320);
     vi.stubGlobal('visualViewport', visual);
@@ -34,7 +34,8 @@ describe('painel lateral compartilhado', () => {
     act(() => {visual.height = 100; visual.offsetTop = 20; visual.dispatchEvent(new Event('resize'));});
     expect(dialog).toHaveStyle({maxHeight: '84px', top: 'calc(100% - 250px)'});
     expect(scrollIntoView).toHaveBeenCalledWith({block: 'nearest'});
-    expect(screen.getByTestId('canvas-side-editor-actions')).toHaveClass('canvas-side-editor-actions-scroll');
+    expect(input.closest('[data-rac-modal-region]')).toHaveAttribute('data-rac-modal-region', 'content');
+    expect(screen.getByTestId('canvas-side-editor-actions').closest('[data-rac-modal-region]')).toHaveAttribute('data-rac-modal-region', 'actions');
     act(() => {visual.height = 320; visual.offsetTop = 0; visual.dispatchEvent(new Event('scroll'));});
     expect(screen.getByTestId('canvas-side-editor-actions')).not.toHaveClass('canvas-side-editor-actions-scroll');
   });

@@ -45,7 +45,7 @@ test.describe('RAC responsive toolbar', () => {
       const trigger = page.getByRole('button', {name: 'Abrir menu principal'});
       await trigger.click();
       const menu = page.getByRole('dialog');
-      await expect(menu).toHaveCSS('width', '232px');
+      await expect(menu).toHaveCSS('width', '264px');
       await expect.poll(async () => {
         const [menuBox, triggerBox] = await Promise.all([menu.boundingBox(), trigger.boundingBox()]);
         return menuBox && triggerBox ? Math.abs(menuBox.x - triggerBox.x) : Infinity;
@@ -83,14 +83,21 @@ test.describe('RAC responsive toolbar', () => {
     await expect(factors.getByRole('button', {name: 'Obstáculos', exact: true})).toBeHidden();
   });
 
-  test('em 768 px usa barras desktop; em 767 px usa os centros mobile', async ({page}) => {
-    await page.setViewportSize({width: 768, height: 600});
+  test('recolhe os dois menus por altura ou largura e os restaura quando voltam a caber', async ({page}) => {
+    await page.setViewportSize({width: 768, height: 900});
     await expect(page.getByRole('toolbar', {name: 'Barra de ferramentas principal'})).toBeVisible();
     await expect(page.getByRole('group', {name: 'Fatores da dificuldade da casa'})
       .getByTestId('canvas-house-difficulty-gauge')).toBeVisible();
     await expect(page.getByTestId('rac-radial-tools')).toHaveCount(0);
+    await page.setViewportSize({width: 768, height: 600});
+    await expect(page.getByTestId('rac-radial-tools')).toBeVisible();
+    await expect(page.getByTestId('canvas-house-difficulty-gauge')).toHaveCount(0);
     await page.setViewportSize({width: 767, height: 420});
     await expect(page.getByTestId('rac-radial-tools')).toBeVisible();
     await expect(page.getByTestId('canvas-house-difficulty-gauge')).toHaveCount(0);
+    await page.setViewportSize({width: 768, height: 900});
+    await expect(page.getByRole('toolbar', {name: 'Barra de ferramentas principal'})).toBeVisible();
+    await expect(page.getByRole('group', {name: 'Fatores da dificuldade da casa'})
+      .getByTestId('canvas-house-difficulty-gauge')).toBeVisible();
   });
 });

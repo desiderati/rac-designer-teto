@@ -5,6 +5,7 @@ import {useCanvasSelectionActions} from './useCanvasSelectionActions.ts';
 import {TERRAIN_STYLE} from '@/shared/config.ts';
 import {createEditorPorts, type EditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {RacEditorStoreProvider} from '@/bootstrap/editor-context.tsx';
+import {ActiveSelection, Rect, type Canvas as FabricCanvas} from 'fabric';
 
 type MockCanvasObject = {
   type?: string;
@@ -52,6 +53,40 @@ function createSelectionTestPorts(): EditorPorts {
 }
 
 describe('useCanvasSelectionActions.ts', () => {
+  it('oculta e bloqueia a rotação coletiva sem bloquear escala ou rotação individual', () => {
+    const first = new Rect({width: 50, height: 50});
+    const second = new Rect({width: 50, height: 50, left: 100});
+    const selection = new ActiveSelection([first, second]);
+    let active = selection as typeof selection | Rect;
+    const handlers: Record<string, (() => void) | undefined> = {};
+    const canvas = {
+      getActiveObject: () => active,
+      getObjects: () => [first, second],
+      on: (event: string, handler: () => void) => {handlers[event] = handler;},
+      off: vi.fn(),
+      renderAll: vi.fn(),
+      requestRenderAll: vi.fn(),
+    } as unknown as FabricCanvas;
+    const {result} = renderHook(() => useCanvasSelectionActions(), {
+      wrapper: createWrapper(createSelectionTestPorts()),
+    });
+    const unbind = result.current.bindSelectionActions({canvas, onSelectionChange: vi.fn(),
+      clearPilotiSelection: vi.fn(), isAnyEditorOpen: () => false, isContraventamentoMode: () => false});
+    act(() => handlers['selection:created']?.());
+    expect(selection.lockRotation).toBe(true);
+    expect(selection.isControlVisible('mtr')).toBe(false);
+    expect(selection.isControlVisible('br')).toBe(true);
+    expect(selection.lockScalingX).toBe(false);
+    expect(selection.lockScalingY).toBe(false);
+    expect(first.lockRotation).toBe(false);
+    expect(second.lockRotation).toBe(false);
+    active = first;
+    act(() => handlers['selection:updated']?.());
+    expect(first.lockRotation).toBe(false);
+    expect(first.isControlVisible('mtr')).toBe(true);
+    unbind();
+  });
+
   it('mantém o binding estável quando o snapshot da casa muda', () => {
     let listener: (() => void) | null = null;
     let snapshot: ReturnType<EditorPorts['houseRuntimeSnapshotPort']['getRuntimeSnapshot']> = null;

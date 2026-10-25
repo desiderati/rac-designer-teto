@@ -3,9 +3,9 @@
 // Downloads return the application-owned private route. The old /manus-storage
 // route remains readable for documents created before this migration.
 
-import { ENV } from "./_core/env";
+import { ENV } from './_core/env';
 
-export const PRIVATE_STORAGE_ROUTE = "/api/private-storage/";
+export const PRIVATE_STORAGE_ROUTE = '/api/private-storage/';
 
 function getForgeConfig() {
   const forgeUrl = ENV.forgeApiUrl;
@@ -13,20 +13,20 @@ function getForgeConfig() {
 
   if (!forgeUrl || !forgeKey) {
     throw new Error(
-      "Storage config missing: set BUILT_IN_FORGE_API_URL and BUILT_IN_FORGE_API_KEY",
+      'Storage config missing: set BUILT_IN_FORGE_API_URL and BUILT_IN_FORGE_API_KEY',
     );
   }
 
-  return { forgeUrl: forgeUrl.replace(/\/+$/, ""), forgeKey };
+  return { forgeUrl: forgeUrl.replace(/\/+$/, ''), forgeKey };
 }
 
 function normalizeKey(relKey: string): string {
-  return relKey.replace(/^\/+/, "");
+  return relKey.replace(/^\/+/, '');
 }
 
 function appendHashSuffix(relKey: string): string {
-  const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 8);
-  const lastDot = relKey.lastIndexOf(".");
+  const hash = crypto.randomUUID().replace(/-/g, '').slice(0, 8);
+  const lastDot = relKey.lastIndexOf('.');
   if (lastDot === -1) return `${relKey}_${hash}`;
   return `${relKey.slice(0, lastDot)}_${hash}${relKey.slice(lastDot)}`;
 }
@@ -34,14 +34,14 @@ function appendHashSuffix(relKey: string): string {
 export async function storagePut(
   relKey: string,
   data: Buffer | Uint8Array | string,
-  contentType = "application/octet-stream",
+  contentType = 'application/octet-stream',
 ): Promise<{ key: string; url: string }> {
   const { forgeUrl, forgeKey } = getForgeConfig();
   const key = appendHashSuffix(normalizeKey(relKey));
 
   // 1. Get presigned PUT URL from Forge
-  const presignUrl = new URL("v1/storage/presign/put", forgeUrl + "/");
-  presignUrl.searchParams.set("path", key);
+  const presignUrl = new URL('v1/storage/presign/put', forgeUrl + '/');
+  presignUrl.searchParams.set('path', key);
 
   const presignResp = await fetch(presignUrl, {
     headers: { Authorization: `Bearer ${forgeKey}` },
@@ -53,17 +53,17 @@ export async function storagePut(
   }
 
   const { url: s3Url } = (await presignResp.json()) as { url: string };
-  if (!s3Url) throw new Error("Forge returned empty presign URL");
+  if (!s3Url) throw new Error('Forge returned empty presign URL');
 
   // 2. PUT file directly to S3
   const blob =
-    typeof data === "string"
+    typeof data === 'string'
       ? new Blob([data], { type: contentType })
-      : new Blob([data as any], { type: contentType });
+      : new Blob([data as BlobPart], { type: contentType });
 
   const uploadResp = await fetch(s3Url, {
-    method: "PUT",
-    headers: { "Content-Type": contentType },
+    method: 'PUT',
+    headers: { 'Content-Type': contentType },
     body: blob,
   });
 
@@ -83,8 +83,8 @@ export async function storageGetSignedUrl(relKey: string): Promise<string> {
   const { forgeUrl, forgeKey } = getForgeConfig();
   const key = normalizeKey(relKey);
 
-  const getUrl = new URL("v1/storage/presign/get", forgeUrl + "/");
-  getUrl.searchParams.set("path", key);
+  const getUrl = new URL('v1/storage/presign/get', forgeUrl + '/');
+  getUrl.searchParams.set('path', key);
 
   const resp = await fetch(getUrl, {
     headers: { Authorization: `Bearer ${forgeKey}` },

@@ -139,8 +139,7 @@ describe('HouseDifficultyControls', () => {
         <HouseDifficultyControls indicator={indicator} siteAssessment={{soilProfile: 'stable_clay'}}
           onSiteAssessmentChange={vi.fn()} enableMobileCollapse showToolMenuLabels/>
       </TooltipProvider>);
-      expect(screen.getByRole('button', {name: 'Editar perfil do solo. Atual: Terreno Estável / Argiloso'}))
-        .toHaveClass('h-8', 'w-8', 'rounded-full');
+      expect(screen.getByRole('button', {name: 'Dificuldade da casa'})).toHaveAttribute('aria-expanded', 'false');
       expect(screen.queryByText('Dificuldade')).not.toBeInTheDocument();
     } finally {
       cleanup();

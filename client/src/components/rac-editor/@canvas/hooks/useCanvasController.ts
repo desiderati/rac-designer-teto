@@ -134,7 +134,7 @@ export function useCanvasController({
     return analysisStatus === 'prepared'
       ? constructionSiteManagementPort.getHouseFieldAnalysis(site.constructionSite.id, house.id)
       : createHouseFieldAnalysisDraft(house);
-  }, [constructionSiteManagementPort, hasTopHouseGroupOnCanvas, houseReadPort]);
+  }, [constructionSiteManagementPort, hasTopHouseGroupOnCanvas]);
 
   const {
     terrainSelection,

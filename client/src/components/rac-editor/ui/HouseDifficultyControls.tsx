@@ -137,9 +137,9 @@ export function HouseDifficultyControls({
   className,
   showToolMenuLabels = false,
 }: HouseDifficultyControlsProps) {
-  const {landscape, mobile} = useCanvasMobileViewport();
-  const showLabels = showToolMenuLabels && !mobile;
-  const isRadialMenu = landscape && enableMobileCollapse;
+  const {compact, landscape} = useCanvasMobileViewport({showToolMenuLabels});
+  const showLabels = showToolMenuLabels && !compact;
+  const isRadialMenu = compact && enableMobileCollapse;
   const isToolbarCollapseViewport = useToolbarCollapseViewport();
   const shouldDefaultCollapse = usePhoneToolbarCollapseViewport();
   const [collapsedOverride, setCollapsedOverride] = useState<boolean | null>(null);
@@ -147,7 +147,7 @@ export function HouseDifficultyControls({
   const editable = Boolean(onSiteAssessmentChange);
   useEffect(() => {if (!editable) setFactorMenu(null);}, [editable]);
   const shouldShowMobileHandle = enableMobileCollapse && isToolbarCollapseViewport;
-  const isMobileCollapsed = !landscape && shouldShowMobileHandle && (collapsedOverride ?? shouldDefaultCollapse);
+  const isMobileCollapsed = !compact && shouldShowMobileHandle && (collapsedOverride ?? shouldDefaultCollapse);
   const dragStartXRef = useRef<number | null>(null);
   const didDragRef = useRef(false);
   const selectedSoil = SOIL_PROFILE_OPTIONS.find((option) => option.value === (siteAssessment?.soilProfile ?? ''))
@@ -282,6 +282,8 @@ export function HouseDifficultyControls({
   const controls = (
     <div
       data-testid='house-difficulty-controls'
+      data-canvas-rail='right'
+      data-canvas-rail-labels={showToolMenuLabels}
       data-guided-tour-id='rac-house-difficulty-controls'
       role='group'
       aria-label='Fatores da dificuldade da casa'

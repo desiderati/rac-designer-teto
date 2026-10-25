@@ -9,7 +9,7 @@ import {getRadialMenuPositions} from './radial-menu-layout.ts';
 export function MobileRadialMenu({side, children, label, items, ...desktopProps}: HTMLAttributes<HTMLElement> & {
   side: 'left' | 'right'; label: string; children: ReactNode; items?: RadialMenuItem[];
 }) {
-  const {landscape} = useCanvasMobileViewport();
+  const {compact} = useCanvasMobileViewport();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -19,7 +19,7 @@ export function MobileRadialMenu({side, children, label, items, ...desktopProps}
     document.addEventListener('pointerdown', dismiss); document.addEventListener('keydown', escape);
     return () => {document.removeEventListener('pointerdown', dismiss); document.removeEventListener('keydown', escape);};
   }, [open]);
-  if (!landscape) return <aside {...desktopProps}>{children}</aside>;
+  if (!compact) return <aside {...desktopProps} data-canvas-rail={side}>{children}</aside>;
   if (items) return <RadialTreeMenu side={side} label={label} items={items}/>;
   const legacyItems = Children.toArray(children).flatMap((child) => isValidElement<{children?: ReactNode; 'data-radial-group'?: boolean}>(child) && child.props['data-radial-group'] ? Children.toArray(child.props.children) : [child]);
   const positions = getRadialMenuPositions(legacyItems.length, side, window.innerHeight);

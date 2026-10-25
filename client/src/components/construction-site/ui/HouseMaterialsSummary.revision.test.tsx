@@ -11,7 +11,7 @@ it('A-014 mantém mini planta e materiais sem o bloco textual dispensado na V-00
   const before = structuredClone(house);
   render(<HouseMaterialsSummary familyName='Teste' house={house} materials={{stairBeams: 2}}/>);
   fireEvent.click(screen.getByRole('button', {name: 'Resumo da Casa de Teste'}));
-  const summary = within(screen.getByRole('tooltip'));
+  const summary = within(screen.getByRole('dialog', {name: 'Resumo da Casa'}));
   expect(summary.getByRole('img', {name: 'Mini planta da casa, sem identificadores de pilotis'})).toBeVisible();
   expect(summary.queryByText(/^[ABC][1-4]$/)).not.toBeInTheDocument();
   expect(summary.queryByText(/Tipo da casa|Tamanho da casa|Pilotis .* m:/)).not.toBeInTheDocument();
@@ -38,7 +38,7 @@ it.each([
   const before = structuredClone(house);
   render(<HouseMaterialsSummary familyName='Porta' house={house} materials={{asphaltBlanket: true}}/>);
   fireEvent.click(screen.getByRole('button', {name: 'Resumo da Casa de Porta'}));
-  const summary = within(screen.getByRole('tooltip'));
+  const summary = within(screen.getByRole('dialog', {name: 'Resumo da Casa'}));
   expect(summary.getByRole('img', {name: `Mini planta da casa, sem identificadores de pilotis, porta no lado ${label}`})).toBeVisible();
   expect(summary.getByText('Porta', {exact: true})).toBeVisible();
   expect(summary.getByText('Manta Asfáltica')).toBeVisible();
@@ -52,5 +52,5 @@ it('A-014 não inventa a posição da porta sem orientação definida', () => {
   }}} as unknown as PersistedHouseRecord;
   render(<HouseMaterialsSummary familyName='Sem orientação' house={house}/>);
   fireEvent.click(screen.getByRole('button', {name: 'Resumo da Casa de Sem orientação'}));
-  expect(within(screen.getByRole('tooltip')).queryByText('Porta', {exact: true})).not.toBeInTheDocument();
+  expect(within(screen.getByRole('dialog', {name: 'Resumo da Casa'})).queryByText('Porta', {exact: true})).not.toBeInTheDocument();
 });

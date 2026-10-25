@@ -1,4 +1,4 @@
-import {useEffect, useRef} from 'react';
+import {useEffect} from 'react';
 import {useCanvasMobileViewport} from '@/components/rac-editor/lib/use-canvas-mobile-viewport.ts';
 import type {
   LinearCanvasSelection,
@@ -118,13 +118,10 @@ export function RacEditorModalEditors({
   onTerrainEditorClose,
   onTerrainApply,
 }: RacEditorModalEditorsProps) {
-  const {mobile, portrait, landscape} = useCanvasMobileViewport();
+  const {mobile, portrait, compact} = useCanvasMobileViewport();
   const blockEditors = mobile && portrait;
-  const previousMobile = useRef(mobile);
   useEffect(() => {
-    const enteringMobile = mobile && !previousMobile.current;
-    previousMobile.current = mobile;
-    if (!enteringMobile && !blockEditors) return;
+    if (!blockEditors) return;
 
     if (isContraventamentoMode) onCancelContraventamento();
     if (isPilotiEditorOpen) onPilotiEditorClose();
@@ -136,7 +133,7 @@ export function RacEditorModalEditors({
     onWallEditorClose, onLinearEditorClose, onTerrainEditorClose]);
 
   const houseSnapshot = useHouseRuntimeSnapshot<CanvasGroup>();
-  const mobilePanel = isPilotiEditorOpen && pilotiSelection?.mobilePanel === true;
+  const mobilePanel = isPilotiEditorOpen && compact;
   const previewDraft = mobilePanel ? createCanvasPilotiPreviewDraft(houseSnapshot, selectedPilotiHeights) : null;
   const destinationPilotiIds = mobilePanel && isContraventamentoMode
     ? getEligibleCanvasDestinationPilotiIds(isPilotiEligibleAsDestination) : undefined;
@@ -194,7 +191,7 @@ export function RacEditorModalEditors({
       />
 
       <GenericObjectEditor
-        presentation={landscape ? 'mobile-panel' : 'floating'}
+        presentation={compact ? 'mobile-panel' : 'floating'}
         editorType={wallSelection?.editorType ?? 'wall'}
         currentValue={wallSelection?.currentLabel ?? ''}
         currentColor={wallEditorColor ?? CANVAS_ELEMENT_STYLE.strokeColor.wallElement}
@@ -206,7 +203,7 @@ export function RacEditorModalEditors({
       />
 
       <GenericObjectEditor
-        presentation={landscape ? 'mobile-panel' : 'floating'}
+        presentation={compact ? 'mobile-panel' : 'floating'}
         editorType={linearEditorType}
         currentValue={linearSelection?.currentLabel ?? ''}
         currentColor={linearSelection?.currentColor ?? CANVAS_ELEMENT_STYLE.strokeColor.linearElement}
@@ -218,7 +215,7 @@ export function RacEditorModalEditors({
       />
 
       <TerrainEditor
-        presentation={landscape ? 'mobile-panel' : 'floating'}
+        presentation={compact ? 'mobile-panel' : 'floating'}
         isOpen={isTerrainEditorOpen && !blockEditors}
         isMobile={isMobile}
         currentTerrainType={terrainSelection?.terrainType ?? 1}

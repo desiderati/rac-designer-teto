@@ -65,6 +65,8 @@ não pode ser usada como área visível para esse cálculo.
 1. Seleção
     - Ao selecionar um objeto, o editor mostra feedback visual e informações relevantes.
     - Ao limpar seleção, os destaques temporários são removidos.
+    - Seleções de múltiplos itens permitem redimensionar, respeitando os bloqueios de cada item,
+      mas não permitem rotacionar o conjunto. A rotação individual permanece disponível quando permitida.
 
 2. Edição contextual
     - Piloti abre edição de piloti.

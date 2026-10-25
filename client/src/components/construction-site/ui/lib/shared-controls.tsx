@@ -1,3 +1,4 @@
+import {createLocalPreviewUrl} from './local-preview-url.ts';
 import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {MapView} from '@/components/Map.tsx';
 import {
@@ -31,7 +32,7 @@ import {ImageUploadReview, type ImageUploadReviewSelection} from '@/components/u
 import {getPhotoOrientation, type PhotoOrientation} from '@/components/construction-site/lib/photo-orientation.ts';
 import {parseMapCoordinates} from '@/components/construction-site/lib/construction-site-form-validation.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
-import {useStorageImageUpload} from '@/contexts/StorageImageUploadContext.tsx';
+import {useStorageImageUpload} from '@/contexts/useStorageImageUpload.ts';
 import {
   PHOTO_UPLOAD_ACCEPT,
   isManusStoragePhotoUrl,
@@ -385,10 +386,7 @@ function formatReduction(percent: number): string {
   return `${percent.toFixed(1).replace('.', ',')}%`;
 }
 
-export function createLocalPreviewUrl(file: File): string {
-  if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') return '';
-  return URL.createObjectURL(file);
-}
+
 
 export function RadioField({
   icon,

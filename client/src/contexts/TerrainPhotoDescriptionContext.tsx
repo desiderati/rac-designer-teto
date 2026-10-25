@@ -1,24 +1,7 @@
-import {createContext, type ReactNode, useContext, useMemo} from 'react';
+import {TerrainPhotoDescriptionContext, type TerrainPhotoDescriptionPort} from './useTerrainPhotoDescription.ts';
+export type {TerrainPhotoDescriptionInput, TerrainPhotoDescriptionPort} from './useTerrainPhotoDescription.ts';
+import {type ReactNode, useMemo} from 'react';
 import {trpc} from '@/lib/trpc.ts';
-
-export type TerrainPhotoDescriptionInput = {
-  base64: string;
-  mimeType: 'image/png' | 'image/jpeg' | 'image/webp';
-};
-
-export type TerrainPhotoDescriptionPort = {
-  describePhoto(input: TerrainPhotoDescriptionInput): Promise<string | null>;
-  isDescribing: boolean;
-  available: boolean;
-};
-
-const defaultPort: TerrainPhotoDescriptionPort = {
-  describePhoto: async () => null,
-  isDescribing: false,
-  available: false,
-};
-
-const TerrainPhotoDescriptionContext = createContext<TerrainPhotoDescriptionPort>(defaultPort);
 
 export function TerrainPhotoDescriptionProvider({children}: {children: ReactNode}) {
   const mutation = trpc.storage.describeImage.useMutation();
@@ -61,8 +44,4 @@ function cleanDescription(value: string): string | null {
     .trim()
     .slice(0, 120);
   return cleaned || null;
-}
-
-export function useTerrainPhotoDescription(): TerrainPhotoDescriptionPort {
-  return useContext(TerrainPhotoDescriptionContext);
 }

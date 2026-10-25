@@ -1,6 +1,6 @@
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {useHouseStoreVersion} from '@/components/rac-editor/lib/house-store.ts';
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 import type {
   HousePiloti,
   HouseSide,
@@ -103,12 +103,11 @@ export function buildHouse3DViewerModel(projection: House3DProjection | null): H
 
 export function useHouse3DViewerModel({retryProjection = false}: {retryProjection?: boolean} = {}): House3DViewerModel {
   const {house3DProjectionPort} = useEditorPorts();
-  const houseStoreVersion = useHouseStoreVersion();
-  const [projectionRetry, setProjectionRetry] = useState(0);
-  const projection = useMemo(
-    () => house3DProjectionPort.getProjection(),
-    [house3DProjectionPort, houseStoreVersion, projectionRetry],
-  );
+  // A assinatura e as tentativas solicitam novas leituras do snapshot externo.
+  // A porta é somente de leitura; não memoizar sua consulta como função pura.
+  useHouseStoreVersion();
+  const [, setProjectionRetry] = useState(0);
+  const projection = house3DProjectionPort.getProjection();
   const isProjectionLoading = retryProjection && projection === null;
 
   useEffect(() => {

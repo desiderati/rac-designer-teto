@@ -32,6 +32,15 @@ describe('ação de excluir na barra de seleção mobile', () => {
     expect(onDelete).toHaveBeenCalledOnce();
   });
 
+  it('orienta somente redimensionar e não mostra ângulo na seleção múltipla', () => {
+    render(<MobileCanvasSelectionBar count={2} transforming canTransform rotationAngle={45} canEdit={false}
+      onEdit={vi.fn()} onToggleTransform={vi.fn()}/>);
+    expect(screen.getByText('Arraste os pontos para redimensionar.', {exact: true})).toBeInTheDocument();
+    expect(screen.queryByText(/alça ↻ para girar/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Ângulo de rotação')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', {name: 'Mover'})).toBeEnabled();
+  });
+
   it('fica inerte sem comando e não apresenta ações sem seleção', () => {
     const props = {count: 1, transforming: false, canTransform: true, canEdit: true, onEdit: vi.fn(), onToggleTransform: vi.fn()};
     const {rerender} = render(<MobileCanvasSelectionBar {...props}/>);

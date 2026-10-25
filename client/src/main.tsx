@@ -11,6 +11,7 @@ import {installChunkRecovery} from '@/shared/lib/runtime-resilience.ts';
 import {isIsolatedLocalMode} from '@/shared/local-runtime.ts';
 import ErrorBoundary from '@/components/ErrorBoundary.tsx';
 import './index.css';
+import './rac-ui.css';
 
 installChunkRecovery();
 if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('chunkRecovery')) {

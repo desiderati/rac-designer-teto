@@ -21,6 +21,8 @@ const REAL_TIME_AT_TEST_START = RealDate.now();
 
 describe('ConstructionSiteManagementPanel.tsx', () => {
   beforeEach(() => {
+    vi.stubEnv('DEV', true);
+    vi.stubEnv('VITE_FRONTEND_FORGE_API_KEY', '');
     localStorage.clear();
     vi.stubGlobal('Date', class extends RealDate {
       constructor(...args: unknown[]) {
@@ -1529,7 +1531,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByRole('heading', {name: /Casas - CC2603/i, hidden: true})).toBeInTheDocument();
   }, SLOW_UI_TEST_TIMEOUT_MS);
 
-  it('carrega o MapView nativo por coordenadas sem exigir chave própria do Google', async () => {
+  it('carrega o mapa OpenStreetMap local por coordenadas sem chave', async () => {
     const user = userEvent.setup();
 
     renderPanel();
@@ -1539,15 +1541,19 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     fireEvent.change(screen.getByLabelText('Localização Geográfica'), {target: {value: '-25.4284, -49.2733'}});
 
-    expect(screen.getByTestId('google-maps-map')).toBeVisible();
+    const map = screen.getByTitle(/ — mapa OpenStreetMap$/);
+    expect(map).toBeVisible();
+    const url = new URL(map.getAttribute('src')!);
+    expect(url.origin).toBe('https://www.openstreetmap.org');
+    expect(url.searchParams.get('marker')).toBe('-25.4284,-49.2733');
 
     fireEvent.change(screen.getByLabelText('Localização Geográfica'), {target: {value: 'Rua A, 123'}});
 
-    expect(screen.queryByTestId('google-maps-map')).not.toBeInTheDocument();
+    expect(screen.queryByTitle(/ — mapa OpenStreetMap$/)).not.toBeInTheDocument();
     expect(screen.getByText('Coordenadas inválidas')).toBeVisible();
   });
 
-  it('carrega o mapa nativo com Enter no campo de coordenadas sem salvar configurações', async () => {
+  it('carrega o mapa local com Enter no campo de coordenadas sem salvar configurações', async () => {
     const user = userEvent.setup();
     const actions = createActions();
 
@@ -1561,11 +1567,15 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     await user.type(screen.getByLabelText('Localização Geográfica'), '-25.4284, -49.2733{Enter}');
 
-    expect(screen.getByTestId('google-maps-map')).toBeVisible();
+    const map = screen.getByTitle(/ — mapa OpenStreetMap$/);
+    expect(map).toBeVisible();
+    const url = new URL(map.getAttribute('src')!);
+    expect(url.origin).toBe('https://www.openstreetmap.org');
+    expect(url.searchParams.get('marker')).toBe('-25.4284,-49.2733');
     expect(actions.createHouse).not.toHaveBeenCalled();
   });
 
-  it('usa a localização atual do navegador para preencher coordenadas e atualizar o MapView nativo', async () => {
+  it('usa a localização atual do navegador para preencher coordenadas e atualizar o mapa local', async () => {
     const user = userEvent.setup();
     const getCurrentPosition = vi.fn((
       success: PositionCallback,
@@ -1593,10 +1603,14 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     );
     expect(screen.getByLabelText('Localização Geográfica')).toHaveValue('-25.428412, -49.273312');
     expect(screen.getByText('Localização atual aplicada ao mapa.')).toBeVisible();
-    expect(screen.getByTestId('google-maps-map')).toBeVisible();
+    const map = screen.getByTitle(/ — mapa OpenStreetMap$/);
+    expect(map).toBeVisible();
+    const url = new URL(map.getAttribute('src')!);
+    expect(url.origin).toBe('https://www.openstreetmap.org');
+    expect(url.searchParams.get('marker')).toBe('-25.428412,-49.273312');
   });
 
-  it('mantém o MapView nativo quando a localização atual é aplicada sem chave Embed', async () => {
+  it('mantém o mapa local quando a localização atual é aplicada sem chave Embed', async () => {
     const user = userEvent.setup();
     const getCurrentPosition = vi.fn((success: PositionCallback) => {
       success(createGeolocationPosition(-25.4284, -49.2733));
@@ -1610,7 +1624,11 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await user.click(screen.getByRole('button', {name: 'Usar localização atual'}));
 
     expect(screen.getByLabelText('Localização Geográfica')).toHaveValue('-25.428400, -49.273300');
-    expect(screen.getByTestId('google-maps-map')).toBeVisible();
+    const map = screen.getByTitle(/ — mapa OpenStreetMap$/);
+    expect(map).toBeVisible();
+    const url = new URL(map.getAttribute('src')!);
+    expect(url.origin).toBe('https://www.openstreetmap.org');
+    expect(url.searchParams.get('marker')).toBe('-25.4284,-49.2733');
   });
 
   it('exibe feedback quando a localização atual não está disponível ou é negada', async () => {
@@ -2127,9 +2145,11 @@ async function chooseVisualOption(
 async function expectUnsavedChangesDialog(user: ReturnType<typeof userEvent.setup>) {
   const dialog = await screen.findByRole('alertdialog');
 
-  expect(dialog).toHaveClass('w-[calc(100vw-2rem)]', 'max-w-md');
-  expect(within(dialog).getByTestId('unsaved-changes-icon-badge'))
-    .toHaveClass('inline-flex', 'items-center', 'justify-center', 'leading-none');
+  expect(dialog).toHaveClass('rac-modal-shell', 'max-w-md');
+  expect(within(dialog).getByTestId('unsaved-changes-icon-badge').closest('.rac-confirmation-icon')).toBeInTheDocument();
+  const content = dialog.querySelector('[data-rac-modal-region="content"]');
+  expect(content).toContainElement(within(dialog).getByText(/sem salvar as alterações atuais/i));
+  expect(content).not.toContainElement(within(dialog).getByRole('button', {name:'Sair sem salvar'}));
   expect(within(dialog).getByTestId('unsaved-changes-icon'))
     .toHaveClass('block', '-translate-y-px');
   expect(within(dialog).getByRole('heading', {name: 'Sair sem salvar?'})).toBeVisible();

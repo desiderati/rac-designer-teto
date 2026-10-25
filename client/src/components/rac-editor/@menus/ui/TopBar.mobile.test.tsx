@@ -6,9 +6,9 @@ import type {MenuActionMap} from '../lib/menu-types.ts';
 
 const viewport = vi.hoisted(() => ({mobile: true, portrait: false, landscape: true}));
 vi.mock('@/components/rac-editor/lib/use-canvas-mobile-viewport.ts', () => ({
-  useCanvasMobileViewport: () => viewport,
+  useCanvasMobileViewport: () => ({...viewport, compact: viewport.mobile}),
 }));
-vi.mock('@/contexts/RemoteSyncContext.tsx', () => ({
+vi.mock('@/contexts/useRemoteSync.ts', () => ({
   useRemoteSync: () => ({status: 'synced', lastSyncedAt: null}),
 }));
 

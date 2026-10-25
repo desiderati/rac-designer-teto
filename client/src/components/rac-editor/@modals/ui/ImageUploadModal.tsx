@@ -1,3 +1,5 @@
+import {ModalActions} from '@/components/ui/ModalActions.tsx';
+import {ModalFrame} from '@/components/ui/ModalFrame.tsx';
 import {ChangeEvent, DragEvent, useEffect, useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faUpload} from '@fortawesome/free-solid-svg-icons';
@@ -8,7 +10,7 @@ import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} fro
 import {beginToastTask} from '@/components/ui/sonner.tsx';
 import {ImageUploadReview, type ImageUploadReviewSelection} from '@/components/ui/ImageUploadReview.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
-import {useStorageImageUpload} from '@/contexts/StorageImageUploadContext.tsx';
+import {useStorageImageUpload} from '@/contexts/useStorageImageUpload.ts';
 import {
   PHOTO_UPLOAD_ACCEPT,
   PHOTO_SOURCE_UPLOAD_LIMIT_LABEL,
@@ -168,11 +170,23 @@ export function ImageUploadModal({
   );
 
   const actions = (
-    <Button type='button' variant='outline' className={cn('w-full bg-white', compact && 'min-h-11')} onClick={requestClose} disabled={Boolean(reviewFile)}>
+    <Button type='button' data-action='cancel' variant='outline' className={cn('w-full bg-white', compact && 'min-h-11')} onClick={requestClose} disabled={Boolean(reviewFile)}>
       Cancelar
     </Button>
   );
 
+  const Header = isMobile ? DrawerHeader : DialogHeader;
+  const Title = isMobile ? DrawerTitle : DialogTitle;
+  const Description = isMobile ? DrawerDescription : DialogDescription;
+  const composition = <ModalFrame
+    contentClassName={isMobile ? 'pb-4' : undefined}
+    header={<Header className='rac-image-upload-header'>
+      <Title className='text-center'>Inserir imagem</Title>
+      <Description>Envie uma imagem para posicioná-la no Canvas.</Description>
+    </Header>}
+    actions={<ActionDock testId='image-upload-modal-actions' surface={isMobile ? 'drawer' : 'dialog'} spacing='flush'><ModalActions confirm={actions}/></ActionDock>}>
+    {body}
+  </ModalFrame>;
   return (
     <>
       <input
@@ -186,29 +200,11 @@ export function ImageUploadModal({
 
       {isMobile ? (
         <Drawer open={isOpen && !reviewFile} onOpenChange={(open) => !open && requestClose()}>
-          <DrawerContent className='mx-auto max-h-[92dvh] w-full max-w-sm overflow-hidden'>
-            <DrawerHeader className='pb-2 text-center'>
-              <DrawerTitle className='text-center text-lg'>Inserir imagem</DrawerTitle>
-              <DrawerDescription className='text-xs'>Envie uma imagem para posicioná-la no Canvas.</DrawerDescription>
-            </DrawerHeader>
-            <div className='min-h-0 flex-1 overflow-y-auto px-4 pb-4'>{body}</div>
-            <ActionDock testId='image-upload-modal-actions' surface='drawer' spacing='flush' edgeToEdge>
-              {actions}
-            </ActionDock>
-          </DrawerContent>
+          <DrawerContent className='mx-auto w-full max-w-sm'>{composition}</DrawerContent>
         </Drawer>
       ) : (
         <Dialog open={isOpen && !reviewFile} onOpenChange={(open) => !open && requestClose()}>
-          <DialogContent className={compact ? 'gap-3 p-[18px] sm:max-w-sm' : 'sm:max-w-lg'} hideCloseButton>
-            <DialogHeader className='text-center'>
-              <DialogTitle className={cn('text-center', compact ? 'text-lg' : 'text-2xl')}>Inserir imagem</DialogTitle>
-              <DialogDescription className={compact ? 'text-xs' : undefined}>Envie uma imagem para posicioná-la no Canvas.</DialogDescription>
-            </DialogHeader>
-            {body}
-            <ActionDock testId='image-upload-modal-actions' surface='dialog' spacing='flush'>
-              {actions}
-            </ActionDock>
-          </DialogContent>
+          <DialogContent className={compact ? 'sm:max-w-sm' : 'sm:max-w-lg'} hideCloseButton>{composition}</DialogContent>
         </Dialog>
       )}
 

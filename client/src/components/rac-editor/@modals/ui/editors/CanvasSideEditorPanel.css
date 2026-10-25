@@ -1,10 +1,4 @@
-.canvas-side-editor-dismiss {
-  position: fixed;
-  z-index: 69;
-  inset: 0;
-  background: transparent;
-}
-
+.canvas-side-editor-dismiss { position: fixed; z-index: 69; inset: 0; background: transparent; }
 .canvas-side-editor-panel {
   position: fixed;
   z-index: 70;
@@ -14,32 +8,25 @@
   max-width: calc(100vw - 8px);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
-  padding-top: env(safe-area-inset-top);
-  padding-right: env(safe-area-inset-right);
-  padding-bottom: env(safe-area-inset-bottom);
+  overflow: hidden;
+  padding: var(--rac-modal-padding, 16px);
   background: #fff;
   border-radius: 12px 0 0 12px;
-  border-right: 0;
   color: #0f172a;
-  box-shadow: -8px 0 24px rgb(15 23 42 / .16);
-  font-family: Inter, sans-serif;
+  box-shadow: var(--rac-shadow);
 }
-
 .canvas-side-editor-fixed { height: 425px; }
-.canvas-side-editor-content { flex: 0 0 auto; padding: 12px; }
-.canvas-side-editor-actions {
-  position: sticky;
-  bottom: 0;
-  z-index: 1;
-  flex: 0 0 auto;
-  padding: 12px;
-  border-top: 1px solid #dce5ef;
-  background: #fff;
+.rac-standard-modal.canvas-side-editor-panel { padding: 0; --rac-modal-padding: 0px; }
+.canvas-side-editor-panel .canvas-side-editor-frame { --rac-modal-padding: 0px; }
+.canvas-side-editor-panel .canvas-side-editor-frame > [data-rac-modal-region='actions'] { margin-top: 0; }
+.canvas-side-editor-frame { width: 100%; }
+.canvas-side-editor-content { min-width: 0; padding: 16px; }
+.canvas-side-editor-content input { height: 44px; text-align: center; }
+.canvas-side-editor-panel .canvas-side-editor-actions { position: static; padding: 16px; margin: 0; }
+.canvas-side-editor-content button[aria-pressed][title] { border-radius: 10px; border-color: transparent; }
+.canvas-side-editor-content button[aria-pressed='true'][title] { border-color: #0284c5; box-shadow: inset 0 0 0 2px white; }
+.canvas-side-editor-content button[aria-label='Amarelo'] svg path { stroke: #0f172a; }
+@media (min-width: 1000px) {
+  .canvas-side-editor-panel { right: 16px; width: 304px; border-radius: 12px; }
 }
-.canvas-side-editor-actions-scroll { position: static; }
-
 body:has(.canvas-side-editor-panel) .mobile-top-bar-handle { display: none; }

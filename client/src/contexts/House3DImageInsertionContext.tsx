@@ -1,42 +1,7 @@
-import {createContext, type ReactNode, useCallback, useContext, useMemo, useRef, useState} from 'react';
+import {House3DImageInsertionContext, type PendingHouse3DImage, type House3DCanvasHandle, type House3DImageInsertionContextValue} from './useHouse3DImageInsertion.ts';
+export type {PendingHouse3DImage} from './useHouse3DImageInsertion.ts';
+import {type ReactNode, useCallback, useMemo, useRef, useState} from 'react';
 import {toast} from '@/components/ui/sonner.tsx';
-import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/CanvasSnapshotHandle.ts';
-
-export type PendingHouse3DImage = {
-  dataUrl: string;
-  storageUrl: string | null;
-  source: 'illustration' | 'screenshot';
-};
-
-type House3DCanvasHandle = CanvasSnapshotHandle & {
-  saveHistory?: () => void;
-};
-
-type House3DImageInsertionContextValue = {
-  pendingImage: PendingHouse3DImage | null;
-  isGenerating: boolean;
-  isInserting: boolean;
-  feedback: string | null;
-  registerCanvasGetter: (getter: () => House3DCanvasHandle | null) => () => void;
-  setGenerating: (generating: boolean) => void;
-  publishImage: (image: PendingHouse3DImage) => void;
-  insertPendingImage: () => Promise<boolean>;
-  discardPendingImage: () => void;
-};
-
-const defaultValue: House3DImageInsertionContextValue = {
-  pendingImage: null,
-  isGenerating: false,
-  isInserting: false,
-  feedback: null,
-  registerCanvasGetter: () => () => undefined,
-  setGenerating: () => undefined,
-  publishImage: () => undefined,
-  insertPendingImage: async () => false,
-  discardPendingImage: () => undefined,
-};
-
-const House3DImageInsertionContext = createContext<House3DImageInsertionContextValue>(defaultValue);
 
 export function House3DImageInsertionProvider({children}: {children: ReactNode}) {
   const [pendingImage, setPendingImage] = useState<PendingHouse3DImage | null>(null);
@@ -132,8 +97,4 @@ export function House3DImageInsertionProvider({children}: {children: ReactNode})
   ]);
 
   return <House3DImageInsertionContext.Provider value={value}>{children}</House3DImageInsertionContext.Provider>;
-}
-
-export function useHouse3DImageInsertion(): House3DImageInsertionContextValue {
-  return useContext(House3DImageInsertionContext);
 }

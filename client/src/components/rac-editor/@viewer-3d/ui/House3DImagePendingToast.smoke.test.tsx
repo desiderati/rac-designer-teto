@@ -2,7 +2,8 @@ import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useEffect} from 'react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {House3DImageInsertionProvider, useHouse3DImageInsertion, type PendingHouse3DImage} from '@/contexts/House3DImageInsertionContext.tsx';
+import {House3DImageInsertionProvider, type PendingHouse3DImage} from '@/contexts/House3DImageInsertionContext.tsx';
+import {useHouse3DImageInsertion} from '@/contexts/useHouse3DImageInsertion.ts';
 import {House3DImagePendingToast} from './House3DImagePendingToast.tsx';
 
 function PendingToastHarness({
@@ -15,14 +16,13 @@ function PendingToastHarness({
   source?: PendingHouse3DImage['source'];
 }) {
   const {publishImage, registerCanvasGetter} = useHouse3DImageInsertion();
-  const canvas = {
-    createSnapshotPort: () => ({insertImageSnapshot}),
-  };
-
   useEffect(() => {
     if (!registerCanvas) return;
+    const canvas = {
+      createSnapshotPort: () => ({insertImageSnapshot}),
+    };
     return registerCanvasGetter(() => canvas);
-  }, [registerCanvas, registerCanvasGetter]);
+  }, [insertImageSnapshot, registerCanvas, registerCanvasGetter]);
 
   return (
     <>

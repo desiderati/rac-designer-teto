@@ -1,10 +1,7 @@
 import {fireEvent, render, screen, within} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
-import {
-  RAC_PDF_EXPORT_STEPS,
-  RacPdfExportProgress,
-  createInitialRacPdfExportStatuses,
-} from './RacPdfExportProgress.tsx';
+import {RAC_PDF_EXPORT_STEPS, createInitialRacPdfExportStatuses} from '@/components/rac-editor/lib/rac-pdf-export-progress.ts';
+import {RacPdfExportProgress} from './RacPdfExportProgress.tsx';
 
 describe('RacPdfExportProgress', () => {
   it('permite cancelar pelo X durante o carregamento', () => {

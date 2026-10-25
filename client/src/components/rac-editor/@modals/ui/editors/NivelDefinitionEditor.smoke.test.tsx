@@ -44,6 +44,16 @@ describe('NivelDefinitionEditor.tsx', () => {
     expect(screen.getByLabelText('Nível do piloti em metros')).toHaveFocus();
   });
 
+  it('mantém minimapa, título e navegação no cabeçalho fixo da inserção', () => {
+    render(<NivelDefinitionEditor isOpen onClose={vi.fn()} onApply={vi.fn()}/>, {wrapper: Wrapper});
+    const title = screen.getByText('Piloti A1');
+    expect(title.closest('[data-rac-modal-region]')).toHaveAttribute('data-rac-modal-region', 'header');
+    expect(screen.getByRole('button', {name: 'Próximo piloti'}).closest('[data-rac-modal-region]'))
+      .toHaveAttribute('data-rac-modal-region', 'header');
+    expect(screen.getByRole('textbox', {name: 'Nível do piloti em metros'}).closest('[data-rac-modal-region]'))
+      .toHaveAttribute('data-rac-modal-region', 'content');
+  });
+
   it('permite editar o nível digitando no modo mobile durante a inserção inicial', () => {
     render(
       <NivelDefinitionEditor

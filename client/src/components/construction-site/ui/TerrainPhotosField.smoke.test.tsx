@@ -9,14 +9,14 @@ const toastMock = vi.hoisted(() => ({
   error: vi.fn(),
 }));
 
-vi.mock('@/contexts/StorageImageUploadContext.tsx', () => ({
+vi.mock('@/contexts/useStorageImageUpload.ts', () => ({
   useStorageImageUpload: () => ({
     isUploading: false,
     uploadImage: vi.fn(),
   }),
 }));
 
-vi.mock('@/contexts/TerrainPhotoDescriptionContext.tsx', () => ({
+vi.mock('@/contexts/useTerrainPhotoDescription.ts', () => ({
   useTerrainPhotoDescription: () => ({
     isDescribing: false,
     describePhoto: vi.fn(),

@@ -148,8 +148,8 @@ describe('CanvasToolsMenu.tsx', () => {
     setLandscapeViewport();
     Object.defineProperty(window, 'innerHeight', {configurable: true, value: 900});
     renderCanvasToolsMenu({viewportWidth: 740, showToolMenuLabels: true});
-    expect(screen.getByRole('toolbar', {name: 'Barra de ferramentas principal'})).toHaveClass('w-12');
-    expect(screen.getByRole('button', {name: 'Casa TETO (Opções)'}).textContent).toBe('');
+    expect(screen.getByRole('button', {name: 'Ferramentas do Canvas'})).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('toolbar', {name: 'Barra de ferramentas principal'})).not.toBeInTheDocument();
     cleanup();
     Object.defineProperty(window, 'innerHeight', {configurable: true, value: 420});
     renderCanvasToolsMenu({viewportWidth: 740, activeSubmenu: null, showToolMenuLabels: true});

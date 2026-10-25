@@ -1,4 +1,4 @@
-import {useState, type ReactNode} from 'react';
+import {useEffect, useState, type ReactNode} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faChevronLeft, faChevronRight} from '@fortawesome/free-solid-svg-icons';
 import {Button} from '@/components/ui/button.tsx';
@@ -19,6 +19,7 @@ import type {
 import {FloatingEditor} from '@/components/rac-editor/@modals/ui/editors/FloatingEditor.tsx';
 import {CanvasSideEditorPanel} from '../CanvasSideEditorPanel.tsx';
 import {NivelSlider} from '@/components/rac-editor/@modals/ui/editors/NivelSlider.tsx';
+import {nivelInputDigitsToValue} from '../nivel-input-format.ts';
 import {PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
 import {formatPilotiHeight} from '@/shared/types/piloti.ts';
 import type {HousePilotiReadPort, HousePilotiWritePort} from '@/components/rac-editor/ports/HousePilotiPort.ts';
@@ -90,6 +91,9 @@ export function PilotiEditor({
   onContraventamentoSelect,
   onHorizontalContraventamentoSelect
 }: PilotiEditorProps) {
+  const [mobileTab, setMobileTab] = useState<MobilePilotiTab>('nivel');
+  const [nivelDraftDigits, setNivelDraftDigits] = useState<string>();
+  useEffect(() => {setNivelDraftDigits(undefined);}, [pilotiId, currentNivel, isOpen]);
   const {
     tempHeight,
     tempIsMaster,
@@ -106,7 +110,6 @@ export function PilotiEditor({
     handleNivelModeToggle,
     handleNavigate,
     handleSelectPiloti,
-    handleApply,
     handleCancel,
     handleNivelChange,
     handleNivelCommit,
@@ -132,14 +135,22 @@ export function PilotiEditor({
 
   if (!isOpen) return null;
 
+  const confirmDraft = () => {
+    commitDraftChanges({nivelOverride: nivelDraftDigits === undefined ? undefined : nivelInputDigitsToValue(nivelDraftDigits)});
+    onClose();
+  };
+  const changeDraftDigits = (digits: string) => {
+    setNivelDraftDigits(digits);
+    const value = nivelInputDigitsToValue(digits);
+    if (value >= 0.2 && value <= maxNivel) handleNivelChange(value);
+  };
+
   // ---- Shared content renderers (inline to avoid remount/focus-loss) ----
   const canEditNivel = isCornerPiloti || !autoAdjustPilotiHeightsFromNivel;
   const isInline = presentation === 'inline';
   const isMobilePanel = presentation === 'mobile-panel';
-  const choiceGridClasses = isMobilePanel ? 'grid w-full grid-cols-4 gap-2'
-    : 'grid grid-cols-4 justify-items-center gap-2 max-w-[216px] mx-auto';
-  const choiceSizeClasses = isInline ? ' !h-[60px] !w-[60px]'
-    : isMobilePanel ? ' !h-auto !w-full aspect-square' : '';
+  const choiceGridClasses = 'grid w-full grid-cols-4 gap-2';
+  const choiceSizeClasses = isMobilePanel ? ' !h-auto !w-full aspect-square' : ' !h-[60px] !w-[60px]';
   const onBraceClick = (side: ContraventamentoSide) => {
     commitDraftChanges();
     if (side === 'left' || side === 'right') onContraventamentoSelect?.(side, pilotiId ?? undefined);
@@ -157,10 +168,10 @@ export function PilotiEditor({
           }}/>
       </div>
       <Separator className='piloti-master-separator'/>
-      <div className={isInline ? 'piloti-inline-layout' : isMobilePanel ? 'piloti-mobile-sections' : 'space-y-4'}>
+      <div className={isMobilePanel ? 'piloti-mobile-sections' : 'piloti-inline-layout'}>
         <section id={isMobilePanel ? 'piloti-mobile-tab-nivel' : undefined} role={isMobilePanel ? 'tabpanel' : undefined}
           aria-labelledby={isMobilePanel ? 'piloti-mobile-trigger-nivel' : undefined}
-          className={isInline ? 'piloti-inline-level' : undefined}>
+          className={!isMobilePanel ? 'piloti-inline-level' : undefined}>
           <NivelSlider
             disabled={!canEditNivel}
             autoFocusInput={isOpen && canEditNivel && !autoAdjustPilotiHeightsFromNivel && !isMobilePanel}
@@ -172,17 +183,18 @@ export function PilotiEditor({
             onNivelChange={handleNivelChange}
             onNivelCommit={handleNivelCommit}
             enableInput autoMode={autoAdjustPilotiHeightsFromNivel}
+            draftDigits={nivelDraftDigits} onDraftDigitsChange={changeDraftDigits}
             onAutoModeToggle={handleNivelModeToggle}
             showModeTourTarget={!isMobile && !isMobilePanel}
-            compactStepper={isInline || isMobilePanel} compactLayout={isMobilePanel}/>
+            compactStepper compactLayout={isMobilePanel}/>
         </section>
         <section id={isMobilePanel ? 'piloti-mobile-tab-tamanho' : undefined} role={isMobilePanel ? 'tabpanel' : undefined}
           aria-labelledby={isMobilePanel ? 'piloti-mobile-trigger-tamanho' : undefined}
-          className={isInline ? 'piloti-inline-sizes' : undefined}>
-          {!isInline && !isMobilePanel && <Separator className='mb-4'/>}
+          className={!isMobilePanel ? 'piloti-inline-sizes' : undefined}>
+
           <div className='space-y-4'>
             <p className='piloti-inline-heading text-sm font-medium text-center'>Tamanho dos Pilotis</p>
-            <div className={isInline ? 'piloti-inline-size-choices' : choiceGridClasses}>
+            <div className={!isMobilePanel ? 'piloti-inline-size-choices' : choiceGridClasses}>
               {selectedPilotiHeights.map((h) => <button key={h} type='button'
                 aria-label={isMobilePanel ? `Piloti de ${formatPilotiHeight(h)} metros` : undefined}
                 aria-pressed={tempHeight === h}
@@ -196,11 +208,11 @@ export function PilotiEditor({
         <section id={isMobilePanel ? 'piloti-mobile-tab-contraventamento' : undefined}
           role={isMobilePanel ? 'tabpanel' : undefined}
           aria-labelledby={isMobilePanel ? 'piloti-mobile-trigger-contraventamento' : undefined}
-          className={isInline ? 'piloti-inline-braces' : undefined}>
-          {!isInline && !isMobilePanel && <Separator className='mb-4'/>}
+          className={!isMobilePanel ? 'piloti-inline-braces' : undefined}>
+
           <div className={isInline ? 'space-y-4' : 'space-y-3'}>
             <p className='piloti-inline-heading text-sm font-medium text-center'>{isMobilePanel ? 'Inserir Contraventamento' : 'Contraventamento'}</p>
-            <div className={isInline ? 'piloti-inline-brace-choices' : choiceGridClasses}>
+            <div className={!isMobilePanel ? 'piloti-inline-brace-choices' : choiceGridClasses}>
               {([
                 ['left', 'Esquerdo', contraventamentoLeftDisabled, contraventamentoLeftActive],
                 ['right', 'Direito', contraventamentoRightDisabled, contraventamentoRightActive],
@@ -223,20 +235,22 @@ export function PilotiEditor({
   );
 
   if (isMobilePanel) {
-    return <PilotiMobilePanel
+    return <PilotiMobilePanel tab={mobileTab} onTabChange={setMobileTab}
       selectedPilotiId={pilotiId} previewDraft={previewDraft}
       destinationPilotiIds={destinationPilotiIds} onCancelDestination={onCancelDestination}
       onSelectPiloti={(id) => destinationPilotiIds !== undefined
         ? onDestinationPilotiSelect?.(id) : handleSelectPiloti(id)}
-      onClose={() => {if (destinationPilotiIds !== undefined) onCancelDestination?.(); handleApply();}}
+      onClose={() => {if (destinationPilotiIds !== undefined) onCancelDestination?.(); confirmDraft();}}
       content={editorContent}/>;
   }
 
   return (
     <FloatingEditor
       presentation={presentation}
+      headerTone='section'
+      className='rac-piloti-floating-editor'
       header={presentation === 'inline' ? undefined :
-        <div className='flex items-center gap-3'>
+        <div className='piloti-editor-header flex items-center gap-3'>
           <PilotiGridIcon
             selectedPiloti={pilotiName}
             masterPiloti={masterPilotiName}
@@ -267,13 +281,13 @@ export function PilotiEditor({
           </div>
         </div>
       }
-      cardContent={editorContent}
+      cardContent={presentation === 'inline' ? editorContent : <div className='piloti-floating-card'>{editorContent}</div>}
       isOpen={isOpen}
       isMobile={isMobile}
       anchorPosition={anchorPosition}
       confirmLabel='Confirmar'
       dataGuidedTourId='rac-piloti-editor'
-      onConfirm={handleApply}
+      onConfirm={confirmDraft}
       onCancel={handleCancel}
     />
   );
@@ -282,9 +296,11 @@ export function PilotiEditor({
 type MobilePilotiTab = 'nivel' | 'tamanho' | 'contraventamento';
 
 function PilotiMobilePanel({
-  selectedPilotiId, previewDraft, destinationPilotiIds,
+  tab, onTabChange, selectedPilotiId, previewDraft, destinationPilotiIds,
   onSelectPiloti, onCancelDestination, onClose, content,
 }: {
+  tab: MobilePilotiTab;
+  onTabChange: (tab: MobilePilotiTab) => void;
   selectedPilotiId: string | null;
   previewDraft?: HouseFieldAnalysisDraft | null;
   destinationPilotiIds?: readonly string[];
@@ -293,7 +309,6 @@ function PilotiMobilePanel({
   onClose: () => void;
   content: ReactNode;
 }) {
-  const [tab, setTab] = useState<MobilePilotiTab>('nivel');
   const selectingDestination = destinationPilotiIds !== undefined;
   return <CanvasSideEditorPanel ariaLabel='Editar pilotis da planta' fixedHeight
     data-tab={tab} className='piloti-mobile-panel' onClose={onClose}
@@ -307,7 +322,7 @@ function PilotiMobilePanel({
         ['nivel', 'Nível'], ['tamanho', 'Tamanho'], ['contraventamento', 'Contraventar'],
       ] as const).map(([id, label]) => <button key={id} id={`piloti-mobile-trigger-${id}`} type='button'
         role='tab' aria-selected={tab === id} aria-controls={`piloti-mobile-tab-${id}`}
-        onClick={() => setTab(id)}>{label}</button>)}
+        onClick={() => onTabChange(id)}>{label}</button>)}
     </div>
     <div className='piloti-mobile-scroll'>
       <div className='piloti-mobile-controls'>{content}</div>

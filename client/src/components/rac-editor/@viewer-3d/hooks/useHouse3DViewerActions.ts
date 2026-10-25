@@ -16,7 +16,7 @@ import {
   readHouse3DViewerPreferences,
   writeHouse3DViewerPreferences,
 } from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
-import {useHouse3DImageInsertion} from '@/contexts/House3DImageInsertionContext.tsx';
+import {useHouse3DImageInsertion} from '@/contexts/useHouse3DImageInsertion.ts';
 import type {HouseDrawingViewer3DDocument} from '@/shared/types/house-drawing-document.ts';
 
 const EDITOR_TOAST_POSITION = 'bottom-right' as const;

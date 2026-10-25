@@ -3,19 +3,19 @@ import {render, screen} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {RacEditorModalEditors} from './RacEditorModalEditors.tsx';
 
-const viewport = vi.hoisted(() => ({mobile: false, portrait: false, landscape: false}));
+const viewport = vi.hoisted(() => ({mobile: false, portrait: false, landscape: false, compact: false}));
 vi.mock('@/components/rac-editor/lib/use-canvas-mobile-viewport.ts', () => ({
   useCanvasMobileViewport: () => viewport,
 }));
 vi.mock('@/components/rac-editor/lib/house-store.ts', () => ({useHouseRuntimeSnapshot: () => null}));
 vi.mock('./editors/piloti/PilotiEditor.tsx', () => ({
-  PilotiEditor: ({isOpen}: {isOpen: boolean}) => isOpen ? <div role='dialog' aria-label='Piloti'/> : null,
+  PilotiEditor: ({isOpen, presentation}: {isOpen: boolean; presentation: string}) => isOpen ? <div role='dialog' aria-label='Piloti' data-presentation={presentation}/> : null,
 }));
 vi.mock('./editors/generic/GenericObjectEditor.tsx', () => ({
-  GenericObjectEditor: ({isOpen}: {isOpen: boolean}) => isOpen ? <div role='dialog' aria-label='Objeto'/> : null,
+  GenericObjectEditor: ({isOpen, presentation}: {isOpen: boolean; presentation: string}) => isOpen ? <div role='dialog' aria-label='Objeto' data-presentation={presentation}/> : null,
 }));
 vi.mock('./editors/terrain/TerrainEditor.tsx', () => ({
-  TerrainEditor: ({isOpen}: {isOpen: boolean}) => isOpen ? <div role='dialog' aria-label='Terreno'/> : null,
+  TerrainEditor: ({isOpen, presentation}: {isOpen: boolean; presentation: string}) => isOpen ? <div role='dialog' aria-label='Terreno' data-presentation={presentation}/> : null,
 }));
 vi.mock('./selectors/HouseSideSelector.tsx', () => ({HouseSideSelector: () => null}));
 
@@ -61,7 +61,7 @@ function props(): ComponentProps<typeof RacEditorModalEditors> {
   };
 }
 
-beforeEach(() => Object.assign(viewport, {mobile: false, portrait: false, landscape: false}));
+beforeEach(() => Object.assign(viewport, {mobile: false, portrait: false, landscape: false, compact: false}));
 
 describe('editores ao mudar para o Canvas mobile', () => {
   it.each([true, false])('cancela a escolha de destino com editor fechado (retrato inicial: %s)', (initiallyPortrait) => {
@@ -107,27 +107,29 @@ describe('editores ao mudar para o Canvas mobile', () => {
     ['isWallEditorOpen', 'onWallEditorClose'],
     ['isLinearEditorOpen', 'onLinearEditorClose'],
     ['isTerrainEditorOpen', 'onTerrainEditorClose'],
-  ] as const)('fecha %s ao entrar no mobile, sem confirmar alterações', (openKey, closeKey) => {
+  ] as const)('preserva %s ao entrar no FAB horizontal e ao compactar só por altura', (openKey, closeKey) => {
     const input = props();
     input[openKey] = true;
     const {rerender} = render(<RacEditorModalEditors {...input}/>);
     expect(input[closeKey]).not.toHaveBeenCalled();
 
-    Object.assign(viewport, {mobile: true, landscape: true});
+    Object.assign(viewport, {mobile: true, landscape: true, compact: true});
     rerender(<RacEditorModalEditors {...input}/>);
-    expect(input[closeKey]).toHaveBeenCalledOnce();
+    expect(input[closeKey]).not.toHaveBeenCalled();
     expect(input.onWallApply).not.toHaveBeenCalled();
     expect(input.onLinearApply).not.toHaveBeenCalled();
     expect(input.onTerrainApply).not.toHaveBeenCalled();
     expect(input.onPilotiHeightChange).not.toHaveBeenCalled();
     expect(input.onCancelContraventamento).not.toHaveBeenCalled();
 
+    Object.assign(viewport, {mobile: false, landscape: false, portrait: false, compact: true});
     rerender(<RacEditorModalEditors {...input}/>);
-    expect(input[closeKey]).toHaveBeenCalledOnce();
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-presentation', 'mobile-panel');
+    expect(input[closeKey]).not.toHaveBeenCalled();
   });
 
   it('permite abrir no mobile e fecha ao girar para retrato sem reabrir em paisagem', () => {
-    Object.assign(viewport, {mobile: true, landscape: true});
+    Object.assign(viewport, {mobile: true, landscape: true, compact: true});
     const input = props();
     input.isContraventamentoMode = true;
     const {rerender} = render(<RacEditorModalEditors {...input}/>);
@@ -149,7 +151,7 @@ describe('editores ao mudar para o Canvas mobile', () => {
   });
 
   it('mantém a edição em resize sem troca de modo ou orientação e ao sair do mobile', () => {
-    Object.assign(viewport, {mobile: true, landscape: true});
+    Object.assign(viewport, {mobile: true, landscape: true, compact: true});
     const input = {...props(), isWallEditorOpen: true};
     const {rerender} = render(<RacEditorModalEditors {...input}/>);
     rerender(<RacEditorModalEditors {...input}/>);

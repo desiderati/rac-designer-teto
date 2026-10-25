@@ -111,6 +111,16 @@ claramente estabelecida.
 
 ## Contratos e diagnóstico
 
+- [Design System: RAC Designer TETO](DESIGN.md), para a identidade atual e as superfícies
+  preservadas na incorporação da R48
+
+- [UI-007 — Modais e ações
+  compartilhadas](docs/ui-definitions/UI-007-modais-e-acoes-compartilhadas.md), para rolagem
+  exclusiva do conteúdo, ordem das ações e exceções de cada família
+
+- [UI-008 — Análise de Campo](docs/ui-definitions/UI-008-analise-de-campo.md), para planta
+  expansível, grupos por largura do card e paridade do editor inline
+
 - [Contrato de referências de fotos e salvamento](docs/TECH-002-contrato-fotos-privadas.md), para
   compatibilidade entre upload, validação e persistência e visibilidade dos erros da casa
 

@@ -30,6 +30,8 @@ interface NivelSliderProps {
   showModeTourTarget?: boolean;
   compactStepper?: boolean;
   compactLayout?: boolean;
+  draftDigits?: string;
+  onDraftDigitsChange?: (digits: string) => void;
 }
 
 const NIVEL_MODE_TOUR_TARGET_ID = 'rac-piloti-nivel-mode-toggle';
@@ -51,15 +53,28 @@ export function NivelSlider({
   showModeTourTarget = false,
   compactStepper = false,
   compactLayout = false,
+  draftDigits,
+  onDraftDigitsChange,
 }: NivelSliderProps) {
-  const [inputDigits, setInputDigits] = useState(() => nivelToInputDigits(nivel));
+  const [localInputDigits, setLocalInputDigits] = useState(() => nivelToInputDigits(nivel));
+  const inputDigits = draftDigits ?? localInputDigits;
+  const setInputDigits = (digits: string) => {
+    setLocalInputDigits(digits);
+    onDraftDigitsChange?.(digits);
+  };
   const editableNivelRef = useRef<HTMLSpanElement | null>(null);
   const latestSliderNivelRef = useRef(nivel);
+  const previousNivelRef = useRef(nivel);
 
   useEffect(() => {
     latestSliderNivelRef.current = nivel;
-    setInputDigits(nivelToInputDigits(nivel));
-  }, [nivel]);
+    if (previousNivelRef.current !== nivel) {
+      const digits = nivelToInputDigits(nivel);
+      setLocalInputDigits(digits);
+      onDraftDigitsChange?.(digits);
+      previousNivelRef.current = nivel;
+    }
+  }, [nivel, onDraftDigitsChange]);
 
   const moveCaretToEnd = useCallback(() => {
     const element = editableNivelRef.current;
@@ -172,7 +187,7 @@ export function NivelSlider({
         </div>
       </div>
 
-      <div className={cn('flex items-center', compactLayout ? 'justify-between px-1.5' : 'justify-center', compactStepper ? 'gap-0' : 'gap-3', disabled && 'opacity-60')}>
+      <div className={cn('nivel-stepper grid grid-cols-[auto_minmax(0,1fr)_auto] items-center px-0', compactStepper ? 'gap-0' : 'gap-3', disabled && 'opacity-60')}>
         <Button
           aria-label='Diminuir nível do piloti'
           variant='outline'
@@ -185,7 +200,7 @@ export function NivelSlider({
           <FontAwesomeIcon icon={faMinus} className='h-3 w-3'/>
         </Button>
 
-        <div className={cn('flex items-baseline justify-center gap-1', compactLayout ? 'min-w-[6rem]' : 'min-w-[7rem]')}>
+        <div className={'nivel-value flex min-w-0 items-baseline justify-center gap-1 whitespace-nowrap'}>
           {enableInput ?
             <span
               ref={editableNivelRef}
@@ -208,7 +223,7 @@ export function NivelSlider({
                 moveCaretToEnd();
               }}
               className={cn('inline-block rounded-sm text-center font-bold leading-none text-primary outline-none focus-visible:ring-0 focus-visible:ring-offset-0',
-                compactLayout ? 'min-w-[4rem] text-3xl' : 'min-w-[4.6rem] text-4xl')}
+                compactLayout ? 'min-w-0 text-3xl' : 'min-w-0 text-4xl')}
             >
               {displayedNivel}
             </span> :
@@ -230,7 +245,7 @@ export function NivelSlider({
         </Button>
       </div>
 
-      <div className={cn('px-2', compactLayout ? 'space-y-2' : 'space-y-3', disabled && 'opacity-60')}>
+      <div className={cn('nivel-range px-0', compactLayout ? 'space-y-2' : 'space-y-3', disabled && 'opacity-60')}>
         <Slider
           disabled={disabled}
           value={[nivel]}

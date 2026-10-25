@@ -1,0 +1,9 @@
+@media (max-width: 767px) and (orientation: portrait) {
+  .house-extra-materials-form { grid-template-columns: minmax(0, 1fr); }
+  .house-extra-materials-form > .house-extra-materials-sidebar { position: relative; border: 0; padding: 0; background: transparent; border-radius: 12px; }
+  .house-extra-materials-sidebar > :first-child { display: grid; height: 168px; width: 100%; object-fit: cover; border-radius: 12px; }
+  .house-extra-materials-sidebar > dl { position: absolute; inset: 0; margin: 0; padding: 12px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; pointer-events: none; }
+  .house-extra-materials-sidebar > dl > div { margin: 0; max-width: 100%; border-radius: 8px; padding: 5px 10px; background: rgb(255 255 255 / .92); text-align: center; }
+  .house-extra-materials-sidebar dt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .house-extra-materials-sidebar dd { margin: 0; color: #0f172a; }
+}

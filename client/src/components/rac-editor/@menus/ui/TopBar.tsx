@@ -5,7 +5,7 @@ import {CircleAlert, CircleCheck, CloudOff, RefreshCw} from 'lucide-react';
 import {useCallback, useEffect, useState} from 'react';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
-import {useRemoteSync} from '@/contexts/RemoteSyncContext.tsx';
+import {useRemoteSync} from '@/contexts/useRemoteSync.ts';
 import {isIsolatedLocalMode} from '@/shared/local-runtime.ts';
 import {queryGuidedTourTarget} from '@/components/guided-tour/lib/guided-tour-targets.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
@@ -73,13 +73,13 @@ export function TopBar({
     ? 'Exportar RAC em PDF'
     : TOAST_MESSAGES.addHouseBeforePdfExport;
 
-  const {mobile: canvasMobile, portrait} = useCanvasMobileViewport();
+  const {mobile: canvasMobile, portrait, compact} = useCanvasMobileViewport();
   const showOrientationNotice = canvasMobile && portrait;
   const [resetOpen, setResetOpen] = useState(false);
   const [mobileTopBarOpen, setMobileTopBarOpen] = useState(false);
 
   useEffect(() => {
-    if (!canvasMobile || showOrientationNotice) {
+    if (!compact || showOrientationNotice) {
       setMobileTopBarOpen(false);
       return;
     }
@@ -95,14 +95,14 @@ export function TopBar({
     };
     let timeout = window.setTimeout(closeWhenNoTourTargetsBar, MOBILE_TOP_BAR_VISIBLE_MS);
     return () => window.clearTimeout(timeout);
-  }, [canvasMobile, mobileTopBarOpen, showOrientationNotice]);
+  }, [compact, mobileTopBarOpen, showOrientationNotice]);
 
   return (
     <>
     {/* FABs mobile (40/45) < barra e puxador (49) < modais e seus overlays (50+). */}
-    {canvasMobile && !showOrientationNotice && !mobileTopBarOpen ? <button type='button' aria-label='Mostrar barra superior' aria-controls='canvas-top-bar' aria-expanded={false} onClick={() => setMobileTopBarOpen(true)} className='mobile-top-bar-handle fixed left-1/2 top-0 z-[49] grid h-7 w-64 -translate-x-1/2 place-items-center rounded-b-xl bg-white/80 focus-visible:ring-2 focus-visible:ring-blue-500'><span className='h-3 w-48 rounded-full bg-slate-400/70'/></button> : null}
-    <div id='canvas-top-bar' hidden={showOrientationNotice || (canvasMobile && !mobileTopBarOpen)} data-testid='top-bar-layout' className='fixed left-0 top-4 z-[49] h-12 min-w-[360px] w-full'>
-      {!showOrientationNotice && (!canvasMobile || mobileTopBarOpen) ? <>
+    {compact && !showOrientationNotice && !mobileTopBarOpen ? <button type='button' aria-label='Mostrar barra superior' aria-controls='canvas-top-bar' aria-expanded={false} onClick={() => setMobileTopBarOpen(true)} className='mobile-top-bar-handle fixed left-1/2 top-0 z-[49] grid h-7 w-64 -translate-x-1/2 place-items-center rounded-b-xl bg-white/80 focus-visible:ring-2 focus-visible:ring-blue-500'><span className='h-3 w-48 rounded-full bg-slate-400/70'/></button> : null}
+    <div id='canvas-top-bar' data-canvas-header hidden={showOrientationNotice || (compact && !mobileTopBarOpen)} data-testid='top-bar-layout' className='fixed left-0 top-4 z-[49] h-12 min-w-[360px] w-full'>
+      {!showOrientationNotice && (!compact || mobileTopBarOpen) ? <>
       {/* Left: Menu + Family */}
       <div className='absolute left-4 top-0 z-50 flex items-center gap-3'>
         <HamburgerMenu
@@ -159,7 +159,7 @@ export function TopBar({
             'hidden min-[740px]:flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold',
             'border transition-transform',
             canExportPDF
-              ? 'text-white bg-gradient-to-tr from-blue-500 to-blue-300 shadow-md border-blue-200 hover:scale-[1.03] active:scale-95'
+              ? 'text-white bg-sky-600 shadow-md border-sky-600 hover:bg-sky-700 hover:scale-[1.03] active:scale-95'
               : 'text-slate-400 bg-slate-200 border-slate-200 shadow-none cursor-not-allowed',
           )}
           title={exportPDFTitle}

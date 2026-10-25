@@ -29,7 +29,7 @@ import {
   getHouse3DViewerPreferencesStorageKey,
   readHouse3DViewerPreferences,
 } from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
-import type {RacPdfExportStepId} from '@/components/rac-editor/@modals/ui/RacPdfExportProgress.tsx';
+import type {RacPdfExportStepId} from '@/components/rac-editor/lib/rac-pdf-export-progress.ts';
 import {createRacPdfExportTask, type RacPdfExportTask} from '../lib/rac-pdf-export-task.ts';
 
 interface UseRacEditorPdfExportActionArgs {

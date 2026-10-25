@@ -15,6 +15,7 @@ interface MobileCanvasSelectionBarProps {
 
 export function MobileCanvasSelectionBar({count, transforming, canTransform, rotationAngle, canEdit, onEdit, onToggleTransform, onDelete}: MobileCanvasSelectionBarProps) {
   if (!count) return null;
+  const showRotationAngle = count === 1 && rotationAngle != null;
   const buttonClasses = 'flex h-11 w-28 items-center justify-center gap-1 rounded-xl border px-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed';
   const modeClasses = (active: boolean) => `${buttonClasses} disabled:opacity-40 ${active ? 'border-blue-600 bg-blue-600 text-white' : 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'}`;
   return <div
@@ -25,10 +26,10 @@ export function MobileCanvasSelectionBar({count, transforming, canTransform, rot
   >
     <p role='status' className='min-w-0 text-xs font-semibold leading-snug'>
       {transforming ? <span className='grid'>
-        <span aria-hidden={rotationAngle != null} className={`col-start-1 row-start-1${rotationAngle != null ? ' invisible' : ''}`}>
-          Arraste os pontos para redimensionar ou a alça ↻ para girar.
+        <span aria-hidden={showRotationAngle} className={`col-start-1 row-start-1${showRotationAngle ? ' invisible' : ''}`}>
+          {count === 1 ? 'Arraste os pontos para redimensionar ou a alça ↻ para girar.' : 'Arraste os pontos para redimensionar.'}
         </span>
-        {rotationAngle != null ? <output aria-label='Ângulo de rotação' className='col-start-1 row-start-1 tabular-nums'>Rotação: {rotationAngle}°</output> : null}
+        {showRotationAngle ? <output aria-label='Ângulo de rotação' className='col-start-1 row-start-1 tabular-nums'>Rotação: {rotationAngle}°</output> : null}
       </span>
         : count === 1 ? 'Item selecionado. Arraste para movê-lo.' : 'Itens selecionados. Arraste para movê-los.'}
     </p>

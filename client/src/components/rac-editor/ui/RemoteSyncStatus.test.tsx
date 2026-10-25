@@ -82,16 +82,18 @@ describe('modal de conflito remoto', () => {
     );
 
     const dialog = screen.getByRole('dialog', { name: 'Conflito de sincronização' });
-    expect(dialog).toHaveClass('min-w-0', 'overflow-hidden', 'flex-col');
+    expect(dialog).toHaveClass('min-w-0', 'rac-modal-shell', 'flex-col');
     expect(within(dialog).getByText('1 casa adicionada')).toBeVisible();
     expect(within(dialog).getByText('1 família adicionada')).toBeVisible();
     expect(within(dialog).getByText(/Salva no servidor: 24\/09\/2026/)).toBeVisible();
     const actions = screen.getByTestId('remote-sync-conflict-actions');
-    expect(actions).toHaveClass('shrink-0');
+    const content = dialog.querySelector('[data-rac-modal-region="content"]');
+    expect(content).toContainElement(within(dialog).getByText('1 casa adicionada'));
+    expect(content).not.toContainElement(actions);
     expect(actions).not.toHaveClass('sticky');
     const actionGroup = actions.firstElementChild;
-    expect(actionGroup).toHaveClass('flex-col', 'sm:flex-row', 'sm:justify-between');
-    expect(actionGroup).not.toHaveClass('flex-col-reverse');
+    expect(actionGroup).toHaveAttribute('data-layout', 'inline');
+    expect(within(dialog).getByText(/Versão do servidor/).closest('[data-information-tone]')).toHaveAttribute('data-information-tone', 'server');
     expect(within(actions).getAllByRole('button').map((button) => button.textContent)).toEqual([
       'Usar versão remota',
       'Mesclar sem remover dados',

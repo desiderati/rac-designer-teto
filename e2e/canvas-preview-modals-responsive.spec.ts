@@ -26,12 +26,15 @@ async function expectModalWithinViewport(page: Page, modal: Locator) {
   expect(overflow).toBe(false);
 }
 
-async function expectHalfWidthOnMobileLandscape(page: Page, modal: Locator) {
+async function expectApprovedWidth(page: Page, modal: Locator, kind: 'pdf' | 'viewer') {
   const viewport = page.viewportSize()!;
-  if (viewport.height > 600) return;
-  await expect.poll(async () => (await modal.boundingBox())!.width).toBeCloseTo(viewport.width / 2, 0);
+  if (kind === 'viewer' && viewport.height > 600) return;
+  const expectedWidth = kind === 'pdf'
+    ? Math.min(viewport.width - 16, 892)
+    : Math.min(viewport.width * .75, 720);
+  await expect.poll(async () => (await modal.boundingBox())!.width).toBeCloseTo(expectedWidth, 0);
   const bounds = (await modal.boundingBox())!;
-  expect(bounds.x).toBeCloseTo(viewport.width / 4, 0);
+  expect(bounds.x).toBeCloseTo((viewport.width - expectedWidth) / 2, 0);
 }
 
 test.describe('Modais de prévia do Canvas', () => {
@@ -95,7 +98,7 @@ test.describe('Modais de prévia do Canvas', () => {
       await page.getByRole('button', {name: 'Ajustar à página', exact: true}).click();
       await expect(page.getByTestId('pdf-preview-loading')).toHaveCount(0);
       await expectModalWithinViewport(page, modal);
-      await expectHalfWidthOnMobileLandscape(page, modal);
+      await expectApprovedWidth(page, modal, 'pdf');
       await expectContained(page.getByTestId('pdf-preview-canvas-1'), surface);
       for (const name of ['Fechar prévia do PDF', 'Baixar PDF', 'Próxima página da prévia']) {
         await expectContained(page.getByRole('button', {name, exact: true}), modal);
@@ -132,7 +135,7 @@ test.describe('Modais de prévia do Canvas', () => {
     for (const viewport of viewports) {
       await page.setViewportSize(viewport);
       await expectModalWithinViewport(page, modal);
-      await expectHalfWidthOnMobileLandscape(page, modal);
+      await expectApprovedWidth(page, modal, 'viewer');
       await expectContained(scene, modal);
       await expect.poll(() => scene.locator('canvas').evaluate(el => {
         const parent = el.closest('[data-testid="house-3d-viewport"]')!;
@@ -149,7 +152,7 @@ test.describe('Modais de prévia do Canvas', () => {
     await expect.poll(async () => (await modal.boundingBox())!.width).toBeCloseTo(viewports[0].width - 16, 0);
     await expectContained(scene.locator('canvas'), modal);
     await modal.locator('button[title="Sair do Fullscreen"]').click();
-    await expectHalfWidthOnMobileLandscape(page, modal);
+    await expectApprovedWidth(page, modal, 'viewer');
     await page.setViewportSize({width: 390, height: 844});
     await expect(page.getByRole('heading', {name: 'Gire seu celular', exact: true})).toBeVisible();
     await page.setViewportSize(viewports[0]);

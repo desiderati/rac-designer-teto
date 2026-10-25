@@ -127,3 +127,45 @@ it('não substitui a prévia atual por falha tardia da versão anterior', async 
   expect(within(screen.getByRole('dialog')).getByAltText('Canvas da casa Silva')).toHaveAttribute('src', 'data:image/png;base64,new');
   expect(within(screen.getByRole('dialog')).queryByText('Não foi possível carregar o Canvas.')).not.toBeInTheDocument();
 });
+
+it.each(['version', 'updatedAt'] as const)('atualiza o modal quando apenas %s muda, mantendo o mesmo documento', async (field) => {
+  const initialHouse = drawnHouse(1);
+  vi.mocked(renderHouseDrawingCanvasImageDataUrl).mockReset()
+    .mockResolvedValueOnce({imageDataUrl: 'data:image/png;base64,before', hasOmittedRasterSources: false})
+    .mockResolvedValueOnce({imageDataUrl: 'data:image/png;base64,after', hasOmittedRasterSources: false});
+  const {rerender} = render(<HousePhotoPreviewTrigger house={initialHouse} familyName='Silva'><span>thumbnail</span></HousePhotoPreviewTrigger>);
+  fireEvent.click(screen.getByRole('button', {name: 'Pré-visualizar Canvas da casa Silva'}));
+  await waitFor(() => expect(within(screen.getByRole('dialog')).getByAltText('Canvas da casa Silva')).toHaveAttribute('src', 'data:image/png;base64,before'));
+
+  const revisedHouse = {...initialHouse, [field]: field === 'version' ? 2 : '2026-10-24T18:00:00.000Z'};
+  rerender(<HousePhotoPreviewTrigger house={revisedHouse} familyName='Silva'><span>thumbnail</span></HousePhotoPreviewTrigger>);
+
+  await waitFor(() => expect(within(screen.getByRole('dialog')).getByAltText('Canvas da casa Silva')).toHaveAttribute('src', 'data:image/png;base64,after'));
+  expect(renderHouseDrawingCanvasImageDataUrl).toHaveBeenCalledTimes(2);
+});
+
+it('reabre a prévia pronta sem descartar a captura da mesma revisão', async () => {
+  vi.mocked(renderHouseDrawingCanvasImageDataUrl).mockReset()
+    .mockResolvedValue({imageDataUrl: 'data:image/png;base64,cached', hasOmittedRasterSources: false});
+  render(<HousePhotoPreviewTrigger house={drawnHouse(1)} familyName='Silva'><span>thumbnail</span></HousePhotoPreviewTrigger>);
+  const trigger = screen.getByRole('button', {name: 'Pré-visualizar Canvas da casa Silva'});
+  fireEvent.click(trigger);
+  await waitFor(() => expect(within(screen.getByRole('dialog')).getByAltText('Canvas da casa Silva')).toHaveAttribute('src', 'data:image/png;base64,cached'));
+  fireEvent.click(screen.getByRole('button', {name: 'Abrir ações da prévia do Canvas'}));
+  fireEvent.click(screen.getByRole('menuitem', {name: 'Fechar Modal'}));
+  fireEvent.click(trigger);
+
+  expect(within(screen.getByRole('dialog')).getByAltText('Canvas da casa Silva')).toHaveAttribute('src', 'data:image/png;base64,cached');
+  expect(renderHouseDrawingCanvasImageDataUrl).toHaveBeenCalledOnce();
+});
+
+it('não repete automaticamente uma captura que falhou', async () => {
+  vi.mocked(renderHouseDrawingCanvasImageDataUrl).mockReset().mockRejectedValue(new Error('captura indisponível'));
+  const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  render(<HousePhotoPreviewTrigger house={drawnHouse(1)} familyName='Silva'><span>thumbnail</span></HousePhotoPreviewTrigger>);
+  fireEvent.click(screen.getByRole('button', {name: 'Pré-visualizar Canvas da casa Silva'}));
+
+  await waitFor(() => expect(within(screen.getByRole('dialog')).getByText('Não foi possível carregar o Canvas.')).toBeVisible());
+  expect(renderHouseDrawingCanvasImageDataUrl).toHaveBeenCalledOnce();
+  warning.mockRestore();
+});

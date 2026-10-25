@@ -188,7 +188,12 @@ export async function inspectViewer(page: Page, face: Face, type: 'tipo3' | 'tip
   await expect(dialog).toBeVisible();
   await expect(dialog.locator('button[title="Enquadrar casa"]')).toBeEnabled();
   await expect.poll(async () => (await readRenderedScene(page)).panels.length).toBe(4);
-  const scene = await readRenderedScene(page);
+  let scene = await readRenderedScene(page);
+  // A cena pode estar montada antes do primeiro quadro WebGL efetivamente desenhado.
+  await expect.poll(async () => {
+    scene = await readRenderedScene(page);
+    return scene.drawCalls;
+  }).toBeGreaterThan(0);
   expect(scene.contextLost).toBe(false);
   expect(scene.drawCalls).toBeGreaterThan(0);
   expect(scene.panels.filter(panel => panel.kind === 'door').map(panel => panel.face)).toEqual([face]);

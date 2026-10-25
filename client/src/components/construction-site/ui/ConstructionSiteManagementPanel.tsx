@@ -443,7 +443,8 @@ export function ConstructionSiteManagementPanel({
   return (
     <main
       data-testid='construction-management-shell'
-      className='rac-min-width-shell h-full min-h-[480px] min-w-[360px] w-full overflow-x-hidden overflow-y-auto px-0 py-0 sm:px-6 sm:py-10 lg:px-10'
+      className='rac-theme rac-management rac-min-width-shell h-full min-h-[480px] min-w-[360px] w-full overflow-x-hidden overflow-y-auto px-0 py-0 sm:px-6 sm:py-10 lg:px-10'
+      data-management-view={navigation.screen}
       style={GRIDDED_WORKSPACE_STYLE}
     >
       <div

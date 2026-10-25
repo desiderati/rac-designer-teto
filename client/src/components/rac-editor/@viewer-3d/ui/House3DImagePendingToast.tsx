@@ -1,7 +1,7 @@
 import {CircleAlert, CircleCheck, ImagePlus, LoaderCircle, X} from 'lucide-react';
 import {Button} from '@/components/ui/button.tsx';
 import {ToastMessage} from '@/components/ui/ToastMessage.tsx';
-import {useHouse3DImageInsertion} from '@/contexts/House3DImageInsertionContext.tsx';
+import {useHouse3DImageInsertion} from '@/contexts/useHouse3DImageInsertion.ts';
 
 export function House3DImagePendingToast() {
   const {

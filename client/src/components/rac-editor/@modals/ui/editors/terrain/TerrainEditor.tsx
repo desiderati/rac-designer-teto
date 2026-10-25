@@ -1,10 +1,10 @@
 import {useEffect, useMemo, useState} from 'react';
-import {Button} from '@/components/ui/button.tsx';
 import {Slider} from '@/components/ui/slider.tsx';
+import {Button} from '@/components/ui/button.tsx';
 import {X} from 'lucide-react';
+import {TerrainPreviewIcon} from './TerrainPreviewIcon.tsx';
 import {FloatingEditor} from '@/components/rac-editor/@modals/ui/editors/FloatingEditor.tsx';
 import {CanvasSideEditorPanel} from '../CanvasSideEditorPanel.tsx';
-import {TerrainPreviewIcon} from '@/components/rac-editor/@modals/ui/editors/terrain/TerrainPreviewIcon.tsx';
 import {normalizeTerrainSolidityLevel, TERRAIN_SOLIDITY} from '@/shared/config.ts';
 import {calculateTotalVolumes} from '@/components/rac-editor/lib/terrain-volume.ts';
 import type {HousePiloti} from '@/shared/types/house.ts';
@@ -96,19 +96,17 @@ export function TerrainEditor({
         onClose();
       }}
       onCancel={onClose}
-      header={
-        <div className='flex items-center gap-3'>
-          <TerrainPreviewIcon/>
-          <span className='font-bold text-2xl flex-1 text-center'>Terreno</span>
-          <Button
-            variant='outline'
-            size='icon'
-            onClick={onClose}
-            className='h-8 w-8 rounded-full bg-white flex-shrink-0'>
-            <X className='h-4 w-4'/>
-          </Button>
-        </div>
-      }
+      ariaLabel='Editar Terreno'
+      className='rac-terrain-editor'
+      headerTone='section'
+      header={<div className='flex items-center gap-3'>
+        <TerrainPreviewIcon/>
+        <h2 className='flex-1 text-center text-2xl font-bold'>Terreno</h2>
+        <Button type='button' variant='outline' size='icon' aria-label='Fechar edição de terreno'
+          onClick={onClose} className='h-8 w-8 shrink-0 rounded-full bg-white'>
+          <X className='h-4 w-4'/>
+        </Button>
+      </div>}
       cardContent={content}
     />
   );

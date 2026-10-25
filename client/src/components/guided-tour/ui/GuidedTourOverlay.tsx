@@ -1,6 +1,7 @@
 import {type KeyboardEvent, useId, useLayoutEffect, useRef, useState} from 'react';
 import {calculateGuidedTourLayout} from '@/components/guided-tour/lib/guided-tour-position.ts';
 import type {GuidedTourActiveItem} from '@/components/guided-tour/ports/types.ts';
+import {ModalFrame} from '@/components/ui/ModalFrame.tsx';
 
 interface GuidedTourProgress {
   currentIndex: number;
@@ -149,17 +150,24 @@ export function GuidedTourOverlay({activeItem, targetRect, tourProgress, onConfi
         aria-describedby={descriptionId}
         tabIndex={-1}
         onKeyDown={handleBalloonKeyDown}
-        className='absolute w-[240px] max-w-[calc(100vw-24px)] rounded-lg border border-amber-200 bg-amber-100 px-4 py-4 text-amber-950 shadow-md pointer-events-auto'
+        className='rac-modal-shell absolute flex w-[240px] max-w-[calc(100vw-24px)] flex-col rounded-lg border border-amber-200 bg-amber-100 px-4 py-4 text-amber-950 shadow-md pointer-events-auto'
         style={layout.balloonStyle}
       >
         <div className={`${layout.arrowClassName} pointer-events-none`} style={layout.arrowStyle}/>
-        {activeItem.step.title && (
+        <ModalFrame className='rac-tour-frame' header={activeItem.step.title && (
           <h2 id={titleId} className='mb-1 text-sm font-bold leading-snug text-amber-900'>{activeItem.step.title}</h2>
-        )}
+        )} actions={<div className='mt-3 flex justify-center'>
+          <button
+            ref={actionRef}
+            type='button'
+            onClick={onConfirm}
+            className='rounded-md bg-amber-400 px-3 py-1.5 text-xs font-semibold leading-none text-amber-950 shadow-sm transition-colors hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:pointer-events-none'
+          >OK</button>
+        </div>}>
         <p id={descriptionId} className='text-sm leading-snug text-amber-900'>{activeItem.step.text}</p>
         {shouldShowProgress && (
           <div
-            className='mt-3 flex justify-center gap-1.5'
+            className='mt-4 flex justify-center gap-1.5'
             aria-label={`Etapa ${tourProgress.currentIndex + 1} de ${tourProgress.total}`}
           >
             {Array.from({length: tourProgress.total}).map((_, index) => (
@@ -175,16 +183,7 @@ export function GuidedTourOverlay({activeItem, targetRect, tourProgress, onConfi
             ))}
           </div>
         )}
-        <div className='mt-3 flex justify-center'>
-          <button
-            ref={actionRef}
-            type='button'
-            onClick={onConfirm}
-            className='rounded-md bg-amber-400 px-3 py-1.5 text-xs font-semibold leading-none text-amber-950 shadow-sm transition-colors hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:pointer-events-none'
-          >
-            OK
-          </button>
-        </div>
+        </ModalFrame>
       </div>
     </div>
   );

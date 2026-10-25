@@ -7,6 +7,7 @@ doc_set: ui-definitions
 order: 5
 status: active
 lang: pt-BR
+updated: 2026-10-24
 ---
 
 # Menus laterais do Canvas
@@ -28,15 +29,24 @@ A superfície do editor mantém largura mínima de 360 px. `useCanvasMobileViewp
 quando a largura é de até 767 px **ou** quando há ponteiro de toque (`pointer: coarse`) com altura
 de até 600 px. O radial exige também orientação horizontal, incluindo largura igual à altura.
 
-| Condição                | Apresentação dos menus                                                                                 |
-|-------------------------|--------------------------------------------------------------------------------------------------------|
-| Fora da condição mobile | Barra de ferramentas esquerda e controles direitos não radiais; rótulos conforme a preferência global. |
-| Mobile horizontal       | Dois radiais opostos, inicialmente recolhidos, com hierarquia no próprio arco.                         |
-| Mobile em retrato       | O Canvas solicita rotação; a interação normal com os radiais ocorre após girar.                        |
+A compactação visual usa também `compactByHeight`: os menus abertos são medidos junto à barra
+superior. Quando a altura da viewport fica abaixo de `altura do maior menu + 2 × (base da barra
+superior + 16px)`, os dois menus passam juntos aos FABs. As medidas expandidas são retidas enquanto
+os menus estão recolhidos, evitando alternância instável durante resize. `compact` reúne mobile e
+essa condição de altura; não altera `mobile`, `portrait` ou `landscape`.
+
+| Condição                                        | Apresentação dos menus                                                                                 |
+|-------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| Fora da condição mobile e com altura suficiente | Barra de ferramentas esquerda e controles direitos não radiais; rótulos conforme a preferência global. |
+| Desktop sem altura suficiente para os menus     | Dois FABs na apresentação compacta; política de gestos e orientação continua desktop.                  |
+| Mobile horizontal                               | Dois radiais opostos, inicialmente recolhidos, com hierarquia no próprio arco.                         |
+| Mobile em retrato                               | O Canvas solicita rotação; a interação normal com os radiais ocorre após girar.                        |
 
 Em viewport de desktop sem a condição de toque/altura reduzida, 767 px ainda usa o modo mobile e 768
-px usa as barras desktop. Não substituir a condição composta por um breakpoint de CSS isolado. A
-preferência de rótulos usa essa mesma classificação de mobile.
+px usa as barras desktop, desde que haja altura suficiente. Não substituir a classificação nativa
+por `compact` nem por um breakpoint isolado. A preferência de rótulos continua usando a
+classificação de mobile; a apresentação por altura considera as medidas com os rótulos atuais. PDF e
+tour compartilham essa política, sem forçar a reabertura dos menus ao montar uma sobreposição.
 
 ### Fallback não radial em telas estreitas
 
@@ -158,28 +168,32 @@ arredondado ao grau inteiro, respeitando o snap já existente. O indicador desap
 trocar a seleção ou voltar a Mover; a barra mantém a largura durante o gesto. As alças respeitam
 visibilidade, hasControls, bloqueios de escala e lockRotation de cada componente. É possível
 transformar se houver pelo menos uma ação permitida, inclusive somente rotação. Ao mudar a seleção,
-volta a mover. Na seleção múltipla, um eixo ou rotação bloqueados em qualquer membro ficam
-bloqueados para o conjunto, sem alterar as flags dos membros. Esse estado é transitório e não altera
-as flags salvas no desenho. Casas construídas não mostram as ações de modificação. Os editores
-automáticos permanecem bloqueados no mobile horizontal.
+volta a mover. Na seleção múltipla, a rotação do conjunto fica sempre bloqueada e a alça de girar
+não aparece; a barra orienta somente o redimensionamento. Os bloqueios de escala de qualquer membro
+continuam valendo para o conjunto, sem alterar as flags dos membros. Esse estado é transitório e não
+altera as flags salvas no desenho. Casas construídas não mostram as ações de modificação. Os
+editores automáticos permanecem bloqueados no mobile horizontal.
 
 A ferramenta Seleção conserva toque e seleção por área. Panning conserva a seleção por toque
 prolongado; arrastar uma alça em Transformar escala ou gira o item sem deslocar a viewport. Os
 handlers nativos conservam persistência e histórico ao concluir a transformação.
 
-### Edição de pilotis da planta no mobile horizontal
+### Edição de pilotis da planta na apresentação compacta
 
-O acesso explícito `Editar` abre o painel lateral de pilotis. Ele reaproveita a estética da Análise
-de Campo: planta com pilotis maiores, destaque azul da seleção, mestre em tom de madeira, níveis nos
-cantos, porta e contraventamentos. A planta permanece acima das abas `Nível`, `Tamanho` e
-`Contraventar`; planta, abas e controles rolam juntos quando o conteúdo excede a altura do painel. O
-espaço externo da planta acrescenta 8 px acima e abaixo, sem reduzir seu desenho ou os alvos de
-toque. O painel dispensa título e X. Sua largura de 288 px acomoda quatro botões por linha e mantém
-espaço para os alvos de toque da planta, sem reservar metade da viewport. Tem altura de 425 px,
-centralizada verticalmente e encostada à lateral direita, sem margem ou borda nesse lado. Apenas os
-dois cantos da esquerda têm raio de 12 px. Em telas menores, limita a altura à viewport dinâmica
-menos 16 px, preservando recuos verticais de pelo menos 8 px. A rolagem pertence ao painel inteiro,
-sem seção rolável separada. Tocar fora ou pressionar Escape fecha a edição; durante a escolha de
+No mobile horizontal, o acesso explícito `Editar` abre o painel lateral de pilotis. A mesma
+apresentação lateral acompanha o modo FAB por compactação de altura, preservando o roteamento nativo
+de edição no desktop. Ela reaproveita a estética da Análise de Campo: planta com pilotis maiores,
+destaque azul da seleção, mestre em tom de madeira, níveis nos cantos, porta e contraventamentos. A
+planta permanece acima das abas `Nível`, `Tamanho` e `Contraventar`; planta, abas e controles rolam
+juntos quando o conteúdo excede a altura do painel. O espaço externo da planta acrescenta 8 px acima
+e abaixo, sem reduzir seu desenho ou os alvos de toque. O painel dispensa título e X. Sua largura de
+288 px acomoda quatro botões por linha e mantém espaço para os alvos de toque da planta, sem
+reservar metade da viewport. Até 999 px de largura, fica encostado à direita, com apenas os cantos
+esquerdos de 12 px; a partir de 1000 px, usa largura de 304 px, recuo direito de 16 px e os quatro
+cantos de 12 px. Tem altura de 425 px, centralizada verticalmente e limitada à viewport visual menos
+16 px, preservando recuos verticais de pelo menos 8 px. Planta, abas e controles ficam na região
+`content` de `ModalFrame`; o contêiner externo não rola. Quando o painel possui ações de rodapé,
+elas ficam fora dessa região. Tocar fora ou pressionar Escape fecha a edição; durante a escolha de
 destino, Escape primeiro cancela essa escolha. As três abas têm larguras iguais e altura de 36 px. A
 aba ativa combina texto azul, fundo azul-claro e linha inferior azul; as inativas mantêm texto
 escuro sobre a superfície branca e a mesma linha de base clara.
@@ -200,21 +214,35 @@ Conservam os ícones próprios do produto. O editor inline da Análise de Campo 
 As edições usam os comandos e a persistência existentes; não introduzem uma cópia independente das
 regras ou um novo significado de desfazer/cancelar. A seleção múltipla continua sem edição.
 
-### Edição compacta dos demais objetos no mobile horizontal
+### Editor flutuante de pilotis no desktop
 
-Os editores genéricos e de terreno usam a mesma superfície lateral dos pilotis: largura de 288 px,
-direita colada, cantos esquerdos de 12 px, centro vertical e recuo vertical mínimo de 8 px. Sua
-altura acompanha o conteúdo, limitada a 425 px e à viewport visual disponível; a planta/pilotis
-conserva altura de 425 px. Todo o painel rola, com ações no rodapé e acesso preservado quando o
-teclado abre, conforme a [UI-006](UI-006-editores-flutuantes-e-teclado-mobile.md).
+Sem a apresentação compacta, o editor flutuante tem 352 px de largura, título em seção cinza e
+grupos empilhados. Com largura de pelo menos 768 px e altura abaixo de 730 px, usa largura de 720 px
+limitada à viewport e coloca os grupos lado a lado. Esse ponto de transição pertence ao editor
+flutuante; a decisão de trocar os menus por FABs continua baseada na política medida acima. Ao
+entrar em modo FAB, a apresentação lateral tem prioridade. Não ampliar progressivamente os botões
+quadrados num intervalo intermediário de largura. As ações do editor flutuante conservam os 40 px,
+conforme a [UI-007](UI-007-modais-e-acoes-compartilhadas.md).
+
+### Edição compacta dos demais objetos e do terreno
+
+Quando apresentados no painel lateral, os editores genéricos e de terreno usam a mesma superfície
+dos pilotis: 288 px e direita colada até 999 px; 304 px e recuo direito de 16 px a partir de 1000
+px. A altura acompanha o conteúdo, limitada a 425 px e à viewport visual disponível; a
+planta/pilotis conserva altura de 425 px. Somente o conteúdo rola, com ações no rodapé separado e
+acesso preservado quando o teclado abre, conforme a
+[UI-006](UI-006-editores-flutuantes-e-teclado-mobile.md). Preservar o roteamento nativo dos objetos
+genéricos: a apresentação forçada no cenário de demonstração não cria um novo comportamento do
+produto.
 
 Dispensar cabeçalho, ícone e labels visuais redundantes. Manter nomes acessíveis; centralizar o
-texto dos campos e usar recuos de 12 px e espaços de 8 px na paleta e nas ações. A paleta conserva
-as cores existentes e destaca a selecionada. Confirmar aplica o rascunho; Cancelar, toque fora e
-Escape fecham sem aplicar o rascunho. No terreno, o slider atualiza apenas a prévia de rachão e
-volumes; o valor só é aplicado em `Confirmar`. Cancelar ou fechar descarta o rascunho. A
-apresentação continua sem título nem label/badge superior. As apresentações desktop continuam usando
-o editor flutuante existente.
+texto dos campos; a região genérica de conteúdo e suas ações usam recuos de 16 px, e a grade mantém
+seus espaços próprios. A paleta conserva as cores existentes e destaca a selecionada. Confirmar
+aplica o rascunho; Cancelar, toque fora e Escape fecham sem aplicar o rascunho. No terreno, o slider
+atualiza apenas a prévia de rachão e volumes; o valor só é aplicado em `Confirmar`. Cancelar ou
+fechar descarta o rascunho. A apresentação compacta continua sem título nem label/badge superior.
+Fora do modo FAB, o terreno usa o editor flutuante de 304 px com o título original em seção cinza.
+Preservar o espaço normal entre os volumes e as ações, sem padding duplicado.
 
 Cada tipo editável tem orientação de primeira inserção, com progresso persistido próprio. Cerca,
 entrada de terreno, casa desenhada, construção desenhada e as três formas têm dicas independentes.
@@ -237,6 +265,12 @@ concluídas ou arquivadas e casas construídas ou arquivadas não recebem esses 
 inteiro para a área visível antes de apresentar o balão. Concluir um tour antes de mostrar o
 próximo, inclusive durante redimensionamento ou atualização da lista. O botão `OK` conclui a
 orientação e não executa a ação destacada.
+
+No mobile horizontal reconhecido pela política do Canvas, a listagem de casas usa os cards
+existentes, inclusive acima de 767 px. A paginação acompanha os cards; filtros e ordenação são
+preservados. `Pilotis` (Análise de Campo) e `Redefinir Casa` mantêm os rótulos, bloqueios de edição
+e a confirmação existentes. Mudar a viewport com a confirmação aberta preserva o comando pendente. O
+desktop com ponteiro fino continua usando a tabela a partir de 768 px, mesmo com altura reduzida.
 
 O balão, o destaque do alvo e o botão `OK` devem caber inteiros na viewport. Posicionar o balão sem
 cobrir o alvo ou seu destaque; recalcular sua posição quando a viewport ou o alvo mudar. Ajustes de

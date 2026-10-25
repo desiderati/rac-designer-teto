@@ -1,10 +1,11 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {render, screen, waitFor} from '@testing-library/react';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {MapView} from './Map.tsx';
 
 describe('MapView', () => {
   beforeEach(() => {
     document.head.querySelector('script[data-manus-google-maps="true"]')?.remove();
+    vi.stubEnv('DEV', true);
     vi.stubEnv('VITE_FRONTEND_FORGE_API_URL', 'https://maps-proxy.example');
     vi.stubEnv('VITE_FRONTEND_FORGE_API_KEY', 'runtime-key');
   });
@@ -13,9 +14,11 @@ describe('MapView', () => {
     document.head.querySelector('script[data-manus-google-maps="true"]')?.remove();
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
+    vi.useRealTimers();
   });
 
   it('exibe erro amigável quando a credencial pública do proxy não está disponível', async () => {
+    vi.stubEnv('DEV', false);
     vi.stubEnv('VITE_FRONTEND_FORGE_API_KEY', '');
     const onError = vi.fn();
 
@@ -52,7 +55,7 @@ describe('MapView', () => {
         initialCenter={{lat: -25.4284, lng: -49.2733}}
         initialZoom={17}
         markerPosition={{lat: -25.4284, lng: -49.2733}}
-        markerTitle="Local informado"
+        markerTitle='Local informado'
         onMapReady={onMapReady}
       />,
     );
@@ -97,6 +100,7 @@ describe('MapView', () => {
       title: 'Local informado',
     });
     expect(onMapReady).toHaveBeenCalledWith(mapInstance);
+    expect(screen.queryByTitle('Local informado — mapa OpenStreetMap')).not.toBeInTheDocument();
   });
 
   it('mantém zoom à direita e atalhos removidos ao alternar entre mobile e desktop', async () => {
@@ -186,5 +190,92 @@ describe('MapView', () => {
     expect(screen.getByTestId('google-maps-surface')).toBeInTheDocument();
     expect(screen.queryByText('Carregando mapa...')).not.toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('exibe o mapa local com marcador sem carregar o SDK Manus quando não há chave', () => {
+    vi.stubEnv('VITE_FRONTEND_FORGE_API_KEY', '');
+    const onMapReady = vi.fn();
+    render(<MapView initialCenter={{lat: 48.8584, lng: 2.2945}} initialZoom={17}
+      markerPosition={{lat: 48.8584, lng: 2.2945}} onMapReady={onMapReady}/>);
+
+    const frame = screen.getByTitle('Local informado — mapa OpenStreetMap');
+    const url = new URL(frame.getAttribute('src') ?? '');
+    expect(url.origin).toBe('https://www.openstreetmap.org');
+    expect(url.pathname).toBe('/export/embed.html');
+    expect(url.searchParams.get('marker')).toBe('48.8584,2.2945');
+    expect(url.searchParams.get('layer')).toBe('mapnik');
+    const [west, south, east, north] = (url.searchParams.get('bbox') ?? '').split(',').map(Number);
+    expect(west).toBeLessThan(2.2945);
+    expect(east).toBeGreaterThan(2.2945);
+    expect(south).toBeLessThan(48.8584);
+    expect(north).toBeGreaterThan(48.8584);
+    expect(east - west).toBeLessThan(0.01);
+    expect(document.querySelector('script[data-manus-google-maps]')).toBeNull();
+    expect(screen.getByRole('status')).toHaveTextContent('Carregando mapa...');
+
+    fireEvent.load(frame);
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.getByTestId('openstreetmap-map')).toHaveAttribute('data-map-state', 'ready');
+    expect(onMapReady).not.toHaveBeenCalled();
+  });
+
+  it('atualiza o ponto e o enquadramento local quando as coordenadas mudam', () => {
+    vi.stubEnv('VITE_FRONTEND_FORGE_API_KEY', '');
+    const {rerender} = render(<MapView initialCenter={{lat: 48.8584, lng: 2.2945}} initialZoom={17}
+      markerPosition={{lat: 48.8584, lng: 2.2945}}/>);
+    const originalFrame = screen.getByTitle('Local informado — mapa OpenStreetMap');
+    fireEvent.load(originalFrame);
+
+    rerender(<MapView initialCenter={{lat: 0, lng: 0}} initialZoom={12} markerPosition={{lat: 0, lng: 0}}/>);
+    const frame = screen.getByTitle('Local informado — mapa OpenStreetMap');
+    const url = new URL(frame.getAttribute('src') ?? '');
+    expect(url.searchParams.get('marker')).toBe('0,0');
+    expect(url.searchParams.get('bbox')).not.toContain('48.85');
+    expect(frame).not.toBe(originalFrame);
+    expect(screen.getByRole('status')).toBeInTheDocument();
+  });
+
+  it('permite tentar novamente quando o mapa local falha', () => {
+    vi.useFakeTimers();
+    vi.stubEnv('VITE_FRONTEND_FORGE_API_KEY', '');
+    const onError = vi.fn();
+    render(<MapView onError={onError}/>);
+    const frame = screen.getByTitle('Local informado — mapa OpenStreetMap');
+    const src = frame.getAttribute('src');
+    act(() => vi.advanceTimersByTime(15_000));
+    expect(screen.getByRole('alert')).toHaveTextContent('Não foi possível carregar o mapa agora.');
+    expect(onError).toHaveBeenCalledWith(expect.any(Error));
+
+    fireEvent.click(screen.getByRole('button', {name: 'Tentar novamente'}));
+    const retriedFrame = screen.getByTitle('Local informado — mapa OpenStreetMap');
+    expect(retriedFrame).not.toBe(frame);
+    expect(retriedFrame).toHaveAttribute('src', src);
+    fireEvent.load(retriedFrame);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('encerra o carregamento local sem resposta e limpa o prazo após carregar', () => {
+    vi.useFakeTimers();
+    vi.stubEnv('VITE_FRONTEND_FORGE_API_KEY', '');
+    render(<MapView/>);
+    act(() => vi.advanceTimersByTime(15_000));
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', {name: 'Tentar novamente'}));
+    fireEvent.load(screen.getByTitle('Local informado — mapa OpenStreetMap'));
+    act(() => vi.advanceTimersByTime(15_000));
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('preserva o SDK Google já disponível mesmo sem chave local', async () => {
+    vi.stubEnv('VITE_FRONTEND_FORGE_API_KEY', '');
+    const mapInstance = {setOptions: vi.fn()};
+    const onMapReady = vi.fn();
+    class FakeMap {
+      constructor() { return mapInstance; }
+    }
+    vi.stubGlobal('google', {maps: {Map: FakeMap, ControlPosition: {RIGHT_CENTER: 8}}});
+    render(<MapView onMapReady={onMapReady}/>);
+    await waitFor(() => expect(onMapReady).toHaveBeenCalledWith(mapInstance));
+    expect(screen.queryByTitle('Local informado — mapa OpenStreetMap')).not.toBeInTheDocument();
   });
 });

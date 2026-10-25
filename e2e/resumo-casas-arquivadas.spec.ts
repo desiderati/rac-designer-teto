@@ -54,9 +54,9 @@ for (const viewport of [{width: 1280, height: 900}, {width: 390, height: 844}]) 
     const list = page.getByTestId(viewport.width < 700 ? 'house-mobile-list' : 'house-desktop-table');
     const trigger = list.getByRole('button', {name: 'Resumo da Casa de Casa arquivada 2', exact: true});
     await trigger.click();
-    const tooltip = page.getByRole('tooltip');
+    const tooltip = page.getByRole('dialog', {name: 'Resumo da Casa'});
     await expect(tooltip).toHaveText(/Resumo da Casa/);
-    const popup = page.locator('[data-radix-popper-content-wrapper]').filter({has: tooltip});
+    const popup = tooltip;
     await expect(popup).toBeVisible();
     await page.screenshot({path: resolve(evidence, 'screenshots', `${phase}-${viewport.width}.png`), animations: 'disabled'});
     const state = await popup.evaluate(element => {

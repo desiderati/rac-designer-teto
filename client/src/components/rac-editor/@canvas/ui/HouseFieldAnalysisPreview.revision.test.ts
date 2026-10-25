@@ -8,7 +8,7 @@ import {describe, expect, it} from 'vitest';
 import type {Canvas as FabricCanvas} from 'fabric';
 import {createHouseTop} from '../lib/factory/house/house-top.strategy.ts';
 import {applyFieldAnalysisContraventamentos} from '../lib/field-analysis-contraventamentos.ts';
-import {styleFieldAnalysisPilotis} from './HouseFieldAnalysisPreview.tsx';
+import {styleFieldAnalysisPilotis} from '../lib/field-analysis-preview-style.ts';
 
 describe('A-008 projeção isolada da Análise de Campo', () => {
   it('separa os IDs por linha e destaca as alturas sem sobrepor os círculos', () => {

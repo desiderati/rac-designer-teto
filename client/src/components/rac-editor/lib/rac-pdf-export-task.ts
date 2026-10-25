@@ -1,6 +1,7 @@
 import {createElement} from 'react';
 import {toast} from '@/components/ui/sonner.tsx';
-import {RAC_PDF_EXPORT_STEPS, RacPdfExportProgress, createInitialRacPdfExportStatuses, type RacPdfExportStepId} from '../@modals/ui/RacPdfExportProgress.tsx';
+import {RAC_PDF_EXPORT_STEPS, createInitialRacPdfExportStatuses, type RacPdfExportStepId} from '@/components/rac-editor/lib/rac-pdf-export-progress.ts';
+import {RacPdfExportProgress} from '../@modals/ui/RacPdfExportProgress.tsx';
 import {throwIfPdfExportAborted, waitForPdfExport} from './rac-pdf-export-cancellation.ts';
 
 let sequence = 0;

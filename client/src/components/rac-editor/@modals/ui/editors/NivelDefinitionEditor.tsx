@@ -170,9 +170,7 @@ export function NivelDefinitionEditor(
   const minNivel =
     !entry.isMaster && masterCorner ? Math.max(entries[masterCorner].nivel, DEFAULT_NIVEL) : DEFAULT_NIVEL;
 
-  const content =
-    <div className='flex flex-col gap-4'>
-      {/* Header: grid icon + title + arrows */}
+  const header = (
       <div className='flex items-center gap-3'>
         <PilotiGridIcon
           selectedPiloti={currentCorner}
@@ -204,9 +202,12 @@ export function NivelDefinitionEditor(
           </Button>
         </div>
       </div>
+  );
 
+  const content =
+    <div className='flex flex-col gap-4'>
       {/* Central card */}
-      <div className='bg-white rounded-xl p-4 space-y-4'>
+      <div className='bg-white rounded-xl px-4 space-y-4'>
         {/* Master toggle */}
         <div className='flex items-center justify-between'>
           <Label htmlFor='nivel-master' className='text-sm font-medium select-none'>
@@ -251,6 +252,10 @@ export function NivelDefinitionEditor(
     <ConfirmDialogModal
       isMobile={isMobile}
       isOpen={isOpen}
+      title='Níveis dos pilotis'
+      headerContent={header}
+      headerTone='section'
+      mainCardClassName='nivel-definition-content'
       content={content}
       confirmLabel='Inserir'
       isConfirmDisabled={!canApply}

@@ -16,6 +16,10 @@ Extras no gerenciador de construções. A implementação compartilhada fica em 
 o componente `ActionDock`. Campos, validação e envio continuam sob responsabilidade de cada
 formulário.
 
+As modais de confirmação e os editores usam a composição de [UI-007 — Modais e ações
+compartilhadas](UI-007-modais-e-acoes-compartilhadas.md). A ordem de duas ações em 460 px pertence
+às modais e não substitui os modos de formulário descritos aqui.
+
 ## Modos de apresentação
 
 Os modos são definidos pelo layout disponível, não pelo nome ou tipo físico do dispositivo. Um

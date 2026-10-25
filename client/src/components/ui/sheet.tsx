@@ -54,8 +54,8 @@ interface SheetContentProps
 const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Content>, SheetContentProps>(
   ({side = 'right', className, children, ...props}, ref) => (
     <SheetPortal>
-      <SheetOverlay/>
-      <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({side}), className)} {...props}>
+      <SheetOverlay className='rac-modal-overlay'/>
+      <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({side}), 'rac-theme rac-modal-shell rac-standard-modal flex flex-col', className)} {...props} data-rac-modal-shell='sheet' data-rac-side={side}>
         {children}
       </SheetPrimitive.Content>
     </SheetPortal>
@@ -64,7 +64,7 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Con
 SheetContent.displayName = SheetPrimitive.Content.displayName;
 
 const SheetHeader = ({className, ...props}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn('flex flex-col space-y-2 text-center sm:text-left', className)} {...props} />
+  <div className={cn('flex flex-col space-y-2 text-center sm:text-left', className)} {...props} data-rac-modal-part='header'/>
 );
 SheetHeader.displayName = 'SheetHeader';
 
@@ -77,7 +77,7 @@ const SheetTitle = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Title>
 >(({className, ...props}, ref) => (
-  <SheetPrimitive.Title ref={ref} className={cn('text-lg font-semibold text-foreground', className)} {...props} />
+  <SheetPrimitive.Title ref={ref} className={cn('text-lg font-semibold text-foreground', className)} {...props} data-rac-modal-part='title'/>
 ));
 SheetTitle.displayName = SheetPrimitive.Title.displayName;
 
@@ -85,7 +85,7 @@ const SheetDescription = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Description>
 >(({className, ...props}, ref) => (
-  <SheetPrimitive.Description ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
+  <SheetPrimitive.Description ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} data-rac-modal-part='description'/>
 ));
 SheetDescription.displayName = SheetPrimitive.Description.displayName;
 

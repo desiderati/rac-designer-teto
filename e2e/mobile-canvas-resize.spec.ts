@@ -123,6 +123,9 @@ test('seleção múltipla redimensiona os dois itens e mantém barra dentro do v
   await expect(page.getByRole('button', {name: 'Editar', exact: true})).toHaveCount(0);
   await screenshot('multiplos-mover');
   await page.getByRole('button', {name: 'Transformar', exact: true}).click();
+  await expect(page.getByText('Arraste os pontos para redimensionar.', {exact: true})).toBeVisible();
+  await expect(page.getByText(/alça ↻ para girar/)).toHaveCount(0);
+  await expect(page.getByLabel('Ângulo de rotação')).toHaveCount(0);
   await screenshot('multiplos-alcas');
   const corner = {...second, x: second.x + 30.5 * zoom + 8, y: second.y + 30.5 * zoom + 8};
   await touch('touchStart', [corner]);

@@ -7,6 +7,7 @@ doc_set: ui-definitions
 order: 4
 status: active
 lang: pt-BR
+updated: 2026-10-24
 ---
 
 # Identidade visual e comportamento dos Toasts
@@ -16,6 +17,10 @@ lang: pt-BR
 Toasts comunicam resultados, orientações e progresso sem tirar o foco do desenho. Esta definição
 consolida a identidade TETO aprovada em 02/10/2026 para mensagens simples, notificações com ações,
 uploads, atualização da aplicação, geração de PDF e inserção de imagem 3D.
+
+A R48 preserva essas cores e comportamentos e consolida a centralização mobile, o fechamento e a
+rolagem interna. A composição comum das modais está na
+[UI-007](UI-007-modais-e-acoes-compartilhadas.md).
 
 O padrão combina uma faixa compacta de estado com uma trilha interna quando a operação possui
 etapas. Mensagens simples não recebem etapas artificiais. As regras de domínio continuam nos fluxos
@@ -50,9 +55,12 @@ amarelo de aviso. A superfície clara solicitada não acompanha automaticamente 
 
 ## Botões
 
-O botão principal segue o azul do formulário: `#2563eb`, texto branco, hover `#1d4ed8` e raio de 8
-px. O secundário tem fundo branco, texto `#334155` e borda `#cbd5e1`. Ambos usam texto de 14 px,
-peso 600, altura mínima de 40 px e alvo de 44 px no celular.
+O botão principal do toast preserva `#2563eb`, texto branco, hover `#1d4ed8` e raio de 8 px. O
+secundário tem fundo branco, texto `#334155` e borda `#cbd5e1`. Ambos usam texto de 14 px, peso 600,
+altura mínima de 40 px e alvo de 44 px no celular.
+
+Essas cores são próprias dos toasts e da decisão de imagem 3D; não herdam automaticamente o ciano
+dos formulários e modais com `.rac-theme`.
 
 Quando apresentados juntos, **Inserir** e **Descartar** têm a mesma largura e altura. A igualdade de
 dimensões não remove a hierarquia: Inserir permanece azul; Descartar permanece contornado. Preservar
@@ -63,13 +71,18 @@ foco visível, rótulos acessíveis e acionamento por teclado.
 O host Sonner mantém a fila, o ciclo de exibição e o fechamento. No desktop, a pilha fica no canto
 inferior direito com até três avisos visíveis; no celular, no topo central, respeitando a área
 segura e o limite de dois. Conteúdo longo no celular pode rolar sem ampliar o aviso indefinidamente.
-O reconhecimento mobile compartilha a condição do Canvas: largura de até 767 px ou ponteiro de
-toque com altura de até 600 px. Assim, celulares deitados com largura maior também usam o topo
-central, incluindo avisos cujo emissor definiu uma posição de canto.
+O reconhecimento mobile compartilha a condição do Canvas: largura de até 767 px ou ponteiro de toque
+com altura de até 600 px. Assim, celulares deitados com largura maior também usam o topo central,
+incluindo avisos cujo emissor definiu uma posição de canto.
+
+Na largura de até 767 px, somente o corpo longo rola, limitado a `min(28dvh, 12rem) - 24px`. O
+cartão não se torna a região rolável: ícone e X mantêm sua posição. A moldura compartilhada deve
+posicionar o fechamento da mesma forma em mensagens simples e em progresso de PDF. A condição de
+toque/altura reduzida também centraliza a pendência de imagem 3D, preservando seu ciclo próprio.
 
 O cartão e seu X permanecem interativos quando uma modal bloqueia os eventos do restante da tela.
-Interagir com o toast não fecha a modal nem aciona controles atrás dele; o bloqueio do fundo continua
-ativo. O fechamento manual funciona por mouse, toque e teclado.
+Interagir com o toast não fecha a modal nem aciona controles atrás dele; o bloqueio do fundo
+continua ativo. O fechamento manual funciona por mouse, toque e teclado.
 
 O tempo padrão permanece o da biblioteca quando o fluxo não define duração. Erros emitidos por
 `toast.error` e pelos estados de erro de `toast.promise`, incluindo falhas de PDF, fecham após 30
@@ -109,23 +122,27 @@ A prévia deve caber na altura dinâmica da viewport, com margem mínima de 8px 
 Título e fechamento permanecem acessíveis. A página se ajusta à área restante, incluindo zoom abaixo
 de 40% quando necessário; a barra ocupa espaço próprio e mantém navegação, download e restauração
 visíveis. Ao ampliar, a rolagem pertence à superfície do PDF, sem aumentar a modal. No mobile
-horizontal usa Dialog, inclusive em telas largas com toque; no mobile vertical mantém Drawer.
-No mobile horizontal, a prévia ocupa 50% da largura da viewport e permanece centralizada.
+horizontal usa Dialog, inclusive em telas largas com toque; no mobile vertical mantém Drawer. A
+prévia usa superfície branca própria, centralizada, com largura útil de até 892 px e recuo de 8 px
+por lateral no Dialog. Sua altura acompanha a área disponível, com teto de 760 px e ajuste da página
+ao espaço restante. Ela não herda a largura geral de 75% dos modais padrão nem a antiga restrição de
+50%. Em 510 × 493, o documento e a toolbar continuam aproveitando a área disponível.
 
-O visualizador 3D usa 50% da largura no mobile horizontal, centralizado, e segue o mesmo limite de
-altura da viewport. A cena ocupa o espaço restante do cabeçalho,
-sem altura mínima rígida; os controles podem quebrar linha em telas estreitas. Expandir o
-visualizador preserva a margem de 8px e mantém a cena dentro da modal.
+O visualizador 3D mantém suas apresentações próprias: em paisagem até 999 px, a superfície padrão
+segue `min(75vw, 720px)`; em mobile horizontal mais largo, o ramo nativo conserva 50vw. Fora desse
+modo, mantém o teto `max-w-3xl`. Expandido, usa `100vw - 16px` e `100dvh - 16px`, preservando a
+margem de 8 px e a exceção à regra geral de 75%. A cena ocupa o espaço restante do cabeçalho, sem
+altura mínima rígida nem espaçamento duplo; os controles podem quebrar linha quando necessário.
 
 ## Dicas do Canvas mobile
 
-Com “Dicas” ativado, selecionar um objeto no Canvas mobile horizontal mostra o hint contextual
-como toast de informação por 5 segundos, com fundo neutro e ícone de informação. O aviso substitui
-o hint fixo nessa viewport, mantém a formatação do texto e usa um único ID para evitar acúmulo.
-Uma nova seleção reapresenta a dica, mesmo que o texto seja igual ao do objeto anterior.
-Limpar a seleção, desativar Dicas, carregar outra casa ou sair do Canvas dispensa o aviso. Na
-orientação vertical, não aparece sobre o aviso para girar o aparelho. No desktop, o hint permanece
-na apresentação fixa existente.
+Com “Dicas” ativado, selecionar um objeto no Canvas mobile horizontal mostra o hint contextual como
+toast de informação por 5 segundos, com fundo neutro e ícone de informação. O aviso substitui o hint
+fixo nessa viewport, mantém a formatação do texto e usa um único ID para evitar acúmulo. Uma nova
+seleção reapresenta a dica, mesmo que o texto seja igual ao do objeto anterior. Limpar a seleção,
+desativar Dicas, carregar outra casa ou sair do Canvas dispensa o aviso. Na orientação vertical, não
+aparece sobre o aviso para girar o aparelho. No desktop, o hint permanece na apresentação fixa
+existente.
 
 ## Imagem 3D pendente
 
@@ -162,14 +179,24 @@ pausa por hover e retomada do tempo restante; IDs durante atualizações; decis�
 verde das etapas concluídas após falha. Verificar também mobile, textos longos, foco, fechamento e
 contraste sobre a superfície real.
 
-Testes de componentes e CSS não substituem a conferência visual em navegador. Essa conferência
-permanece pendente nesta entrega por indisponibilidade da ponte de controle do IAB.
+Testes de componentes e CSS não substituem a conferência visual em navegador. A incorporação R48
+registrou comparações técnicas locais dos treze estados de toast e dos visualizadores, além de
+interação do toast durante o PDF. Isso substitui a antiga anotação de indisponibilidade total da
+ponte, sem declarar novo aceite humano da aplicação ou de aparelho físico. Novas mudanças precisam
+reverificar os estados afetados, conforme o
+[PLAY-104](../engineering-playbook/PLAY-104-frontend-testing.md).
 
 ## Fontes de implementação
 
 - [Adaptador e host de notificações](../../client/src/components/ui/sonner.tsx).
 
 - [Estilos compartilhados](../../client/src/index.css).
+
+- [Composição responsiva do produto](../../client/src/rac-ui.css).
+
+- [Prévia de PDF](../../client/src/components/rac-editor/@modals/ui/RacPdfPreviewModal.tsx).
+
+- [Viewer 3D](../../client/src/components/rac-editor/@viewer-3d/ui/House3DViewer.tsx).
 
 - Progresso do PDF: `client/src/components/rac-editor/@modals/ui/RacPdfExportProgress.tsx`.
 

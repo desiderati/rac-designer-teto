@@ -51,6 +51,50 @@ do servidor E2E estão no [README do projeto](../../README.md); os scripts efeti
 [package.json](../../package.json). Consulte esses pontos em vez de manter uma segunda lista de
 comandos neste guia.
 
+## Paridade do DS e contratos da R48
+
+Mudanças no tema ou em componentes compartilhados devem preservar o conjunto acumulado aprovado,
+incluindo suas exceções. Use o [DESIGN.md](../../DESIGN.md), a [UI-007 — Modais e ações
+compartilhadas](../ui-definitions/UI-007-modais-e-acoes-compartilhadas.md) e a [UI-008 — Análise de
+Campo](../ui-definitions/UI-008-analise-de-campo.md) como contratos, sem copiar uma regra de largura
+ou rolagem para famílias com apresentação própria.
+
+| Recorte                 | Verificação necessária                                                                                                                                                                                                  |
+|-------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Modais e ações          | Conteúdo longo em altura baixa; cabeçalho e ações fora da rolagem; limites de 459/460/461 px; ordem visual e teclado iguais; ausência de padding duplicado.                                                             |
+| Compactação do Canvas   | Conferir largura e altura com ponteiro fino e coarse, rótulos ligados/desligados e resize nos dois sentidos. PDF e tour não podem reabrir as barras. Compactar por altura não ativa gestos mobile.                      |
+| Pilotis e terreno       | Conferir o flutuante a 730 e 729 px de altura, a troca para o painel no modo FAB e a ausência de crescimento intermediário dos botões. Confirmar, Cancelar e reabrir preservam os contratos de rascunho e persistência. |
+| Análise de Campo        | Medir o card nos limites de 407/408 e 605/606 px internos, não apenas a janela. Conferir planta proporcional, ausência de reserva inferior, nível em uma linha, botões nas pontas e o ciclo preparar/retomar/inserir.   |
+| Imagem, PDF, fotos e 3D | Conferir revisão com recuos alinhados; PDF a 510 × 493 e 390 × 240 com toolbar acessível; visualizador escuro de fotos; cena 3D com quadro efetivamente desenhado e fullscreen preservado.                              |
+| Toasts e orientação     | Conferir mensagens simples e progresso, conteúdo longo com X fixo, centralização mobile, cores e durações nativas. Preservar o tour amarelo e a prioridade do aviso de orientação.                                      |
+
+A base existente inclui [rolagem e ações](../../e2e/r48-modal-contract.spec.ts), [menus
+responsivos](../../e2e/toolbar-responsive.spec.ts), [painel lateral de
+pilotis](../../e2e/mobile-piloti-tabs.spec.ts), [assistente inicial e
+terreno](../../e2e/mobile-initial-pilotis-terrain.spec.ts), [Análise de
+Campo](../../e2e/house-field-analysis.spec.ts), [exportação PDF](../../e2e/pdf-export.spec.ts) e
+[viewer 3D](../../e2e/viewer-3d.spec.ts). Execute os cenários afetados pela mudança; não ampliar ou
+repetir a regressão sem mudança ou incerteza que justifique isso.
+
+Mantenha separadas três evidências: comparação visual com a referência aprovada; comportamento
+nativo e persistência nos componentes reais; aceite humano na aplicação ou no aparelho. Uma cena do
+playground pode preparar estados raros, mas não altera o roteamento nativo do produto. Ajustar uma
+expectativa exige confrontar a fonte e a decisão aprovada, em vez de aceitar automaticamente a nova
+captura. Diferenças no fundo sintético de uma cena não devem ser confundidas com divergência do
+componente em foco.
+
+Ao usar uma referência congelada, preservar fontes, CSS, manifests e tentativas originais. Conferir
+que ela não importa componentes vivos já alterados e que a ordem do CSS continua equivalente,
+inclusive em relação aos defaults injetados pelo Sonner. Não trocar a referência final pela cópia
+anterior à última revisão nem suprimir falhas preexistentes para apresentar uma suíte inteiramente
+verde. Artefatos locais e hashes ficam na continuidade operacional; os documentos duráveis apontam
+para fontes e testes do produto.
+
+Em WebGL, aguarde um quadro efetivamente desenhado antes de inspecionar a cena. Toque, orientação e
+VisualViewport emulados não comprovam o comportamento do teclado ou da renderização em Android real.
+Uma falha intermitente que não foi reproduzida permanece sem causa comprovada; a hipótese de cache
+não se torna diagnóstico por o comportamento voltar a funcionar.
+
 ## O que verificar em testes de integração
 
 1. Se o componente renderiza corretamente com as props fornecidas.

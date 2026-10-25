@@ -172,7 +172,27 @@ describe('seleção mobile com modo mover e transformar', () => {
     expect(result.current.rotationAngle).toBeNull();
   });
 
-  it('bloqueia a rotação coletiva se qualquer membro bloquear, e restaura o estado original', () => {
+  it('bloqueia a rotação coletiva mesmo com todos os membros livres e mantém a escala', () => {
+    const {first, second, result, select, port, before, unmount} = setup();
+    const selection = new ActiveSelection([first, second]);
+    select(selection);
+    act(() => result.current.toggleTransforming());
+    expect(selection.lockRotation).toBe(true);
+    expect(selection.controls.mtr).toBeUndefined();
+    expect(selection.controls.br).toBeDefined();
+    expect(result.current.canTransform).toBe(true);
+    expect(first.lockRotation).toBe(false);
+    expect(second.lockRotation).toBe(false);
+    expect(port.exportCanvasDocument()).toEqual(before);
+    select(first);
+    act(() => result.current.toggleTransforming());
+    expect(first.controls.mtr).toBeDefined();
+    unmount();
+    expect(first.lockRotation).toBe(false);
+    expect(second.lockRotation).toBe(false);
+  });
+
+  it('bloqueia a rotação da seleção sem alterar membros e restaura o estado original ao sair', () => {
     const {first, second, result, select, unmount} = setup();
     first.set({lockRotation: true});
     const selection = new ActiveSelection([first, second]);
@@ -186,8 +206,8 @@ describe('seleção mobile com modo mover e transformar', () => {
     expect(second.lockRotation).toBe(false);
     selection.remove(first);
     select(selection);
-    expect(selection.lockRotation).toBe(false);
-    expect(selection.controls.mtr).toBeDefined();
+    expect(selection.lockRotation).toBe(true);
+    expect(selection.controls.mtr).toBeUndefined();
     unmount();
     expect(selection.lockRotation).toBe(false);
     expect(selection.controls).toBe(originalControls);
@@ -224,7 +244,7 @@ describe('seleção mobile com modo mover e transformar', () => {
     expect(selection.lockScalingX).toBe(false);
     expect(selection.lockScalingY).toBe(true);
     act(() => result.current.toggleTransforming());
-    expect(Object.keys(selection.controls).sort()).toEqual(['ml', 'mr', 'mtr']);
+    expect(Object.keys(selection.controls).sort()).toEqual(['ml', 'mr']);
     expect(first.lockScalingY).toBe(true);
     expect(second.lockScalingY).toBe(false);
     unmount();
@@ -239,15 +259,15 @@ describe('seleção mobile com modo mover e transformar', () => {
     second.set({lockScalingX: true});
     const selection = new ActiveSelection([first, second]);
     select(selection);
-    expect(result.current.canTransform).toBe(true);
+    expect(result.current.canTransform).toBe(false);
     act(() => result.current.toggleTransforming());
-    expect(Object.keys(selection.controls)).toEqual(['mtr']);
+    expect(Object.keys(selection.controls)).toEqual([]);
     selection.remove(second);
     select(selection);
     expect(selection.lockScalingX).toBe(false);
     expect(selection.lockScalingY).toBe(true);
     expect(selection.getObjects()).toEqual([first]);
     expect(result.current.canTransform).toBe(true);
-    expect(Object.keys(selection.controls).sort()).toEqual(['ml', 'mr', 'mtr']);
+    expect(Object.keys(selection.controls).sort()).toEqual(['ml', 'mr']);
   });
 });

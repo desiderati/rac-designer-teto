@@ -1,6 +1,7 @@
 import {ChevronLeft, ChevronRight, Download, Maximize2, Minus, Plus, RefreshCw, X} from 'lucide-react';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {Button} from '@/components/ui/button.tsx';
+import {ModalFrame} from '@/components/ui/ModalFrame.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
 import {PdfDocumentPagePreview} from './PdfDocumentPagePreview.tsx';
@@ -101,7 +102,7 @@ export function RacPdfPreviewModal({
   );
 
   const floatingControls = pdfUrl && !isPreparing ? (
-    <div className='z-10 flex max-w-full shrink-0 flex-col items-center gap-1 pt-2'>
+    <div className='rac-pdf-toolbar z-10 flex max-w-full shrink-0 flex-col items-center gap-1 pt-2'>
       <button
         type='button'
         aria-label={isToolbarMinimized ? 'Restaurar barra de ferramentas do PDF' : 'Minimizar barra de ferramentas do PDF'}
@@ -130,7 +131,7 @@ export function RacPdfPreviewModal({
         <span className='block h-1.5 w-16 rounded-full border border-white/70 bg-slate-400/70 shadow-sm' aria-hidden='true'/>
       </button>
       {!isToolbarMinimized ? (
-      <div className='flex max-w-full flex-wrap items-center justify-center gap-0.5 rounded-2xl border border-slate-300/90 bg-slate-100/95 px-1.5 py-1 shadow-lg backdrop-blur-sm sm:rounded-full [&>button]:shrink-0'>
+      <div className='rac-pdf-toolbar-controls flex max-w-full flex-nowrap items-center justify-center gap-0.5 rounded-2xl border border-slate-300/90 bg-slate-100/95 px-1.5 py-1 shadow-lg backdrop-blur-sm sm:rounded-full [&>button]:shrink-0'>
       <Button
         type='button'
         variant='ghost'
@@ -176,7 +177,7 @@ export function RacPdfPreviewModal({
       >
         <ChevronLeft className='h-4 w-4'/>
       </Button>
-      <span className='whitespace-nowrap px-1 text-xs font-semibold text-slate-800'>Página {safePage} de {safePageCount}</span>
+      <span className='rac-pdf-page-count whitespace-nowrap px-1 text-xs font-semibold text-slate-800'><span className='rac-pdf-page-word'>Página </span>{safePage} de {safePageCount}</span>
       <Button
         type='button'
         variant='ghost'
@@ -252,7 +253,6 @@ export function RacPdfPreviewModal({
             <div className='rounded-lg border border-blue-100 bg-white px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm'>Gerando prévia…</div>
           </div>
         ) : null}
-        {floatingControls}
       </div>
     </div>
   );
@@ -260,13 +260,14 @@ export function RacPdfPreviewModal({
   if (!isMobile || landscape) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className={`flex h-[min(90dvh,760px)] max-h-[calc(100dvh-16px)] min-h-0 min-w-0 ${landscape ? 'w-[50vw]' : 'w-[min(calc(100vw-16px),892px)]'} max-w-none flex-col overflow-hidden rounded-lg gap-3 p-4`} hideCloseButton>
-          <DialogHeader className='relative shrink-0 pr-10 text-left'>
+        <DialogContent appearance='native' className='rac-pdf-dialog flex h-[min(90dvh,760px)] max-h-[calc(100dvh-16px)] min-h-0 min-w-0 w-[min(calc(100vw-16px),892px)] max-w-none flex-col overflow-hidden rounded-lg gap-0 bg-white p-4' hideCloseButton>
+          <ModalFrame className='rac-pdf-frame' contentClassName='flex flex-col' actions={floatingControls} header={<DialogHeader className='relative shrink-0 pr-10 text-left'>
             <DialogTitle className='text-xl'>Prévia da RAC em PDF</DialogTitle>
             <DialogDescription>Revise o documento antes de baixar o arquivo.</DialogDescription>
             <div className='absolute right-0 top-0'>{closeButton}</div>
-          </DialogHeader>
+          </DialogHeader>}>
           {body}
+          </ModalFrame>
         </DialogContent>
       </Dialog>
     );
@@ -274,13 +275,14 @@ export function RacPdfPreviewModal({
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className='mt-0 h-[min(90dvh,760px)] max-h-[calc(100dvh-8px)] min-h-0 min-w-0 overflow-hidden [&>div:first-child]:shrink-0'>
-        <DrawerHeader className='relative shrink-0 pb-2 pr-12 text-left'>
+      <DrawerContent appearance='native' className='mt-0 h-[min(90dvh,760px)] max-h-[calc(100dvh-8px)] min-h-0 min-w-0 overflow-hidden bg-white [&>div:first-child]:shrink-0'>
+        <ModalFrame className='rac-pdf-frame rac-pdf-drawer-frame' contentClassName='flex flex-col' actions={floatingControls} header={<DrawerHeader className='relative shrink-0 pb-2 pr-12 text-left'>
           <DrawerTitle>Prévia da RAC em PDF</DrawerTitle>
           <DrawerDescription>Revise o documento antes de baixar o arquivo.</DrawerDescription>
           <div className='absolute right-4 top-3'>{closeButton}</div>
-        </DrawerHeader>
-        <div className='flex min-h-0 min-w-0 flex-1 flex-col px-4 pb-4'>{body}</div>
+        </DrawerHeader>}>
+        {body}
+        </ModalFrame>
       </DrawerContent>
     </Drawer>
   );

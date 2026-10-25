@@ -1,5 +1,5 @@
 import {useCallback, useRef} from 'react';
-import {Canvas as FabricCanvas} from 'fabric';
+import {ActiveSelection, Canvas as FabricCanvas} from 'fabric';
 import {
   CanvasGroup,
   CanvasObject,
@@ -272,6 +272,11 @@ export function useCanvasSelectionActions() {
       const activeObjectRaw =
         (typeof activeObjectGetter === 'function' ? activeObjectGetter.call(canvas) : null)
         ?? (canvas.getObjects().find((item) => isCanvasGroup(item)) ?? null);
+      // A seleção é transitória: bloquear a rotação do conjunto não altera seus membros.
+      if (activeObjectRaw instanceof ActiveSelection) {
+        activeObjectRaw.set({lockRotation: true});
+        activeObjectRaw.setControlsVisibility({mtr: false});
+      }
       const object = toCanvasObject(activeObjectRaw) ?? null;
       onSelectionChange(getHintForObject(object, window.matchMedia(CANVAS_MOBILE_QUERY).matches));
 

@@ -119,7 +119,7 @@ export function useMobileCanvasSelection({enabled, houseId, fabricCanvasRef, zoo
           target.set({
             lockScalingX: locks.lockScalingX || selected.some(item => item.lockScalingX || !item.hasControls),
             lockScalingY: locks.lockScalingY || selected.some(item => item.lockScalingY || !item.hasControls),
-            lockRotation: locks.lockRotation || selected.some(item => item.lockRotation || !item.hasControls || !item.isControlVisible('mtr')),
+            lockRotation: true,
           });
         }
         controls = Object.fromEntries(Object.entries(sourceControls).filter(([key, control]) => {

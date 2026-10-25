@@ -17,6 +17,7 @@ import {
 import {PrimaryButton} from '@/components/construction-site/ui/lib/shared-controls.tsx';
 import {useFormDirtyChange} from '@/components/construction-site/ui/lib/use-form-dirty-change.ts';
 import {FormActionDock} from '@/components/construction-site/ui/lib/FormActionDock.tsx';
+import './HouseExtraMaterialsScreen.css';
 import {HouseExtraMaterialsFields} from './HouseExtraMaterialsFields.tsx';
 
 export function HouseExtraMaterialsScreen({
@@ -58,7 +59,7 @@ export function HouseExtraMaterialsScreen({
   return (
     <form
       data-testid='house-extra-materials-form'
-      className='construction-management-form grid min-w-0 gap-6 sm:grid-cols-[220px_minmax(0,1fr)]'
+      className='house-extra-materials-form construction-management-form grid min-w-0 gap-6 sm:grid-cols-[220px_minmax(0,1fr)]'
       onSubmit={(event) => { const target = event.currentTarget; void submitForm(event).then(() => focusFirstInvalidField(target)); }}
       noValidate
     >
@@ -87,7 +88,7 @@ function HouseExtraMaterialsSidebar({
   const leaders = house.leaders?.trim() || 'Líderes não informados';
 
   return (
-    <aside className='min-w-0 h-fit rounded-2xl border border-slate-200 bg-slate-50 p-4 lg:sticky lg:top-4'>
+    <aside className='house-extra-materials-sidebar min-w-0 h-fit rounded-2xl border border-slate-200 bg-slate-50 p-4 lg:sticky lg:top-4'>
       <HouseSummaryPhoto familyName={familyName} photoDataUrl={family?.photoDataUrl}/>
       <dl className='mt-4 space-y-3'>
         <SummaryItem

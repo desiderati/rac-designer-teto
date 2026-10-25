@@ -34,7 +34,7 @@ test('F1: assistente inicial permite visitar os quatro cantos e inserir em 667x3
   await page.getByRole('button', {name: 'Casa TETO (Opções)', exact: true}).tap();
   await page.getByRole('button', {name: 'Casa Tipo 6', exact: true}).tap();
   await page.getByRole('button', {name: 'Superior', exact: true}).tap();
-  const wizard = page.getByRole('dialog', {name: 'Janela de confirmação', exact: true});
+  const wizard = page.getByRole('dialog', {name: 'Níveis dos pilotis', exact: true});
   await expect(wizard).toBeVisible();
   await expectInsideViewport(wizard);
   const insert = wizard.getByRole('button', {name: 'Inserir', exact: true});

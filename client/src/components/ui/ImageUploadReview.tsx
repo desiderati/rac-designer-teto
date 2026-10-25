@@ -1,3 +1,5 @@
+import {ModalActions} from '@/components/ui/ModalActions.tsx';
+import {ModalFrame} from '@/components/ui/ModalFrame.tsx';
 import {useEffect, useMemo, useState} from 'react';
 import {AlertCircle, Check, Eye, FileImage, Loader2, RefreshCw} from 'lucide-react';
 import {Button} from '@/components/ui/button.tsx';
@@ -227,54 +229,30 @@ export function ImageUploadReview({
     </div>
   );
 
-  const actions = (
-    <div className='grid w-full grid-cols-2 gap-2 [&>button]:h-auto [&>button]:min-h-10 [&>button]:min-w-0 [&>button]:whitespace-normal [&>button]:py-2'>
-      <Button type='button' variant='outline' className='w-full' onClick={() => handleOpenChange(false)} disabled={isConfirming}>
-        Cancelar
-      </Button>
-      <Button
-        type='button'
-        className='w-full'
-        onClick={() => void handleConfirm()}
-        disabled={!effectivePreparedFile || Boolean(prepareError) || Boolean(selectedSizeError) || isConfirming}
-      >
+  const actions = <ActionDock testId='image-upload-review-actions' surface={isMobile ? 'drawer' : 'dialog'} spacing='flush'>
+    <ModalActions
+      cancel={<Button data-action='cancel' type='button' variant='outline' onClick={() => handleOpenChange(false)} disabled={isConfirming}>Cancelar</Button>}
+      confirm={<Button type='button' onClick={() => void handleConfirm()}
+        disabled={!effectivePreparedFile || Boolean(prepareError) || Boolean(selectedSizeError) || isConfirming}>
         {isConfirming ? <Loader2 className='mr-2 h-4 w-4 animate-spin'/> : <Check className='mr-2 h-4 w-4'/>}
         {isConfirming ? (isIsolatedLocalMode ? 'Salvando…' : 'Enviando…') : 'Usar esta imagem'}
-      </Button>
-    </div>
-  );
-
-  if (isMobile) {
-    return (
-      <Drawer open={isOpen} onOpenChange={handleOpenChange}>
-        <DrawerContent className='max-h-[92dvh] overflow-hidden'>
-          <DrawerHeader className='pb-2 text-center'>
-            <DrawerTitle className='text-center text-2xl'>{title}</DrawerTitle>
-            <DrawerDescription>Confira a imagem e escolha como deseja {isIsolatedLocalMode ? 'salvá-la' : 'enviá-la'}.</DrawerDescription>
-          </DrawerHeader>
-          <div className='min-h-0 flex-1 overflow-y-auto px-4 pb-5'>{body}</div>
-          <ActionDock testId='image-upload-review-actions' surface='drawer' spacing='flush' edgeToEdge>
-            {actions}
-          </ActionDock>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
-  return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className={cn('max-h-[90dvh] overflow-y-auto sm:max-w-xl')} hideCloseButton>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>Confira a imagem e escolha como deseja {isIsolatedLocalMode ? 'salvá-la' : 'enviá-la'}.</DialogDescription>
-        </DialogHeader>
-        {body}
-        <ActionDock testId='image-upload-review-actions' surface='dialog' spacing='flush'>
-          {actions}
-        </ActionDock>
-      </DialogContent>
-    </Dialog>
-  );
+      </Button>}/>
+  </ActionDock>;
+  const Header = isMobile ? DrawerHeader : DialogHeader;
+  const Title = isMobile ? DrawerTitle : DialogTitle;
+  const Description = isMobile ? DrawerDescription : DialogDescription;
+  const composition = <ModalFrame actions={actions} contentClassName={isMobile ? 'pb-5' : undefined} header={<Header>
+    <Title>{title}</Title>
+  </Header>}><div className='space-y-4'>
+    <Description>Confira a imagem e escolha como deseja {isIsolatedLocalMode ? 'salvá-la' : 'enviá-la'}.</Description>
+    {body}
+  </div></ModalFrame>;
+  if (isMobile) return <Drawer open={isOpen} onOpenChange={handleOpenChange}>
+    <DrawerContent>{composition}</DrawerContent>
+  </Drawer>;
+  return <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <DialogContent className='sm:max-w-xl' hideCloseButton>{composition}</DialogContent>
+  </Dialog>;
 }
 
 function PreviewCard({label, file, src}: {label: string; file: File; src: string}) {

@@ -68,8 +68,9 @@ describe('ImageUploadReview', () => {
 
     expect(await screen.findByRole('dialog')).toBeVisible();
     expect(await screen.findByRole('button', {name: 'Comparar original e otimizada'})).toBeVisible();
-    expect(screen.getByRole('button', {name: 'Cancelar'})).toHaveClass('w-full');
-    expect(screen.getByRole('button', {name: 'Usar esta imagem'})).toHaveClass('w-full');
+    const actions = screen.getByTestId('image-upload-review-actions');
+    expect(actions).toContainElement(screen.getByRole('button', {name: 'Cancelar'}));
+    expect(actions).toContainElement(screen.getByRole('button', {name: 'Usar esta imagem'}));
     expect(screen.getByText('42,5%')).toBeVisible();
 
     await user.click(screen.getByRole('button', {name: 'Comparar original e otimizada'}));
@@ -92,8 +93,11 @@ describe('ImageUploadReview', () => {
 
     await waitFor(() => expect(screen.getByText('Confira a imagem e escolha como deseja enviá-la.')).toBeVisible());
     expect(screen.getByRole('dialog')).toBeVisible();
-    expect(screen.getByRole('dialog')).toHaveClass('min-w-[360px]');
-    expect(screen.getByTestId('image-upload-review-actions')).toHaveClass('sticky', 'bottom-0', 'w-full');
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('data-rac-modal-shell', 'drawer');
+    const content = dialog.querySelector('[data-rac-modal-region="content"]');
+    expect(content).not.toContainElement(screen.getByTestId('image-upload-review-actions'));
+    expect(content).toContainElement(screen.getByText('Confira a imagem e escolha como deseja enviá-la.'));
   });
 
   it('omite a escolha de qualidade quando a imagem não foi reduzida', async () => {

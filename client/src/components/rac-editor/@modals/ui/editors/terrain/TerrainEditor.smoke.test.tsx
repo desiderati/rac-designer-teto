@@ -70,6 +70,28 @@ describe('TerrainEditor.tsx', () => {
     expect(screen.getByRole('slider', {name: 'Tipo de terreno'})).toHaveAttribute('aria-valuenow', '3');
     expect(screen.getByText('Cama de rachão: 20 cm')).toBeVisible();
   });
+  it.each(['Confirmar', 'Cancelar'])('preserva o rascunho entre FAB e floating e respeita %s', action => {
+    const onApply = vi.fn(), onClose = vi.fn();
+    const props = {isOpen: true, isMobile: false, currentTerrainType: 3, pilotis, onApply, onClose};
+    const {rerender} = render(<TerrainEditor {...props}/>, {wrapper: EditorTestProvider});
+    fireEvent.keyDown(screen.getByRole('slider', {name: 'Tipo de terreno'}), {key: 'ArrowRight'});
+    rerender(<TerrainEditor {...props} presentation='mobile-panel'/>);
+    expect(screen.getByRole('slider', {name: 'Tipo de terreno'})).toHaveAttribute('aria-valuenow', '4');
+    expect(screen.queryByText('Tipo de terreno')).not.toBeInTheDocument();
+    rerender(<TerrainEditor {...props} presentation='floating'/>);
+    expect(screen.getByRole('slider', {name: 'Tipo de terreno'})).toHaveAttribute('aria-valuenow', '4');
+    expect(screen.getByRole('heading', {name: 'Terreno'}).closest('[data-rac-modal-region]'))
+      .toHaveAttribute('data-rac-modal-region', 'header');
+    expect(onClose).not.toHaveBeenCalled();
+    expect(onApply).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', {name: action}));
+    if (action === 'Confirmar') expect(onApply).toHaveBeenCalledExactlyOnceWith(4);
+    else expect(onApply).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledOnce();
+    rerender(<TerrainEditor {...props} isOpen={false}/>);
+    rerender(<TerrainEditor {...props} presentation='mobile-panel'/>);
+    expect(screen.getByRole('slider', {name: 'Tipo de terreno'})).toHaveAttribute('aria-valuenow', '3');
+  });
   it('exibe cama do item 3 e nomenclatura de pedras sem tipo de solo', () => {
     renderTerrainEditor();
 

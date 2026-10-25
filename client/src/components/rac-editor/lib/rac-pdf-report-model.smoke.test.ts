@@ -484,7 +484,9 @@ describe('rac pdf report model', () => {
     getPrecedingSegments(output, 'PILOTIS MESTRE').forEach((segment) => {
       expect(getLastLineWidthCommand(segment)).toBe('0.35');
     });
-    expect(output).toContain('MONITORIA \\(CONTINUAÇÃO\\)');
+    const mediaPage = (pdf.internal.pages as unknown as string[][])[2].join(' ');
+    expect(mediaPage).toContain('(MONITORIA) Tj');
+    report!.monitors.forEach(monitor => expect(mediaPage).toContain(monitor.name));
     expect(output).toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
     expect(output).toContain('OBSERVAÇÕES');
   });
@@ -544,7 +546,7 @@ describe('rac pdf report model', () => {
     expect(output).not.toContain('MONITORIA (CONTINUAÇÃO)');
   });
 
-  it('gera pagina de continuacao para monitores excedentes e observacoes longas', () => {
+  it('mantém a monitoria e as observações longas nas páginas após a planta', () => {
     const constructionSite = createConstructionSiteState();
     const longJustificationSentence = 'Mobilizar voluntariado jovem para trabalhar com senso de urgencia em acao conjunta com moradores de comunidades precarias e outros atores da sociedade desenvolvendo solucoes de moradia segura.';
     constructionSite.monitors = Array.from({length: 8}, (_, index) => (
@@ -577,7 +579,9 @@ describe('rac pdf report model', () => {
     expect((pdf.internal.pages as unknown as string[][])[1].join(' ')).not.toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
     expect(output).toContain('OBSERVAÇÕES');
     expect(output).toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
-    expect(output).toContain('MONITORIA \\(CONTINUAÇÃO\\)');
+    const mediaPage = (pdf.internal.pages as unknown as string[][])[2].join(' ');
+    expect(mediaPage).toContain('(MONITORIA) Tj');
+    report!.monitors.forEach(monitor => expect(mediaPage).toContain(monitor.name));
     expect(output).not.toContain('Observações completas');
     expect(output).not.toContain('Justificativa de materiais extras');
     expect(output).not.toContain('Monitoria - continuação');
@@ -674,6 +678,7 @@ describe('rac pdf report model', () => {
 
     expect(pdf.getNumberOfPages()).toBeGreaterThan(2);
     expect(output).toContain('MV 42');
+    expect(output).toContain('MONITORIA \\(CONTINUAÇÃO\\)');
     expect(output).toContain('OBSERVAÇÕES \\(CONTINUAÇÃO\\)');
     expect(output).toContain('Fim');
     expect(output).toContain('integral.');

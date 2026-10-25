@@ -3,6 +3,7 @@ import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Sheet, SheetContent, SheetHeader, SheetTitle} from '@/components/ui/sheet.tsx';
 import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
+import {ModalFrame} from '@/components/ui/ModalFrame.tsx';
 
 interface TwoCardConfig {
   label: string;
@@ -26,11 +27,10 @@ function TwoCardButton({label, icon, onClick, disabled, subtext}: TwoCardConfig)
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        'flex flex-col items-center gap-4 p-6 rounded-xl border-2 transition-all duration-200',
-        'min-w-[140px] flex-1',
+        'flex min-w-0 flex-1 flex-col items-center gap-3 rounded-xl border px-4 py-5 transition-colors duration-200',
         disabled
           ? 'bg-muted/50 border-muted-foreground/20 text-muted-foreground cursor-not-allowed'
-          : 'bg-white hover:bg-accent hover:border-primary border-border hover:scale-105 active:scale-95'
+          : 'bg-[#f7fafc] hover:bg-[#eff8fd] hover:border-primary border-border'
       )}
     >
       <div className='flex items-center justify-center h-14'>
@@ -48,7 +48,7 @@ export function TwoCardSelector({isOpen, onClose, title, left, right}: TwoCardSe
   const isMobile = useIsMobile();
 
   const content = (
-    <div className='flex flex-row gap-4 justify-center pt-2'>
+    <div className='flex flex-row gap-4 justify-center'>
       <TwoCardButton {...left} />
       <TwoCardButton {...right} />
     </div>
@@ -58,13 +58,14 @@ export function TwoCardSelector({isOpen, onClose, title, left, right}: TwoCardSe
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className='sm:max-w-sm' hideCloseButton>
-          <DialogHeader className='text-center'>
+          <ModalFrame className='rac-two-card-selector' header={<DialogHeader className='text-center'>
             <DialogTitle className='text-center text-2xl'>{title}</DialogTitle>
             <DialogDescription className='sr-only'>
               Selecione uma das duas opções disponíveis.
             </DialogDescription>
-          </DialogHeader>
+          </DialogHeader>}>
           {content}
+          </ModalFrame>
         </DialogContent>
       </Dialog>
     );
@@ -73,10 +74,11 @@ export function TwoCardSelector({isOpen, onClose, title, left, right}: TwoCardSe
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side='bottom' className='h-auto max-h-[80vh] rounded-t-xl'>
-        <SheetHeader className='text-center pb-2'>
+        <ModalFrame className='rac-two-card-selector' header={<SheetHeader className='text-center'>
           <SheetTitle className='text-center text-2xl'>{title}</SheetTitle>
-        </SheetHeader>
+        </SheetHeader>}>
         {content}
+        </ModalFrame>
       </SheetContent>
     </Sheet>
   );

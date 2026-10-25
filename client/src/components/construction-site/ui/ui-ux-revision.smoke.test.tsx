@@ -57,22 +57,24 @@ describe('Revisão UI/UX dos formulários e listagens', () => {
     expect(screen.getByRole('menuitemradio', {name: 'Não'})).toHaveAttribute('aria-checked', 'true');
   });
 
-  it('mostra resumo da casa correspondente ao foco e ao toque', async () => {
+  it('abre o resumo por ativação e mantém o foco sem abrir automaticamente', async () => {
     render(<HouseMaterialsSummary familyName='Família teste' materials={{gutterCount: 4, asphaltBlanket: true, stairType: 'access_ramp'}}/>);
     const trigger = screen.getByRole('button', {name: 'Resumo da Casa de Família teste'});
     fireEvent.click(trigger);
-    const tooltip = await screen.findByRole('tooltip');
+    const tooltip = await screen.findByRole('dialog', {name: 'Resumo da Casa'});
     expect(within(tooltip).getByText('Calhas')).toBeInTheDocument();
     expect(within(tooltip).getByText('Manta Asfáltica')).toBeInTheDocument();
     expect(within(tooltip).getByText('Rampa de Acesso')).toBeInTheDocument();
     expect(within(tooltip).queryByText('Família teste')).not.toBeInTheDocument();
     expect(within(tooltip).queryByText('Materiais Extras')).not.toBeInTheDocument();
-    expect(within(tooltip).queryByRole('heading')).not.toBeInTheDocument();
+    expect(within(tooltip).getByRole('heading', {name: 'Resumo da Casa'})).toBeVisible();
     expect(within(tooltip).getAllByTestId('materials-summary-divider')).toHaveLength(2);
-    fireEvent.click(trigger);
-    expect(trigger).toHaveAttribute('aria-expanded', 'false');
-    fireEvent.focus(trigger);
-    await waitFor(() => expect(trigger).toHaveAttribute('aria-expanded', 'true'));
+    await userEvent.click(within(tooltip).getByRole('button', {name: 'Fechar resumo da casa'}));
+    await waitFor(() => expect(trigger).toHaveAttribute('aria-expanded', 'false'));
+    expect(trigger).toHaveFocus();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await userEvent.keyboard('{Enter}');
+    expect(await screen.findByRole('dialog', {name: 'Resumo da Casa'})).toBeVisible();
   });
 
   it('recolhe Materiais Extras e preserva valores ao alternar abas e reabrir', async () => {
@@ -102,7 +104,7 @@ describe('Revisão UI/UX dos formulários e listagens', () => {
     render(<HouseMaterialsSummary familyName='Família teste' materials={{stairType}}/>);
     const trigger = screen.getByRole('button', {name: /Resumo da Casa/});
     await userEvent.click(trigger);
-    const tooltip = await screen.findByRole('tooltip');
+    const tooltip = await screen.findByRole('dialog', {name: 'Resumo da Casa'});
     expect(within(tooltip).getByText(label)).toBeVisible();
     expect(within(tooltip).getAllByTestId('materials-summary-divider')).toHaveLength(2);
   });

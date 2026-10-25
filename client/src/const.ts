@@ -1,6 +1,6 @@
-import { OAUTH_STATE_COOKIE, OAUTH_STATE_COOKIE_LOCAL, encodeOAuthState } from "@shared/const";
+import { OAUTH_STATE_COOKIE, OAUTH_STATE_COOKIE_LOCAL, encodeOAuthState } from '@shared/const';
 
-export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+export { COOKIE_NAME, ONE_YEAR_MS } from '@shared/const';
 
 // Start the Manus OAuth login. Call this from an event handler or effect at the
 // moment you want to navigate, e.g. `onClick={() => startLogin()}`.
@@ -61,10 +61,10 @@ export const startLogin = (): boolean => {
   const state = encodeOAuthState({ redirectUri, nonce });
 
   const url = new URL(`${oauthPortalUrl}/app-auth`);
-  url.searchParams.set("appId", appId);
-  url.searchParams.set("redirectUri", redirectUri);
-  url.searchParams.set("state", state);
-  url.searchParams.set("type", "signIn");
+  url.searchParams.set('appId', appId);
+  url.searchParams.set('redirectUri', redirectUri);
+  url.searchParams.set('state', state);
+  url.searchParams.set('type', 'signIn');
 
   window.location.href = url.toString();
   return true;

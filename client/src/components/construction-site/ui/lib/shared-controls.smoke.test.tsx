@@ -4,7 +4,7 @@ import {PhotoUploadField} from './shared-controls.tsx';
 
 const uploadImageMock = vi.hoisted(() => vi.fn());
 
-vi.mock('@/contexts/StorageImageUploadContext.tsx', () => ({
+vi.mock('@/contexts/useStorageImageUpload.ts', () => ({
   useStorageImageUpload: () => ({
     isUploading: false,
     progress: null,
