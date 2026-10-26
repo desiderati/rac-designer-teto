@@ -54,6 +54,8 @@
   min-width:0; min-height:0;
 }
 .rac-modal-shell {max-height:calc(100dvh - 16px); overflow:clip; overscroll-behavior:none;}
+/* O triângulo do tutorial fica fora do shell; o conteúdo mantém sua rolagem interna. */
+.rac-modal-shell.rac-tour-shell {overflow:visible;}
 .rac-modal-overlay {background:rgb(15 23 42 / .55); backdrop-filter:none;}
 .rac-standard-modal {padding:var(--rac-modal-padding); gap:0; border-color:transparent; border-radius:12px; background:#fff; box-shadow:var(--rac-shadow); font-size:14px; line-height:1.5;}
 .rac-standard-modal:is([data-rac-modal-shell='dialog'],[data-rac-modal-shell='alert-dialog']) {min-width:min(360px,100vw);}

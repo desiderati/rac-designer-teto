@@ -1,4 +1,4 @@
-import {expect, test} from '@playwright/test';
+import {expect, test, type Locator} from '@playwright/test';
 import {writeFileSync} from 'node:fs';
 import {boundsOverlap, expectBoundsWithinViewport} from './helpers/geometry.helpers';
 import {
@@ -9,6 +9,41 @@ import {
   startConsoleErrorCapture,
   triggerHouseAction,
 } from './helpers/rac-editor.helpers';
+
+async function expectUnclippedTourArrow(dialog: Locator) {
+  const geometry = await dialog.getByTestId('guided-tour-arrow').evaluate(arrow => {
+    const rect = arrow.getBoundingClientRect();
+    const balloon = arrow.parentElement!.getBoundingClientRect();
+    const clippingAncestors = [];
+    for (let ancestor = arrow.parentElement; ancestor; ancestor = ancestor.parentElement) {
+      const style = getComputedStyle(ancestor);
+      const bounds = ancestor.getBoundingClientRect();
+      const left = bounds.left + ancestor.clientLeft;
+      const top = bounds.top + ancestor.clientTop;
+      const clipsX = /^(auto|scroll|hidden|clip)$/.test(style.overflowX);
+      const clipsY = /^(auto|scroll|hidden|clip)$/.test(style.overflowY);
+      if (
+        (clipsX && (rect.left < left - 0.5 || rect.right > left + ancestor.clientWidth + 0.5))
+        || (clipsY && (rect.top < top - 0.5 || rect.bottom > top + ancestor.clientHeight + 0.5))
+      ) {
+        clippingAncestors.push({className: ancestor.className, overflowX: style.overflowX, overflowY: style.overflowY});
+      }
+    }
+    return {
+      arrow: {x: rect.x, y: rect.y, width: rect.width, height: rect.height},
+      viewport: {width: innerWidth, height: innerHeight},
+      crossesBalloonEdge: rect.left < balloon.left || rect.right > balloon.right
+        || rect.top < balloon.top || rect.bottom > balloon.bottom,
+      clippingAncestors,
+    };
+  });
+  expect(geometry.arrow.width).toBeGreaterThan(0);
+  expect(geometry.arrow.height).toBeGreaterThan(0);
+  expectBoundsWithinViewport(geometry.arrow, geometry.viewport);
+  expect(geometry.crossesBalloonEdge).toBe(true);
+  expect(geometry.clippingAncestors, 'O triângulo deve ser pintado inteiro fora do balão').toEqual([]);
+  return geometry;
+}
 
 test.describe('RAC guided tour', () => {
   test.beforeEach(async ({page}) => {
@@ -28,9 +63,12 @@ test.describe('RAC guided tour', () => {
         if (hasTouch) await page.getByRole('button', {name: 'Mostrar barra superior'}).tap();
         await page.getByRole('button', {name: 'Abrir menu da conta'}).click();
         await page.getByRole('button', {name: 'Abrir Tutorial', exact: true}).click();
+        const arrows = [];
         for (const title of ['Menu Principal', 'Perfil e Ajuda']) {
           const dialog = page.getByRole('dialog', {name: title, exact: true});
           await expect(dialog).toBeVisible();
+          arrows.push({title, ...await expectUnclippedTourArrow(dialog)});
+          await page.screenshot({path: testInfo.outputPath(`seta-${arrows.length}.png`), animations: 'disabled'});
           await dialog.getByRole('button', {name: 'OK', exact: true})[hasTouch ? 'tap' : 'click']();
         }
         const dialog = page.getByRole('dialog', {name: 'Salvamento e Sincronização', exact: true});
@@ -49,9 +87,13 @@ test.describe('RAC guided tour', () => {
           expectBoundsWithinViewport(box, {width, height});
         }
         expect(boundsOverlap(balloon, highlight)).toBe(false);
+        arrows.push({title: 'Salvamento e Sincronização', ...await expectUnclippedTourArrow(dialog)});
         await page.screenshot({path: testInfo.outputPath(`sincronizador-${width}x${height}.png`), animations: 'disabled'});
         await dialog.getByRole('button', {name: 'OK', exact: true})[hasTouch ? 'tap' : 'click']();
-        await expect(page.getByRole('dialog', {name: 'Exportar PDF', exact: true})).toBeVisible();
+        const exportDialog = page.getByRole('dialog', {name: 'Exportar PDF', exact: true});
+        await expect(exportDialog).toBeVisible();
+        arrows.push({title: 'Exportar PDF', ...await expectUnclippedTourArrow(exportDialog)});
+        writeFileSync(testInfo.outputPath('setas.json'), JSON.stringify(arrows, null, 2));
       });
     });
   }
@@ -73,6 +115,7 @@ test.describe('RAC guided tour', () => {
       for (const title of ['Adicionar Casa', 'Prévia do Canvas', 'Status da Casa', 'Dificuldade', 'Análise de Campo', 'Materiais Extras', 'Exportar RAC PDF', 'Casa Construída', 'Arquivar Casa', 'Redefinir Casa', 'Voltar para Construções']) {
         const dialog = page.getByRole('dialog', {name: title, exact: true});
         await expect(dialog).toBeVisible();
+        await expectUnclippedTourArrow(dialog);
         if (title === 'Prévia do Canvas') {
           await expect(dialog).toContainText('toque na foto ou nas iniciais da casa');
           await expect(dialog).toContainText('“Ir pro Canvas” no menu do canto superior direito da prévia');

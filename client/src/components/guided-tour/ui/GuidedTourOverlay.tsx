@@ -150,10 +150,10 @@ export function GuidedTourOverlay({activeItem, targetRect, tourProgress, onConfi
         aria-describedby={descriptionId}
         tabIndex={-1}
         onKeyDown={handleBalloonKeyDown}
-        className='rac-modal-shell absolute flex w-[240px] max-w-[calc(100vw-24px)] flex-col rounded-lg border border-amber-200 bg-amber-100 px-4 py-4 text-amber-950 shadow-md pointer-events-auto'
+        className='rac-modal-shell rac-tour-shell absolute flex w-[240px] max-w-[calc(100vw-24px)] flex-col rounded-lg border border-amber-200 bg-amber-100 px-4 py-4 text-amber-950 shadow-md pointer-events-auto'
         style={layout.balloonStyle}
       >
-        <div className={`${layout.arrowClassName} pointer-events-none`} style={layout.arrowStyle}/>
+        <div data-testid='guided-tour-arrow' className={`${layout.arrowClassName} pointer-events-none`} style={layout.arrowStyle}/>
         <ModalFrame className='rac-tour-frame' header={activeItem.step.title && (
           <h2 id={titleId} className='mb-1 text-sm font-bold leading-snug text-amber-900'>{activeItem.step.title}</h2>
         )} actions={<div className='mt-3 flex justify-center'>
