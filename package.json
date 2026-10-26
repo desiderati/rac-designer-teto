@@ -22,7 +22,9 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:regression": "pnpm check && pnpm check:e2e && pnpm test && pnpm test:server && pnpm build && pnpm test:e2e",
-    "db:push": "drizzle-kit generate && drizzle-kit migrate"
+    "db:push": "drizzle-kit generate && drizzle-kit migrate",
+    "storage:retention:provision": "tsx scripts/admin/provision-storage-retention.ts",
+    "storage:retention:apply": "tsx scripts/admin/provision-storage-retention.ts --apply"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.693.0",

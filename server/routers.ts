@@ -12,13 +12,20 @@ import {
 } from './db.ts';
 import { getSessionCookieOptions } from './_core/cookies.ts';
 import { systemRouter } from './_core/systemRouter.ts';
-import { protectedProcedure, publicProcedure, router } from './_core/trpc.ts';
+import { adminProcedure, protectedProcedure, publicProcedure, router } from './_core/trpc.ts';
 import { generateImage } from './_core/imageGeneration.ts';
 import { invokeLLM } from './_core/llm.ts';
 import { storagePut } from './storage.ts';
 import { removeLightBackgroundFromPng } from './image-transparency.ts';
 import { preserveWallColorInIllustration } from './house-illustration-color.ts';
 import { logSafeServerError } from './_core/safe-error-log.ts';
+import {
+  assertPhysicalStorageDeletionAvailable,
+  getStorageInventory,
+  preparePhysicalStorageDeletion,
+  STORAGE_PHYSICAL_DELETE_UNAVAILABLE_MESSAGE,
+  STORAGE_PROVIDER_CAPABILITIES,
+} from './storage-admin.ts';
 import type { ConstructionSiteState } from '../client/src/shared/types/construction-site.ts';
 
 const MAX_IMAGE_BYTES = 7.5 * 1024 * 1024;
@@ -135,6 +142,40 @@ export const appRouter = router({
   }),
 
   storage: router({
+    capabilities: adminProcedure.query(() => ({
+      coverage: 'ledger-known-only' as const,
+      provider: STORAGE_PROVIDER_CAPABILITIES,
+      physicalDeleteMessage: STORAGE_PHYSICAL_DELETE_UNAVAILABLE_MESSAGE,
+    })),
+
+    inventory: adminProcedure
+      .input(z.object({
+        lifecycle: z.enum(['pending', 'active', 'quarantined', 'manual_review']).optional(),
+        limit: z.number().int().min(1).max(500).optional(),
+        offset: z.number().int().min(0).optional(),
+      }).optional())
+      .query(async ({input}) => ({
+        provider: STORAGE_PROVIDER_CAPABILITIES,
+        ...(await getStorageInventory(input ?? {})),
+      })),
+
+    inspect: adminProcedure
+      .input(z.object({storageKey: z.string().trim().min(1).max(1024)}))
+      .query(async ({input}) => preparePhysicalStorageDeletion(input.storageKey)),
+
+    deletePhysical: adminProcedure
+      .input(z.object({
+        storageKey: z.string().trim().min(1).max(1024),
+        confirmation: z.literal('DELETE STORAGE ASSET'),
+      }))
+      .mutation(async ({input}) => {
+        const preview = await preparePhysicalStorageDeletion(input.storageKey);
+        if (!preview.found) {
+          throw new TRPCError({code: 'NOT_FOUND', message: 'Asset não encontrado no ledger de Storage.'});
+        }
+        await assertPhysicalStorageDeletionAvailable();
+      }),
+
     uploadImage: protectedProcedure
       .input(IMAGE_UPLOAD_INPUT)
       .mutation(async ({ input }) => {

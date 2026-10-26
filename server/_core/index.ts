@@ -7,9 +7,10 @@ import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
-import { sdk } from "./sdk";
-import { logSafeServerError } from "./safe-error-log";
-import { runStorageRetentionHeartbeat } from "../storage-retention";
+import {
+  handleStorageRetentionHeartbeat,
+  STORAGE_RETENTION_SCHEDULED_PATH,
+} from "../storage-retention";
 import { serveStatic, setupVite } from "./vite";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -43,23 +44,7 @@ async function startServer() {
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
-  app.post("/api/scheduled/storage-retention-quarantine", async (req, res) => {
-    const timestamp = new Date().toISOString();
-    try {
-      const user = await sdk.authenticateRequest(req);
-      if (!user.isCron || !user.taskUid) {
-        return res.status(403).json({ error: "cron-only", timestamp });
-      }
-      return res.json(await runStorageRetentionHeartbeat(user.taskUid));
-    } catch (error) {
-      logSafeServerError("[storage-retention] heartbeat falhou", error);
-      return res.status(500).json({
-        error: "storage-retention-failed",
-        timestamp,
-        context: {url: req.originalUrl},
-      });
-    }
-  });
+  app.post(STORAGE_RETENTION_SCHEDULED_PATH, handleStorageRetentionHeartbeat);
   // tRPC API
   app.use(
     '/api/trpc',

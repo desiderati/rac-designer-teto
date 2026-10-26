@@ -56,14 +56,28 @@ registros sem referência como `quarantined`. O callback aceita somente uma iden
 autenticada e procura a política pelo `taskUid`; ele não confia no payload HTTP. A configuração
 persiste o `taskUid`, os dias de carência de `pending` e a idade mínima sem referência. Não criar o
 Heartbeat antes de a versão com o callback estar publicada.
-
 ```sh
-# Executar somente depois de criar o Heartbeat na plataforma e receber o task_uid.
+# Compatibilidade: registrar manualmente um taskUid já criado.
 pnpm exec tsx scripts/admin/configure-storage-retention.ts \
   --task-uid <task_uid> --enabled true \
   --min-unreferenced-age-days 30 --pending-grace-days 7
 ```
-
+O provisionamento recomendado é idempotente: o modo padrão apenas consulta o job de mesmo nome e
+imprime o plano; `--apply` cria ou atualiza o Heartbeat, reativa um job pausado e só então registra
+o `taskUid` no banco. Execute `--apply` somente depois de a versão publicada conter o callback.
+```sh
+# Dry-run, sem criar nem alterar Heartbeat ou banco.
+pnpm storage:retention:provision
+# Provisionamento/atualização efetiva, uma vez por ambiente.
+pnpm storage:retention:apply \
+  --cron '0 0 4 * * *' \
+  --min-unreferenced-age-days 30 --pending-grace-days 7
+```
+O endpoint tRPC administrativo `storage.inventory` expõe apenas o inventário conhecido pelo ledger
+(`coverage: ledger-known-only`), exige usuário `admin` e permite paginação/filtro por lifecycle.
+`storage.inspect` retorna o estado de um asset conhecido. `storage.deletePhysical` existe para
+preservar uma fronteira administrativa explícita, mas falha fechado neste ambiente: sem API de
+listagem/deleção do provedor, nenhum objeto remoto pode ser removido com segurança.
 `quarantined` é um estado reversível no banco; não existe deleção física automática. Objetos que
 nunca chegaram ao documento só podem ser conhecidos se o PUT também chegou ao ledger. O Forge ainda
 não oferece a listagem integral necessária para descobrir objetos históricos desconhecidos;

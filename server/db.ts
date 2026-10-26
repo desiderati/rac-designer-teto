@@ -370,6 +370,87 @@ export async function getStorageAssetLifecycleSummary(): Promise<{
   };
 }
 
+export type StorageAssetInventoryQuery = {
+  lifecycle?: 'pending' | 'active' | 'quarantined' | 'manual_review';
+  limit?: number;
+  offset?: number;
+};
+
+function normalizeStorageAssetInventoryQuery(input: StorageAssetInventoryQuery) {
+  const limit = input.limit ?? 100;
+  const offset = input.offset ?? 0;
+  if (!Number.isInteger(limit) || limit < 1 || limit > 500
+    || !Number.isInteger(offset) || offset < 0) {
+    throw new Error('Consulta de inventário de Storage inválida.');
+  }
+  return {limit, offset};
+}
+
+/** Inventário administrativo somente do ledger conhecido; não representa listagem global do provedor. */
+export async function listStorageAssetInventory(input: StorageAssetInventoryQuery = {}) {
+  const db = await requireDb();
+  const {limit, offset} = normalizeStorageAssetInventoryQuery(input);
+  const predicate = and(
+    eq(storageAssets.scopeKey, RAC_GLOBAL_SCOPE_KEY),
+    input.lifecycle ? eq(storageAssets.lifecycle, input.lifecycle) : undefined,
+  );
+  const [totalRows, rows] = await Promise.all([
+    db.select({count: sql<number>`count(*)`}).from(storageAssets).where(predicate),
+    db.select({
+      id: storageAssets.id,
+      storageKey: storageAssets.storageKey,
+      lifecycle: storageAssets.lifecycle,
+      purpose: storageAssets.purpose,
+      contentType: storageAssets.contentType,
+      sizeBytes: storageAssets.sizeBytes,
+      expiresAt: storageAssets.expiresAt,
+      lastReferencedAt: storageAssets.lastReferencedAt,
+      quarantinedAt: storageAssets.quarantinedAt,
+      lastReconciledAt: storageAssets.lastReconciledAt,
+      protected: storageAssets.protected,
+      createdAt: storageAssets.createdAt,
+      updatedAt: storageAssets.updatedAt,
+      referenceCount: sql<number>`(
+        select count(*) from ${storageAssetReferences} references
+        where references.assetId = ${storageAssets.id}
+          and references.scopeKey = ${RAC_GLOBAL_SCOPE_KEY}
+      )`,
+    }).from(storageAssets)
+      .where(predicate)
+      .orderBy(desc(storageAssets.updatedAt), desc(storageAssets.id))
+      .limit(limit)
+      .offset(offset),
+  ]);
+  return {
+    coverage: 'ledger-known-only' as const,
+    total: Number(totalRows[0]?.count ?? 0),
+    limit,
+    offset,
+    items: rows.map((row) => ({...row, referenceCount: Number(row.referenceCount)})),
+  };
+}
+
+export async function getStorageAssetByStorageKey(storageKey: string) {
+  const db = await requireDb();
+  const normalizedKey = validateStorageKey(storageKey);
+  const rows = await db.select({
+    id: storageAssets.id,
+    storageKey: storageAssets.storageKey,
+    lifecycle: storageAssets.lifecycle,
+    protected: storageAssets.protected,
+    referenceCount: sql<number>`(
+      select count(*) from ${storageAssetReferences} references
+      where references.assetId = ${storageAssets.id}
+        and references.scopeKey = ${RAC_GLOBAL_SCOPE_KEY}
+    )`,
+  }).from(storageAssets).where(and(
+    eq(storageAssets.scopeKey, RAC_GLOBAL_SCOPE_KEY),
+    eq(storageAssets.storageKey, normalizedKey),
+  )).limit(1);
+  const row = rows[0];
+  return row ? {...row, referenceCount: Number(row.referenceCount)} : null;
+}
+
 /** Quarentena lógica é reversível e não chama API de remoção do provedor. */
 export async function quarantineUnreferencedStorageAssets(options: {
   minUnreferencedAgeDays: number;

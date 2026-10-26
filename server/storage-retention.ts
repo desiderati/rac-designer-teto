@@ -1,8 +1,13 @@
+import type { Request, Response } from 'express';
 import {
   getStorageAssetLifecycleSummary,
   getStorageRetentionScheduleByTaskUid,
   quarantineUnreferencedStorageAssets,
 } from './db.ts';
+import { sdk } from './_core/sdk.ts';
+import { logSafeServerError } from './_core/safe-error-log.ts';
+
+export const STORAGE_RETENTION_SCHEDULED_PATH = '/api/scheduled/storage-retention-quarantine';
 
 export type StorageRetentionHeartbeatResult = {
   ok: true;
@@ -27,4 +32,25 @@ export async function runStorageRetentionHeartbeat(taskUid: string): Promise<Sto
   });
   const lifecycle = await getStorageAssetLifecycleSummary();
   return {ok: true, taskUid, ...result, lifecycle};
+}
+
+/** Handler HTTP usado pelo Heartbeat; o corpo não participa da identificação da política. */
+export async function handleStorageRetentionHeartbeat(req: Request, res: Response): Promise<void> {
+  const timestamp = new Date().toISOString();
+  try {
+    const user = await sdk.authenticateRequest(req);
+    if (!user.isCron || !user.taskUid) {
+      res.status(403).json({error: 'cron-only', timestamp});
+      return;
+    }
+
+    res.json(await runStorageRetentionHeartbeat(user.taskUid));
+  } catch (error) {
+    logSafeServerError('[storage-retention] heartbeat falhou', error);
+    res.status(500).json({
+      error: 'storage-retention-failed',
+      timestamp,
+      context: {url: req.originalUrl, taskUid: 'unavailable'},
+    });
+  }
 }
