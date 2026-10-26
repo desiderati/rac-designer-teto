@@ -99,6 +99,16 @@ número, da unidade e do controle editável, após carregar a fonte. O retângul
 enquanto o valor quebra internamente; não resolver a regressão diminuindo a fonte ou mudando os
 botões aprovados. Usar as transições internas e o intervalo de larguras da UI-008.
 
+Ao validar ícones e elementos desenhados fora de um contêiner, medir o elemento que produz a
+aparência. Na barra de ações dos cards, comparar os centros verticais dos SVGs, além de conferir os
+alvos de toque: caixas de botões alinhadas podem conter ícones deslocados. No tutorial, conferir o
+retângulo do triângulo, sua posição em relação à borda do balão e os limites dos ancestrais que
+recortam a pintura. Presença no DOM ou `toBeVisible()` isolado não comprovam que o triângulo aparece
+inteiro. Essas verificações estão na [regressão dos ícones das ações da
+casa](../../e2e/house-actions-landscape.spec.ts) e na [regressão do
+tutorial](../../e2e/guided-tour.spec.ts), com a exceção de pintura definida na UI-007. Conferir
+também a captura em navegador e preservar as provas antes/depois.
+
 Em WebGL, aguarde um quadro efetivamente desenhado antes de inspecionar a cena. Toque, orientação e
 VisualViewport emulados não comprovam o comportamento do teclado ou da renderização em Android real.
 Uma falha intermitente que não foi reproduzida permanece sem causa comprovada; a hipótese de cache

@@ -8,7 +8,7 @@ order: 7
 status: active
 lang: pt-BR
 created: 2026-10-24
-updated: 2026-10-25
+updated: 2026-10-26
 tags: [design-system, modais, responsividade]
 ---
 
@@ -60,6 +60,11 @@ sem criar uma segunda rolagem ou deslocar os botões para fora do painel.
 
 A Análise de Campo e os formulários são telas com rolagem de página. Não transformar seu editor
 inline em uma modal nem reservar um rodapé de confirmação que esses fluxos não possuem.
+
+O triângulo do tutorial é desenhado fora do balão. O shell `rac-tour-shell` permite essa pintura
+externa sem criar rolagem própria; o conteúdo de `ModalFrame` conserva sua região rolável. Manter
+essa exceção restrita ao tutorial: o recorte comum das demais modais e a proteção do foco nos
+editores, descrita na UI-006, continuam valendo.
 
 ## Cabeçalhos, recuos e superfícies
 
@@ -144,11 +149,17 @@ cabeçalho, conteúdo e ações quando a composição possuir essas regiões.
    aberto durante a troca de apresentação. Conferir mini planta, porta e materiais, conteúdo longo
    rolável e título centralizado somente no Drawer.
 
+8. No tutorial, conferir o triângulo inteiro nas posições lateral e superior, dentro da viewport e
+   sem recorte por ancestrais. Preservar geometria, cor amarela, destaque, sequência, progresso e
+   foco em `OK`; a pintura externa não deve ampliar a superfície nem remover a rolagem do conteúdo.
+
 ## Fontes duráveis
 
 - [Resumo da Casa](../../client/src/components/construction-site/ui/HouseMaterialsSummary.tsx).
 - [Regressão do resumo responsivo](../../e2e/house-summary-responsive.spec.ts).
 - [Composição ModalFrame](../../client/src/components/ui/ModalFrame.tsx).
+- [Balão e triângulo do tutorial](../../client/src/components/guided-tour/ui/GuidedTourOverlay.tsx).
+- [Regressão de pintura e geometria do tutorial](../../e2e/guided-tour.spec.ts).
 - [Ordem responsiva de ações](../../client/src/components/ui/ModalActions.tsx).
 - [ActionDock](../../client/src/components/ui/ActionDock.tsx).
 - [Primitiva Dialog](../../client/src/components/ui/dialog.tsx).
