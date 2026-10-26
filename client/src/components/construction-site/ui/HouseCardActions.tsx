@@ -43,8 +43,9 @@ export function HouseCardActions({children}: {children: ReactNode}) {
     };
   }, [children]);
 
+  // Portaled actions may retain a display: contents wrapper; share their button geometry too.
   return <div ref={ref} role='group' aria-label='Ações da casa' data-label-mode='icons'
-    className='group/house-actions mt-3 flex min-w-0 items-stretch gap-0.5 overflow-x-auto rounded-xl bg-blue-100/60 p-1 [&>button]:flex [&>button]:h-auto [&>button]:min-h-11 [&>button]:min-w-11 [&>button]:flex-1 [&>button]:basis-0 [&>button]:flex-col [&>button]:justify-center [&>button]:gap-1 [&>button]:rounded-lg [&>button]:px-0.5 [&>button]:py-2 [&>button]:text-slate-600 [&>button>svg]:shrink-0 [&>button:has([data-house-pilotis])]:bg-blue-100 [&>button:has([data-house-pilotis])]:text-blue-700'
+    className='group/house-actions mt-3 flex min-w-0 items-stretch gap-0.5 overflow-x-auto rounded-xl bg-blue-100/60 p-1 [&_button]:flex [&_button]:h-auto [&_button]:min-h-11 [&_button]:min-w-11 [&_button]:flex-1 [&_button]:basis-0 [&_button]:flex-col [&_button]:justify-center [&_button]:gap-1 [&_button]:rounded-lg [&_button]:px-0.5 [&_button]:py-2 [&>button]:text-slate-600 [&_button>svg]:shrink-0 [&>button:has([data-house-pilotis])]:bg-blue-100 [&>button:has([data-house-pilotis])]:text-blue-700'
     onClick={(event) => event.stopPropagation()}>
     {children}
   </div>;

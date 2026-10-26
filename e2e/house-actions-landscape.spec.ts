@@ -7,6 +7,42 @@ test.use({viewport: {width: 420, height: 844}, isMobile: true, hasTouch: true});
 test.beforeEach(({page}) => startConsoleErrorCapture(page));
 test.afterEach(({page}) => expectNoConsoleErrors(page));
 
+test('alinha o resumo aos demais ícones e mantém os alvos nos cards responsivos', async ({page}, testInfo) => {
+  await setupMobileFirstRacEditorPage(page, {insertInitialViews: true});
+  await page.getByTestId('construction-mobile-card').filter({hasText: 'CC2603'}).tap();
+  const card = page.getByTestId('house-mobile-list').getByTestId('house-mobile-card').filter({hasText: 'Família E2E'});
+  const actions = card.getByRole('group', {name: 'Ações da casa'});
+  for (const viewport of [{width: 390, height: 844}, {width: 480, height: 844},
+    {width: 740, height: 360}, {width: 915, height: 393}]) {
+    await page.setViewportSize(viewport);
+    await expect(actions).toBeVisible();
+    await actions.scrollIntoViewIfNeeded();
+    await page.evaluate(() => document.fonts.ready);
+    const metrics = await actions.evaluate(element => ({
+      mode: element.getAttribute('data-label-mode'),
+      width: element.clientWidth, scrollWidth: element.scrollWidth,
+      buttons: [...element.querySelectorAll('button')].map(button => {
+        const box = button.getBoundingClientRect();
+        const icon = button.querySelector('svg')!.getBoundingClientRect();
+        return {name: button.getAttribute('aria-label'), width: box.width, height: box.height,
+          centerY: icon.y + icon.height / 2};
+      }),
+    }));
+    const summary = metrics.buttons.find(button => button.name?.startsWith('Resumo da Casa'))!;
+    const download = metrics.buttons.find(button => button.name?.startsWith('Exportar RAC PDF'))!;
+    expect(metrics.buttons).toHaveLength(6);
+    expect(Math.abs(summary.centerY - download.centerY)).toBeLessThanOrEqual(1);
+    expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.width);
+    for (const button of metrics.buttons) {
+      expect(button.width).toBeGreaterThanOrEqual(44);
+      expect(button.height).toBeGreaterThanOrEqual(44);
+      expect(Math.abs(button.width - summary.width)).toBeLessThanOrEqual(1);
+    }
+    await testInfo.attach(`geometria-${viewport.width}`, {body: JSON.stringify(metrics), contentType: 'application/json'});
+    await page.screenshot({path: testInfo.outputPath(`acoes-${viewport.width}.png`)});
+  }
+});
+
 for (const viewport of [{width: 852, height: 393}, {width: 915, height: 320}]) {
   test(`cards e ações da casa no mobile horizontal em ${viewport.width} × ${viewport.height}`, async ({page}, testInfo) => {
     await setupMobileFirstRacEditorPage(page, {insertInitialViews: true});
