@@ -142,7 +142,7 @@ test.describe('RAC guided tour', () => {
       await page.screenshot({path: testInfo.outputPath('12-completo.png'), animations: 'disabled'});
     });
     for (const viewport of [{width: 736, height: 375}, {width: 390, height: 844}]) {
-      test(`orienta Pilotis e Redefinir em ${viewport.width}×${viewport.height} sem executar as ações`, async ({page}) => {
+      test(`orienta Pilotis e Redefinir em ${viewport.width}×${viewport.height} sem executar as ações`, async ({page}, testInfo) => {
         await page.evaluate(() => {
           localStorage.removeItem('guided-tour:rac-house-field-analysis:completed');
           localStorage.removeItem('guided-tour:rac-house-reset:completed');
@@ -167,7 +167,7 @@ test.describe('RAC guided tour', () => {
           const targetBounds = (await target.boundingBox())!;
           const overlapsTarget = boundsOverlap(balloon, targetBounds);
           expect(overlapsTarget).toBe(false);
-          await page.screenshot({path: `.agents/work-items/2026-10/20261021-textos-tours-dicas.work-item.assets/${id}-${viewport.width}x${viewport.height}.png`});
+          await page.screenshot({path: testInfo.outputPath(`${id}-${viewport.width}x${viewport.height}.png`)});
           await dialog.getByRole('button', {name: 'OK', exact: true}).tap();
           await expect.poll(() => page.evaluate(key => localStorage.getItem(key), `guided-tour:${id}:completed`)).toBe('true');
         }

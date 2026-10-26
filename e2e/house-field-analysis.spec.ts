@@ -1,5 +1,3 @@
-import {mkdirSync} from 'node:fs';
-import {resolve} from 'node:path';
 import {expect, test, type Page} from '@playwright/test';
 import type {PersistedHouseRecord} from '../client/src/shared/types/construction-site';
 import type {HouseDrawingElementDocument} from '../client/src/shared/types/house-drawing-document';
@@ -26,7 +24,7 @@ for (const scenario of [
   test.describe(`Análise de Campo ${scenario.houseType} em ${scenario.width}px`, () => {
     test.use({viewport: {width: scenario.width, height: 900}});
 
-    test('prepara, retoma após recarregar e insere os dados confirmados no Canvas', async ({page}) => {
+    test('prepara, retoma após recarregar e insere os dados confirmados no Canvas', async ({page}, testInfo) => {
       await setupMobileFirstRacEditorPage(page, {houseType: null, selectedPilotiHeights}, {
         allowPilotiHeightDefinitionOnHouseInsert: scenario.setup,
         configureCornerPilotiNiveisOnHouseInsert: scenario.setup,
@@ -81,14 +79,12 @@ for (const scenario of [
         await expect(page.getByRole('button', {name: 'Selecionar piloti C1', exact: true})).toBeEnabled();
         await expect(page.getByRole('button', {name: 'Selecionar piloti A1', exact: true})).toBeDisabled();
         await expect(page.getByRole('button', {name: 'Selecionar piloti C4', exact: true})).toBeDisabled();
-        const evidence = resolve('outputs/contraventamento-analise-campo-20261019');
-        mkdirSync(evidence, {recursive: true});
-        await page.screenshot({path: resolve(evidence, `destinos-${scenario.width}.png`), animations: 'disabled'});
+        await page.screenshot({path: testInfo.outputPath(`destinos-${scenario.width}.png`), animations: 'disabled'});
         await page.getByRole('button', {name: 'Selecionar piloti C1', exact: true}).tap();
         await expect.poll(async () => (await readHouse(page))?.fieldAnalysis?.contraventamentos)
           .toEqual(expect.arrayContaining([manualBrace]));
         await expectAnalysisReady(page);
-        await page.screenshot({path: resolve(evidence, `contraventamento-${scenario.width}.png`), animations: 'disabled'});
+        await page.screenshot({path: testInfo.outputPath(`contraventamento-${scenario.width}.png`), animations: 'disabled'});
       });
 
       const prepared = (await readHouse(page))!;
