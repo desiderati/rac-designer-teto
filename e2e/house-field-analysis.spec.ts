@@ -159,6 +159,172 @@ test.describe('Rascunho da Análise de Campo em 420px', () => {
   });
 });
 
+test.describe('Limites internos do editor inline da Análise de Campo', () => {
+  test.use({viewport: {width: 700, height: 900}});
+
+  test('preserva a geometria em 407/408 e 605/606px nos dois sentidos', async ({page}, testInfo) => {
+    test.setTimeout(90_000);
+    await setupMobileFirstRacEditorPage(page, {
+      houseType: null, selectedPilotiHeights,
+    }, {
+      allowPilotiHeightDefinitionOnHouseInsert: false,
+      configureCornerPilotiNiveisOnHouseInsert: false,
+      autoAdjustPilotiHeightsFromNivel: true,
+    });
+    await openFieldAnalysis(page);
+    await page.getByRole('button', {name: 'Casa Tipo 6', exact: true}).tap();
+    await page.getByRole('button', {name: 'Inferior', exact: true}).tap();
+    await expectAnalysisReady(page);
+    await expect.poll(async () => (await readHouse(page))?.fieldAnalysis?.status).toBe('prepared');
+    await page.evaluate(() => document.fonts.ready.then(() => undefined));
+    const card = page.locator('.piloti-inline-card');
+    const nivel = card.getByRole('textbox', {name: 'Nível do piloti em metros'});
+    const slider = card.getByRole('slider');
+    const measurements: unknown[] = [];
+
+    try {
+      // Os números são do content box, não da janela; o retorno cruza cada limite novamente.
+      for (const [index, width] of [407, 408, 605, 606, 605, 408, 407].entries()) {
+        await test.step(`passagem ${index + 1}: ${width}px internos`, async () => {
+          for (let adjustment = 0; adjustment < 3; adjustment += 1) {
+            const currentWidth = (await readInlineGeometry(page)).contentWidth;
+            if (Math.abs(currentWidth - width) < 0.1) break;
+            await page.setViewportSize({
+              width: Math.round(page.viewportSize()!.width + width - currentWidth), height: 900,
+            });
+          }
+          await expect.poll(async () => (await readInlineGeometry(page)).contentWidth).toBeCloseTo(width, 1);
+          await expectAnalysisReady(page);
+          await expect(page.getByRole('heading', {name: 'Piloti A1', exact: true})).toBeVisible();
+          await expect(page.getByRole('button', {name: 'Selecionar piloti A1', exact: true}))
+            .toHaveAttribute('aria-pressed', 'true');
+
+          for (const value of [0.2, 0.4, 1.5]) {
+            const text = value.toFixed(2).replace('.', ',');
+            await nivel.fill(text);
+            await nivel.press('Enter');
+            await expect(nivel).toHaveText(text);
+            await expect.poll(async () => (await readHouse(page))?.drawingDocument.house?.pilotis.piloti_0_0.nivel)
+              .toBe(value);
+            await expect(slider).toHaveAttribute('aria-valuemin', '0.2');
+            await expect(slider).toHaveAttribute('aria-valuemax', '1.5');
+            await expect(slider).toHaveAttribute('aria-valuenow', String(value));
+            await expect(card.getByRole('button', {name: 'Diminuir nível do piloti'}))
+              .toBeEnabled({enabled: value !== 0.2});
+            await expect(card.getByRole('button', {name: 'Aumentar nível do piloti'}))
+              .toBeEnabled({enabled: value !== 1.5});
+
+            const geometry = await readInlineGeometry(page);
+            measurements.push({passage: index + 1, width, value, geometry});
+            expect(geometry.contentWidth).toBeCloseTo(width, 1);
+            const {level, sizes, braces, minus, plus, number, unit, track} = geometry;
+            if (width <= 407) {
+              expect(sizes.top).toBeGreaterThanOrEqual(level.bottom);
+              expect(braces.top).toBeGreaterThanOrEqual(sizes.bottom);
+            } else if (width <= 605) {
+              expect(sizes.top).toBeGreaterThanOrEqual(level.bottom);
+              expect(braces.top).toBeCloseTo(sizes.top, 1);
+              expect(braces.left).toBeGreaterThanOrEqual(sizes.right);
+            } else {
+              expect(sizes.top).toBeCloseTo(level.top, 1);
+              expect(braces.top).toBeCloseTo(level.top, 1);
+              expect(sizes.left).toBeGreaterThanOrEqual(level.right);
+              expect(braces.left).toBeGreaterThanOrEqual(sizes.right);
+              expect(level.width).toBeGreaterThanOrEqual(190);
+              expect(level.width).toBeLessThanOrEqual(240);
+            }
+            expect(geometry.sizeButtons).toHaveLength(selectedPilotiHeights.length);
+            expect(geometry.braceButtons).toHaveLength(4);
+            for (const button of [...geometry.sizeButtons, ...geometry.braceButtons]) {
+              expect(button.width).toBeCloseTo(60, 1);
+              expect(button.height).toBeCloseTo(60, 1);
+            }
+            for (const button of geometry.sizeButtons.slice(0, 4)) {
+              expect(button.top).toBeCloseTo(geometry.sizeButtons[0].top, 1);
+            }
+            const braceColumns = width <= 407 ? 4 : 2;
+            for (const button of geometry.braceButtons.slice(0, braceColumns)) {
+              expect(button.top).toBeCloseTo(geometry.braceButtons[0].top, 1);
+            }
+            if (braceColumns === 2) {
+              expect(geometry.braceButtons[2].top).toBeGreaterThanOrEqual(geometry.braceButtons[0].bottom);
+            }
+            for (const group of [level, sizes, braces]) {
+              expect(group.left).toBeGreaterThanOrEqual(geometry.contentLeft - 1);
+              expect(group.right).toBeLessThanOrEqual(geometry.contentLeft + width + 1);
+              expect(group.scrollWidth).toBeLessThanOrEqual(group.clientWidth + 1);
+            }
+            expect(geometry.cardScrollWidth).toBeLessThanOrEqual(geometry.cardClientWidth + 1);
+            expect(geometry.documentScrollWidth).toBeLessThanOrEqual(page.viewportSize()!.width);
+            expect(minus.left).toBeCloseTo(track.left, 1);
+            expect(plus.right).toBeCloseTo(track.right, 1);
+            expect((geometry.value.left + geometry.value.right) / 2)
+              .toBeCloseTo((track.left + track.right) / 2, 1);
+            expect(geometry.numberLines).toBe(1);
+            expect(geometry.unitLines).toBe(1);
+            expect(number.left).toBeGreaterThanOrEqual(minus.right);
+            expect(unit.right).toBeLessThanOrEqual(plus.left);
+            expect(number.right).toBeLessThanOrEqual(unit.left);
+            expect(unit.top).toBeLessThan(number.bottom);
+            expect(unit.bottom).toBeGreaterThan(number.top);
+          }
+          await card.screenshot({
+            path: testInfo.outputPath(`limite-${index + 1}-${width}px.png`), animations: 'disabled',
+          });
+        });
+      }
+    } finally {
+      await testInfo.attach('geometria-limites-internos', {
+        body: JSON.stringify(measurements, null, 2), contentType: 'application/json',
+      });
+    }
+  });
+});
+
+async function readInlineGeometry(page: Page) {
+  return page.locator('.piloti-inline-card').evaluate((card) => {
+    const required = (selector: string) => {
+      const element = card.querySelector<HTMLElement>(selector);
+      if (!element) throw new Error(`Controle inline ausente: ${selector}`);
+      return element;
+    };
+    const box = (element: Element) => {
+      const rect = element.getBoundingClientRect();
+      return {left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom,
+        width: rect.width, height: rect.height, scrollWidth: element.scrollWidth, clientWidth: element.clientWidth};
+    };
+    const textGeometry = (element: Element) => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const rect = range.getBoundingClientRect();
+      return {left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom,
+        lines: range.getClientRects().length};
+    };
+    const style = getComputedStyle(card);
+    const cardBox = box(card);
+    const insetLeft = parseFloat(style.paddingLeft) + parseFloat(style.borderLeftWidth);
+    const insetRight = parseFloat(style.paddingRight) + parseFloat(style.borderRightWidth);
+    const number = textGeometry(required('[role="textbox"]'));
+    const unit = textGeometry(required('.nivel-value > span:last-child'));
+    return {
+      contentWidth: cardBox.width - insetLeft - insetRight,
+      contentLeft: cardBox.left + insetLeft,
+      cardScrollWidth: card.scrollWidth, cardClientWidth: card.clientWidth,
+      documentScrollWidth: document.documentElement.scrollWidth,
+      level: box(required('.piloti-inline-level')),
+      sizes: box(required('.piloti-inline-sizes')),
+      braces: box(required('.piloti-inline-braces')),
+      sizeButtons: [...card.querySelectorAll('.piloti-inline-size-choices > button')].map(box),
+      braceButtons: [...card.querySelectorAll('.piloti-inline-brace-choices > button')].map(box),
+      minus: box(required('[aria-label="Diminuir nível do piloti"]')),
+      plus: box(required('[aria-label="Aumentar nível do piloti"]')),
+      track: box(required('.nivel-range > span > span:first-child')),
+      value: box(required('.nivel-value')),
+      number, unit, numberLines: number.lines, unitLines: unit.lines,
+    };
+  });
+}
+
 async function openFieldAnalysis(page: Page) {
   await expect(page.getByRole('heading', {name: 'Construções TETO', exact: true})).toBeVisible();
   if (page.viewportSize()!.width < 700) {
