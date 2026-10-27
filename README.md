@@ -386,9 +386,10 @@ checagem estática de tipos e execução dos cenários E2E.
 
 - A suíte E2E vive em `e2e/` e gera relatórios em `playwright-report/`
 
-- `npm run test:regression` executa, nesta ordem: `check`, `check:e2e`, `test`, `test:server`,
-  `build` e `test:e2e`. As checagens TypeScript da aplicação e dos E2E são executadas antes dos
-  testes; qualquer falha interrompe a sequência. Use-o para validar mudanças de maior alcance.
+- `npm run test:regression` executa, nesta ordem: `lint`, `check`, `check:e2e`, `test`,
+  `test:server`, `build` e `test:e2e`. O lint vem primeiro, seguido das checagens TypeScript da
+  aplicação e dos E2E, antes dos testes. Qualquer falha interrompe a sequência. Use-o para validar
+  mudanças de maior alcance.
 
 ## ⚙️ Configurações Importantes
 

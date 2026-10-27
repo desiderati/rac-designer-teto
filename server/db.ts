@@ -541,8 +541,12 @@ export async function configureStorageRetentionSchedule(input: {
   });
 }
 
+type StorageTransaction = Parameters<
+  Parameters<Awaited<ReturnType<typeof requireDb>>['transaction']>[0]
+>[0];
+
 async function syncStorageAssetReferencesTx(
-  tx: any,
+  tx: StorageTransaction,
   document: ConstructionSiteState,
   constructionSiteId: string,
   documentVersion: number,

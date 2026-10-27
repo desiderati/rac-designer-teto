@@ -1,17 +1,17 @@
-import "dotenv/config";
-import express from "express";
-import { createServer } from "http";
-import net from "net";
-import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "./oauth";
-import { registerStorageProxy } from "./storageProxy";
-import { appRouter } from "../routers";
-import { createContext } from "./context";
+import 'dotenv/config';
+import express from 'express';
+import { createServer } from 'http';
+import net from 'net';
+import { createExpressMiddleware } from '@trpc/server/adapters/express';
+import { registerOAuthRoutes } from './oauth';
+import { registerStorageProxy } from './storageProxy';
+import { appRouter } from '../routers';
+import { createContext } from './context';
 import {
   handleStorageRetentionHeartbeat,
   STORAGE_RETENTION_SCHEDULED_PATH,
-} from "../storage-retention";
-import { serveStatic, setupVite } from "./vite";
+} from '../storage-retention';
+import { serveStatic, setupVite } from './vite';
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
