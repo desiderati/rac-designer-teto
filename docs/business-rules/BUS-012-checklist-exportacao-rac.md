@@ -105,8 +105,7 @@ justificativas ou observações longas.
 O [modelo](../../client/src/components/rac-editor/lib/rac-pdf-report-model.ts), o
 [renderer](../../client/src/components/rac-editor/lib/rac-pdf-report-renderer.ts) e os [testes do
 PDF](../../client/src/components/rac-editor/lib/rac-pdf-report-model.smoke.test.ts) sustentam esse
-comportamento. O escopo histórico de cadastro do PRD-002 não representa uma proibição de exportar
-monitores na aplicação atual.
+comportamento.
 
 ## Conteúdo padrão do PDF
 

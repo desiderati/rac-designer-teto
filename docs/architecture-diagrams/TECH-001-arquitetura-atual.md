@@ -14,51 +14,29 @@ tags: [arquitetura, modulos, persistencia]
 
 ## Contexto e recorte
 
-Esta nota descreve a implementação local conferida em **17/10/2026**: módulos, camadas, protocolos e
-persistência. Ela complementa as convenções do [playbook de
-engenharia](../engineering-playbook/README.md) e a disciplina de [Ports and Adapters no Editor
-RAC](../engineering-playbook/PLAY-006-ports-and-adapters.md). Não atesta implantação,
-disponibilidade ou configuração de serviços remotos.
+Esta nota descreve os módulos, camadas, protocolos e persistência do RAC Designer TETO. Ela
+complementa as convenções do [playbook de engenharia](../engineering-playbook/README.md) e a
+disciplina de [Ports and Adapters no Editor
+RAC](../engineering-playbook/PLAY-006-ports-and-adapters.md). A descrição se baseia nas fontes do
+repositório; disponibilidade e configuração dos serviços dependem do ambiente de execução.
 
-Os três arquivos Mermaid deste pacote são a fonte canônica dos diagramas; seus blocos nesta nota
-devem permanecer sincronizados. Os PNGs históricos são representações derivadas aprovadas
-visualmente na sessão de origem. Os três arquivos recuperados neste checkout correspondem byte a
-byte aos hashes do manifesto original. Os blocos Mermaid abaixo preservam a leitura conectada das
-três visões. Não substituem os contratos do código.
+Os três arquivos Mermaid são as fontes canônicas dos diagramas. Os blocos desta nota devem
+permanecer sincronizados com eles. Os PNGs são ilustrações auxiliares; os contratos de módulos,
+rotas e persistência seguem as fontes Mermaid e o código.
 
-### Atualidade das imagens e das fontes
+### Artefatos do pacote
 
-O manifesto registra o aceite das imagens de 16/10/2026 e a revisão das fontes de 17/10/2026.
-Naquela conferência, novos uploads passaram a ser descritos pela rota `/api/private-storage/key`,
-mantendo `/manus-storage/*` legível por compatibilidade. As cópias Mermaid corrigiram somente esses
-rótulos na macro e na persistência, sem alterar nós, conexões, agrupamentos ou estilos.
+O [manifesto de preservação](TECH-001-arquitetura-atual.assets/manifesto.json) associa nomes e
+hashes às fontes e imagens. A tabela relaciona os PNGs disponíveis aos identificadores do manifesto:
 
-O [manifesto de preservação](TECH-001-arquitetura-atual.assets/manifesto.json) registra os nomes e
-hashes dos snapshots Mermaid de 16/10/2026, mas esses snapshots não estão presentes neste checkout.
-As fontes Mermaid atuais, revisadas em 17/10/2026, permanecem disponíveis. Essa diferença de rótulo
-não implica troca de armazenamento: o servidor continua transferindo bytes para S3 e intermediando a
-leitura.
-
-A revisão documental de 25/10/2026 não regenerou imagens nem modificou as fontes ou os blocos
-Mermaid. A estrutura retratada continua sendo o recorte de 17/10/2026; os contratos posteriores de
-fotos, ledger e backup estão no [TECH-002](../TECH-002-contrato-fotos-privadas.md) e no
-[OPS-002](../OPS-002-backup-storage.md). O manifesto histórico não atesta a disponibilidade atual
-dos PNGs nem representa uma nova validação da arquitetura ou do ambiente publicado.
-
-### PNGs históricos recuperados
-
-A conferência de 27/10/2026 relacionou os arquivos recuperados aos hashes do manifesto original,
-preservado sem alterações. Os nomes históricos no manifesto diferem dos nomes atuais:
-
-| Visão                     | PNG disponível                                                                               | Nome no manifesto original |
+| Visão                     | PNG disponível                                                                               | Identificador no manifesto |
 |---------------------------|----------------------------------------------------------------------------------------------|----------------------------|
 | 01 · Macro                | [01-arquitetura-macro.png](TECH-001-arquitetura-atual.assets/01-arquitetura-macro.png)       | `macro.png`                |
 | 02 · Camadas e módulos    | [02-camadas-e-modulos.png](TECH-001-arquitetura-atual.assets/02-camadas-e-modulos.png)       | `camadas.png`              |
 | 03 · Dados e persistência | [03-dados-e-persistencia.png](TECH-001-arquitetura-atual.assets/03-dados-e-persistencia.png) | `dados.png`                |
 
-A correspondência dos bytes preserva as imagens aprovadas na origem. Não houve regeneração,
-reconstituição dos snapshots Mermaid antigos ou novo aceite visual. O recorte arquitetural continua
-sendo o de 17/10/2026, com as diferenças de rótulos descritas acima.
+Os contratos de fotos, ledger e backup estão no [TECH-002](../TECH-002-contrato-fotos-privadas.md) e
+no [OPS-002](../OPS-002-backup-storage.md).
 
 ## Escolha da visão
 
@@ -134,9 +112,8 @@ blocos abaixo são cópias sincronizadas para leitura nesta nota.
 
 ## 01 · Visão macro — módulos e conexões
 
-O Mermaid abaixo inclui a rota privada e sua compatibilidade no recorte documentado. A [fonte macro
-versionada](TECH-001-arquitetura-atual.assets/01-arquitetura-macro.mmd) permite ler e renderizar o
-diagrama sem depender do PNG histórico.
+A [fonte macro](TECH-001-arquitetura-atual.assets/01-arquitetura-macro.mmd) apresenta os contextos
+de execução e as conexões do aplicativo com a API e os serviços de identidade, armazenamento e IA.
 
 ```mermaid
 flowchart LR
@@ -183,9 +160,9 @@ flowchart LR
 
 ## 02 · Camadas internas — navegador
 
-O Mermaid preserva as responsabilidades e conexões documentadas. A [fonte de camadas
-versionada](TECH-001-arquitetura-atual.assets/02-camadas-e-modulos.mmd) permite renderizar a visão
-sem depender do PNG histórico.
+A [fonte de camadas](TECH-001-arquitetura-atual.assets/02-camadas-e-modulos.mmd) organiza as
+responsabilidades do navegador e as dependências entre apresentação, coordenação, domínio, ports e
+adapters.
 
 ```mermaid
 flowchart TB
@@ -243,10 +220,9 @@ flowchart TB
 
 ## 03 · Dados — o que vai para cada armazenamento
 
-O retorno de upload na imagem histórica usava a rota `/manus-storage/key`; a [fonte de dados
-versionada](TECH-001-arquitetura-atual.assets/03-dados-e-persistencia.mmd) e o Mermaid abaixo
-registram a rota `/api/private-storage/key`. O PNG histórico não é necessário para consultar essa
-fonte.
+A [fonte de dados e persistência](TECH-001-arquitetura-atual.assets/03-dados-e-persistencia.mmd)
+detalha o upload pela rota privada, as referências de imagens no documento e o controle de versão
+por Construção TETO.
 
 ```mermaid
 flowchart LR
@@ -308,23 +284,15 @@ flowchart LR
 - A alternativa IndexedDB da 01/02 é outro modo de execução; a 03 descreve a escrita remota.
   `fieldAnalysis` acompanha a casa no JSON, incluindo preparação anterior à inserção no canvas.
 
-## Cobertura e critério de encerramento
+## Escopo das visões
 
-Foram consultados os pontos de entrada HTTP e da interface, composição de ports, sessão/adapters,
-contratos de documentos, schema e funções de banco, autenticação, storage, IA, dependências e
-configuração PWA deste repositório (`client/`, `server/`, `shared/`, `drizzle/`, `vite.config.ts`,
-`package.json` e documentação relacionada). As fontes específicas estão na tabela abaixo.
+As visões cobrem os pontos de entrada HTTP e da interface, a composição de ports, sessões e
+adapters, os contratos de documentos, banco, autenticação, storage, IA e configuração PWA. Cada nó
+representa uma responsabilidade; as fontes específicas estão na tabela abaixo.
 
-A investigação foi encerrada após responder às três perguntas e conferir os caminhos relevantes até
-suas interfaces externas. Não houve inspeção recursiva do código interno de Manus/Forge/S3, nem
-auditoria de cada função do editor. Nós representam responsabilidades, não cada arquivo.
-Configurações auxiliares estão resumidas na tabela anterior para manter as visões legíveis.
-
-Limites: implantação publicada, disponibilidade de integrações, topologia/portas/TLS efetivos do
-MySQL e políticas operacionais de storage não foram verificados. Esses pontos permanecem
-desconhecidos; não impedem descrever a implementação local. Uma nova dependência relevante ou uma
-contradição com as fontes reabre somente a parte afetada da investigação.
-
+Os diagramas descrevem os contratos do aplicativo com Manus, Forge, S3 e MySQL. Topologia, portas,
+TLS, disponibilidade das integrações e políticas operacionais de storage dependem da configuração do
+ambiente. Esta nota não atesta o estado de uma implantação.
 
 ## Manutenção e validação
 
@@ -334,36 +302,15 @@ IDs, conexões e ajustes manuais que continuem corretos. Uma mudança apenas de 
 substituir o desenho por listas ou tabelas. Mantenha Mermaid como fonte canônica e PNG como imagem
 derivada; não é necessário gerar SVG.
 
-A conferência de 17/10/2026 seguiu os caminhos navegador → API → MySQL, imagem → referência →
-documento, OAuth → usuário e UI → ports → domínio/adapters. Confirmou o escopo global autenticado, o
-controle otimista de versão, a alternativa IndexedDB e o limite do cache PWA. No bootstrap há um
-fallback de storage local quando a sessão não é injetada; a composição normal injeta a sessão remota
-ou IndexedDB conforme o modo. Isso não configura sincronização offline geral.
+Para validar a consistência das visões, confira os fluxos navegador → API → MySQL, imagem →
+referência → documento, OAuth → usuário e UI → ports → domínio/adapters. Verifique o escopo global
+autenticado, o controle otimista de versão, o modo IndexedDB e o limite do cache PWA.
 
-A promoção preserva os 12 componentes/15 relações da macro, 15/19 de camadas e 11/11 de dados. A
-revisão visual e o aceite anteriores dos PNGs permanecem registrados no manifesto; não representam
-uma nova geração nem validação no ambiente publicado. A conferência de 25/10/2026 verificou os links
-e preservou as fontes disponíveis, sem declarar recuperação dos PNGs então ausentes. A conferência
-de 27/10/2026 confirmou os três PNGs recuperados pelos hashes originais. A estrutura e a
-equivalência das cópias Mermaid são conferidas separadamente da renderização visual.
+No bootstrap há um fallback de storage local quando a sessão não é injetada. A composição normal
+injeta a sessão remota ou IndexedDB conforme o modo. Esse fallback não configura sincronização
+offline geral.
 
-## Proveniência local
-
-O levantamento anterior de 05/10/2026 e o manifesto de imagens de outra rodada foram substituídos
-por esta nota na reorganização do pacote. Suas versões permanecem recuperáveis no histórico do
-repositório; os insumos locais de geração continuam preservados. Esta nota e seus assets são a
-referência atualizada para as três visões. Não trate os rótulos antigos como contrato vigente.
-
-O levantamento inicial ocorreu em 05/10/2026 e foi revisado em 16/10/2026. Os insumos locais foram
-output/arquitetura-macro-diagrams e output/arquitetura-imagegen-v6.assets/diagrams, com registros em
-.agents/changelogs/2026-10/20261016.changelog.md e no work-item de geração. Esses insumos e
-tentativas permanecem como evidência local, sem serem necessários para navegar neste pacote. Esta
-promoção original registrou fontes, imagens aprovadas e explicações reutilizáveis. No checkout atual
-estão disponíveis as fontes atuais, os três PNGs recuperados e o manifesto; os snapshots Mermaid
-antigos continuam indisponíveis. A revisão documental não substitui nem recria as imagens aprovadas
-na origem.
-
-## Fontes verificadas
+## Fontes de referência
 
 | Elemento                                                           | Fonte no repositório                                                                                                                                                                                                                                                                 |
 |--------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

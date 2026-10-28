@@ -40,8 +40,7 @@ licença para expandir a arquitetura sem necessidade real.
 
 ## Build e gerenciador de pacotes
 
-- O perfil detectado no bootstrap foi `build-npm`; esse identificador não substitui o contrato atual
-  de instalação.
+- O perfil de build é `build-npm`; esse identificador não substitui o contrato de instalação.
 
 - O [README](../../README.md) define pnpm para instalar e atualizar dependências, com
   `pnpm-lock.yaml` como lockfile de referência. `pnpm-workspace.yaml` concentra permissões de build

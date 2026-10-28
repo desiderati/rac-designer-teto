@@ -7,7 +7,7 @@ doc_set: ui-definitions
 order: 4
 status: active
 lang: pt-BR
-updated: 2026-10-25
+updated: 2026-10-27
 ---
 
 # Identidade visual e comportamento dos Toasts
@@ -15,11 +15,9 @@ updated: 2026-10-25
 ## Objetivo e escopo
 
 Toasts comunicam resultados, orientações e progresso sem tirar o foco do desenho. Esta definição
-consolida a identidade TETO aprovada em 02/10/2026 para mensagens simples, notificações com ações,
-uploads, atualização da aplicação, geração de PDF e inserção de imagem 3D.
-
-A R48 preserva essas cores e comportamentos e consolida a centralização mobile, o fechamento e a
-rolagem interna. A composição comum das modais está na
+define a identidade TETO para mensagens simples, notificações com ações, uploads, atualização da
+aplicação, geração de PDF e inserção de imagem 3D. As regras abrangem cores, centralização mobile,
+fechamento e rolagem interna. A composição comum das modais está na
 [UI-007](UI-007-modais-e-acoes-compartilhadas.md).
 
 O padrão combina uma faixa compacta de estado com uma trilha interna quando a operação possui
@@ -115,8 +113,7 @@ inicia a contagem de 30 segundos quando o erro é exibido, com pausa por hover e
 Durante a geração, o X é a ação de cancelar a tentativa; após conclusão ou falha, apenas dispensa a
 notificação. O fluxo usa um cancelamento compartilhado entre Canvas, listagem e ZIP, interrompe a
 espera no cliente e impede efeitos tardios de prévia, download, cache ou mudança de status. Isso não
-comprova interrupção do processamento no provedor remoto. Essa distinção substitui a orientação
-antiga de somente fechar o progresso e segue a
+comprova interrupção do processamento no provedor remoto. O contrato de cancelamento está na
 [BUS-012](../business-rules/BUS-012-checklist-exportacao-rac.md). Tentar novamente pertence à prévia
 do PDF, não a uma ação nova inventada no toast.
 
@@ -130,8 +127,8 @@ visíveis. Ao ampliar, a rolagem pertence à superfície do PDF, sem aumentar a 
 horizontal usa Dialog, inclusive em telas largas com toque; no mobile vertical mantém Drawer. A
 prévia usa superfície branca própria, centralizada, com largura útil de até 892 px e recuo de 8 px
 por lateral no Dialog. Sua altura acompanha a área disponível, com teto de 760 px e ajuste da página
-ao espaço restante. Ela não herda a largura geral de 75% dos modais padrão nem a antiga restrição de
-50%. Em 510 × 493, o documento e a toolbar continuam aproveitando a área disponível.
+ao espaço restante. Essa largura própria não segue a regra geral de 75% dos modais padrão. Em 510 ×
+493, o documento e a toolbar aproveitam a área disponível.
 
 O visualizador 3D mantém suas apresentações próprias: em paisagem até 999 px, a superfície padrão
 segue `min(75vw, 720px)`; em mobile horizontal mais largo, o ramo nativo conserva 50vw. Fora desse
@@ -157,7 +154,7 @@ componente compartilha a identidade visual dos demais toasts; a imagem e sua ins
 responsabilidade do contexto existente.
 
 Inserir mantém a integração com o histórico do editor e o aviso de sucesso existente. Descartar
-remove a pendência. A refatoração visual não autoriza descartar imagens por tempo, fechamento ou
+remove a pendência. A apresentação visual não autoriza descartar imagens por tempo, fechamento ou
 substituição de toast. A posição da pendência 3D é preservada pelo fluxo, sem disputar a política da
 fila de mensagens temporárias.
 
@@ -184,11 +181,9 @@ pausa por hover e retomada do tempo restante; IDs durante atualizações; decis�
 verde das etapas concluídas após falha. Verificar também mobile, textos longos, foco, fechamento e
 contraste sobre a superfície real.
 
-Testes de componentes e CSS não substituem a conferência visual em navegador. A incorporação R48
-registrou comparações técnicas locais dos treze estados de toast e dos visualizadores, além de
-interação do toast durante o PDF. Isso substitui a antiga anotação de indisponibilidade total da
-ponte, sem declarar novo aceite humano da aplicação ou de aparelho físico. Novas mudanças precisam
-reverificar os estados afetados, conforme o
+Testes de componentes e CSS não substituem a conferência visual em navegador. Validar também a
+interação com o toast durante a prévia de PDF e os estados dos visualizadores. Conferir os estados
+afetados em cada mudança, conforme o
 [PLAY-104](../engineering-playbook/PLAY-104-frontend-testing.md).
 
 ## Fontes de implementação

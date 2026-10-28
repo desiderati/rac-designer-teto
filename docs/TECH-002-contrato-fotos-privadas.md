@@ -6,7 +6,7 @@ doc_type: reference
 status: active
 lang: pt-BR
 created: 2026-10-18
-updated: 2026-10-18
+updated: 2026-10-27
 tags: [fotos, formularios, correction-pattern]
 ---
 
@@ -16,8 +16,6 @@ tags: [fotos, formularios, correction-pattern]
 
 Upload, formulário e normalização da sessão devem concordar sobre o formato de uma foto. Concluir o
 upload não comprova que o formulário aceitou a referência nem que ela será preservada na reabertura.
-A migração para storage privado expôs essa diferença ao bloquear a criação da casa antes de chamar o
-salvamento, sem mostrar o erro do campo da foto.
 
 ## Formatos aceitos
 
@@ -48,7 +46,7 @@ não comprova existência da imagem ou autorização para acessá-la.
 4. A interface reabre o registro e apresenta a foto depois de salvar e recarregar.
 
 Ao mudar uma rota, revisar as quatro fronteiras e os usos em fotos de construção, família e monitor.
-A migração não está completa se o upload aceita a rota e o resolver ou a normalização a descarta.
+O upload, o resolver e a normalização devem aceitar e preservar as mesmas referências válidas.
 
 ## Lifecycle do objeto
 

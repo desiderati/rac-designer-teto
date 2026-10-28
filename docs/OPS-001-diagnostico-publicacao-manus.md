@@ -6,7 +6,7 @@ doc_type: operational-reference
 status: active
 lang: pt-BR
 created: 2026-10-18
-updated: 2026-10-18
+updated: 2026-10-27
 tags: [manus, publicacao, runbook]
 ---
 
@@ -80,10 +80,9 @@ autorizada e revalidar o alvo; este runbook não a executa nem autoriza.
 
 ## CHECKPOINT_LARGE_MEDIA
 
-O caso observado bloqueou o checkpoint após as correções já terem chegado ao GitHub. Três PNGs de
-documentação acima de 1 MB foram retirados do snapshot WebDev depois de um backup externo relatado
-pelo checkpoint. Esse resultado específico não estabelece um limite universal para todo tipo de
-arquivo ou operação do Manus.
+`CHECKPOINT_LARGE_MEDIA` sinaliza um bloqueio do checkpoint relacionado ao tamanho de arquivos de
+mídia. O diagnóstico deve considerar os arquivos e limites informados pelo erro, sem pressupor um
+limite universal para todos os tipos de arquivo ou operações do Manus.
 
 Ao reencontrar o código, identificar os arquivos apontados pelo erro, sua finalidade e se são ativos
 de produto ou documentação. Qualquer tratamento deve preservar os originais e suas referências e
@@ -111,5 +110,5 @@ corrigido com manifesto mais recente ainda não confirmado.
 - [Checkpoint que registra o tratamento dos
   PNGs](https://github.com/desiderati/rac-designer-teto/commit/172640e70e9710f42273bf3353437aa21397d024).
 
-- [Execução posterior
-  bem-sucedida](https://github.com/desiderati/rac-designer-teto/actions/runs/39108330052).
+- [Exemplo de execução com publicação
+  confirmada](https://github.com/desiderati/rac-designer-teto/actions/runs/39108330052).

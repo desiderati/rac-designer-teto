@@ -80,6 +80,6 @@ mobile](UI-006-editores-flutuantes-e-teclado-mobile.md).
 5. Materiais Extras mantém a apresentação de referência no Full e no Mobile.
 
 O editor e os formulários mantêm superfícies próprias com largura mínima de 360 px. A raiz do
-aplicativo não impõe mais esse mínimo globalmente, permitindo que diálogos específicos, como o de
+aplicativo não impõe esse mínimo globalmente, permitindo que diálogos específicos, como o de
 conflito de sincronização, caibam em viewports menores. O aviso de largura mínima continua aplicável
 às superfícies do editor que ainda dependem desse limite.

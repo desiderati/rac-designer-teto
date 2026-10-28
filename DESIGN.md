@@ -2,17 +2,17 @@
 title: 'Design System: RAC Designer TETO'
 doc_role: reference
 lang: en
-updated: 2026-10-25
+updated: 2026-10-27
 ---
 
 # Design System: RAC Designer TETO
 
 **Project ID:** `12694201971562418000`
 
-The approved cumulative R48 is the product baseline for the Construction Manager and RAC Editor. Its
-theme is applied explicitly through `.rac-theme` and the shared rules in
-[rac-ui.css](client/src/rac-ui.css). Preserve the original Landing, yellow tour balloons, dark photo
-viewer and notification tones. The detailed composition contract is [UI-007 — Modais e ações
+The Construction Manager and RAC Editor share the product theme, applied explicitly through
+`.rac-theme` and the shared rules in [rac-ui.css](client/src/rac-ui.css). Preserve the original
+Landing, yellow tour balloons, dark photo viewer and notification tones. The detailed composition
+contract is [UI-007 — Modais e ações
 compartilhadas](docs/ui-definitions/UI-007-modais-e-acoes-compartilhadas.md).
 
 ## 1. Product Design Thesis
@@ -136,9 +136,9 @@ Use **Inter** as the reliable product font for body text, labels, tables, menus,
 operational UI. It should carry most of the product because the tool is used repeatedly and must
 scan quickly.
 
-The themed R48 surfaces also use **Inter** for titles and the family identity. Standard modal titles
-use 20 px/26 px at weight 700; descriptions use 14 px/21 px. Keep the original Landing typography
-outside this product reskin.
+The themed product surfaces also use **Inter** for titles and the family identity. Standard modal
+titles use 20 px/26 px at weight 700; descriptions use 14 px/21 px. Keep the original Landing
+typography outside the themed product surfaces.
 
 Use a compact hierarchy:
 
@@ -171,7 +171,7 @@ canvas. Manager forms should be more solid and calmer.
 Use borders as a fallback, not as the main sectioning device. When borders are necessary, keep them
 low-contrast and functional. Prefer background shifts, spacing, and grouping to separate sections.
 
-Standard R48 controls use a 10 px radius; common modal surfaces use 12 px and 16 px internal
+Standard product controls use a 10 px radius; common modal surfaces use 12 px and 16 px internal
 spacing. Floating-editor buttons retain their 8 px radius and 40 px height; their shell remains 12
 px. Preserve the 44 px actions of common modals and side panels, and each explicitly retained viewer
 or notification surface.

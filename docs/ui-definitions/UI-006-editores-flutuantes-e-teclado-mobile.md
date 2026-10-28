@@ -7,7 +7,7 @@ doc_set: ui-definitions
 status: active
 lang: pt-BR
 created: 2026-10-18
-updated: 2026-10-25
+updated: 2026-10-27
 tags: [mobile, teclado, correction-pattern]
 ---
 
@@ -19,13 +19,9 @@ Definir o acesso aos campos e às ações dos editores de propriedades do Canvas
 painel flutuante por FloatingEditor ou painel lateral por CanvasSideEditorPanel. Os formulários do
 gerenciador seguem a [UI-003](UI-003-acoes-responsivas-de-formularios.md).
 
-A composição incorporada da R48 segue a [UI-007](UI-007-modais-e-acoes-compartilhadas.md):
-cabeçalho, conteúdo e ações são regiões explícitas, com rolagem exclusiva do conteúdo. A escolha
-entre apresentação flutuante e lateral fica na [UI-005](UI-005-menus-laterais-canvas.md).
-
-O caso de referência é o texto opcional da cerca: foco automático abria o teclado e o painel ficava
-acima da área visível, sem rolagem para recuperar o campo. A regra do texto e sua persistência não
-eram a causa reproduzida.
+A composição compartilhada segue a [UI-007](UI-007-modais-e-acoes-compartilhadas.md): cabeçalho,
+conteúdo e ações são regiões explícitas, com rolagem exclusiva do conteúdo. A escolha entre
+apresentação flutuante e lateral fica na [UI-005](UI-005-menus-laterais-canvas.md).
 
 ## Posição e arrasto no desktop
 
@@ -85,8 +81,8 @@ quando essa API não está disponível.
   única região rolável.
 
 - Usar os recuos reduzidos e limites da composição compartilhada em alturas baixas, preservando
-  foco, acesso ao campo e às ações. A antiga exceção de juntar conteúdo e ações abaixo de 160 px não
-  pertence à composição atual.
+  foco, acesso ao campo e às ações. Somente o conteúdo rola; a região de ações permanece fora da
+  rolagem em qualquer altura.
 
 O painel lateral compartilha essa leitura da viewport visual, usa altura de conteúdo até 425 px para
 objetos e terreno e altura de 425 px para pilotis, limitada a `viewport.height - 16px` e

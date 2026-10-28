@@ -7,7 +7,7 @@ doc_set: ui-definitions
 order: 5
 status: active
 lang: pt-BR
-updated: 2026-10-25
+updated: 2026-10-27
 ---
 
 # Menus laterais do Canvas
@@ -206,7 +206,7 @@ ação Cancelar seleção ficam abaixo dos botões de contraventamento, somente 
 durante a escolha de destino. Cancelar seleção tem alvo de toque de 40 px. Trocar de aba oculta essa
 orientação sem cancelar a escolha em andamento. No painel mobile, o nível usa valor de 30 px e
 círculos −/+ de 32 px, com área de toque ampliada para 44 px e espaçamento vertical compacto. As
-demais apresentações mantêm a escala anterior.
+medidas compactas são exclusivas do painel lateral.
 
 Os botões de tamanho e contraventamento deste painel são quadrados e ocupam quatro colunas iguais
 por toda a largura disponível, com recuos laterais de 12 px e espaçamento de 8 px entre botões.
@@ -232,9 +232,8 @@ dos pilotis: 288 px e direita colada até 999 px; 304 px e recuo direito de 16 p
 px. A altura acompanha o conteúdo, limitada a 425 px e à viewport visual disponível; a
 planta/pilotis conserva altura de 425 px. Somente o conteúdo rola, com ações no rodapé separado e
 acesso preservado quando o teclado abre, conforme a
-[UI-006](UI-006-editores-flutuantes-e-teclado-mobile.md). Preservar o roteamento nativo dos objetos
-genéricos: a apresentação forçada no cenário de demonstração não cria um novo comportamento do
-produto.
+[UI-006](UI-006-editores-flutuantes-e-teclado-mobile.md). Cada objeto genérico usa o roteamento
+nativo de edição correspondente ao seu tipo.
 
 Dispensar cabeçalho, ícone e labels visuais redundantes. Manter nomes acessíveis; centralizar o
 texto dos campos; a região genérica de conteúdo e suas ações usam recuos de 16 px, e a grade mantém
@@ -284,9 +283,9 @@ orientar pela opção `Ir pro Canvas` no menu do canto superior direito da prév
 Na primeira execução completa, seguir a sequência visual: Prévia, Status, Dificuldade, Pilotis,
 Materiais, Exportar RAC, Construída, Arquivar, Redefinir e Voltar. Os tours de Pilotis e Redefinir
 entram antes de Materiais e Voltar, respectivamente, e depois retomam o tour geral. Se o tour geral
-já foi concluído, as orientações novas continuam disponíveis pelo próprio progresso. No desktop ou
-quando uma ação não está disponível, seguir sem essa orientação. Não exigir que todos os alvos
-estejam na viewport ao mesmo tempo: fazer a rolagem ao apresentar cada etapa.
+já foi concluído, as orientações de Pilotis e Redefinir continuam disponíveis pelo próprio
+progresso. No desktop ou quando uma ação não está disponível, seguir sem essa orientação. Não exigir
+que todos os alvos estejam na viewport ao mesmo tempo: fazer a rolagem ao apresentar cada etapa.
 
 No tour introdutório do Canvas, `Salvamento e Sincronização` aparece depois de `Perfil e Ajuda` e
 antes de `Exportar PDF`. A orientação aponta para o ícone de salvamento e distingue os modos: no
@@ -305,7 +304,7 @@ automático habitual.
   descontar a borda na projeção do clique ou toque.
 
 - A alça recolhida da barra superior mobile usa indicador cinza de 192 × 12 px dentro de um alvo de
-  256 × 28 px, centralizado no topo. A largura duplicada preserva as alturas anteriores.
+  256 × 28 px, centralizado no topo.
 
 - Durante o arraste, atualizar a posição dos itens no minimapa a cada quadro de animação, incluindo
   seleção múltipla e movimento por toque prolongado. Projetar os itens em coordenadas do Canvas,
@@ -390,12 +389,12 @@ exige conferir os dois lados, as duas preferências desktop e os grupos compacto
 
 9. Tours em 736 × 375 com toque: percorrer as 11 etapas da primeira orientação completa da lista de
    casas, incluindo Adicionar Casa, preservando ordem e progresso. Conferir balão, destaque e OK
-   dentro da viewport e sem sobreposição entre balão e destaque; conferir a orientação corrigida da
-   Prévia. No tour do sincronizador, conferir também a barra aberta durante a etapa e a retomada do
+   dentro da viewport e sem sobreposição entre balão e destaque; conferir a orientação da Prévia. No
+   tour do sincronizador, conferir também a barra aberta durante a etapa e a retomada do
    recolhimento após concluí-la.
 
-Os critérios são contratos para futuras mudanças; não significam execução de testes nesta alteração
-documental. A cobertura existente distribui-se entre testes de componentes, geometria e E2E.
+Os critérios orientam a validação dos menus. A cobertura distribui-se entre testes de componentes,
+geometria e E2E.
 
 ## Fontes e cobertura existentes
 

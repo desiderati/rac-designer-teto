@@ -8,7 +8,7 @@ order: 8
 status: active
 lang: pt-BR
 created: 2026-10-24
-updated: 2026-10-24
+updated: 2026-10-27
 tags: [design-system, pilotis, responsividade]
 ---
 
@@ -16,9 +16,8 @@ tags: [design-system, pilotis, responsividade]
 
 ## Contexto e escopo
 
-Preservar a composição responsiva da Análise de Campo consolidada nas revisões R35, R37, R39, R47 e
-R48. A identidade usa o tema TETO compartilhado, mantendo o fluxo vertical da tela e o comportamento
-nativo de preparação, salvamento e retomada da casa.
+Definir a composição responsiva da Análise de Campo com o tema TETO compartilhado, fluxo vertical e
+comportamento nativo de preparação, salvamento e retomada da casa.
 
 As regras de composição de modais ficam na [UI-007](UI-007-modais-e-acoes-compartilhadas.md). O
 editor lateral do Canvas fica na [UI-005](UI-005-menus-laterais-canvas.md). A Análise de Campo é uma
@@ -36,8 +35,7 @@ tela com planta e editor inline; não adota o painel lateral com abas do Canvas.
   contraventamentos e desenho do desnível.
 
 - Após os controles, manter apenas os recuos normais da tela. Não reservar espaço para uma barra de
-  confirmação ausente nem impor uma altura mínima ao card que crie o vazio inferior observado nas
-  primeiras versões da prévia.
+  confirmação ausente nem impor uma altura mínima ao card que crie espaço inferior vazio.
 
 ## Composição do editor inline
 
@@ -51,10 +49,10 @@ largura da janela.
 | De 408 a 605 px | Nível na primeira linha; tamanhos e contraventamento lado a lado abaixo.    |
 | Até 407 px      | Três grupos empilhados; contraventamento em quatro colunas na última linha. |
 
-Na composição larga, o grupo de nível conserva a faixa de 190 a 240 px aprovada na R48. Tamanhos
-ocupam 264 px e contraventamentos 136 px; o espaço entre grupos se adapta à área restante. Nas
-composições mais estreitas, o nível usa a linha disponível. Não esticar os botões para compensar
-espaço livre nem reintroduzir o salto de tamanho observado durante o redimensionamento.
+Na composição larga, o grupo de nível ocupa a faixa de 190 a 240 px. Tamanhos ocupam 264 px e
+contraventamentos 136 px; o espaço entre grupos se adapta à área restante. Nas composições mais
+estreitas, o nível usa a linha disponível. Não esticar os botões para compensar espaço livre. O
+tamanho dos botões permanece estável durante o redimensionamento.
 
 Os botões de tamanho e contraventamento do editor inline mantêm 60 × 60 px. Tamanhos usam quatro
 colunas; contraventamentos usam duas na composição larga/intermediária e quatro quando empilhados.
@@ -124,9 +122,3 @@ de uma análise já preparada. Preservar as preferências que controlam quais et
 - [Regras de preparação](../../client/src/components/construction-site/lib/house-field-analysis.ts).
 
 - [Ciclo real da análise](../../e2e/house-field-analysis.spec.ts).
-
-## Proveniência e limites
-
-As comparações históricas e o relatório local de incorporação da R48 permanecem preservados como
-proveniência efêmera, conforme a UI-007. Este documento consolida o comportamento aprovado e suas
-fontes atuais; não redefine regras de domínio nem declara aceite em aparelho físico.

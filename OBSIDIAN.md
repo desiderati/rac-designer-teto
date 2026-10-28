@@ -111,8 +111,8 @@ claramente estabelecida.
 
 ## Contratos e diagnóstico
 
-- [Design System: RAC Designer TETO](DESIGN.md), para a identidade atual e as superfícies
-  preservadas na incorporação da R48
+- [Design System: RAC Designer TETO](DESIGN.md), para a identidade visual e os contratos
+  compartilhados do gerenciador e do editor
 
 - [UI-007 — Modais e ações
   compartilhadas](docs/ui-definitions/UI-007-modais-e-acoes-compartilhadas.md), para rolagem

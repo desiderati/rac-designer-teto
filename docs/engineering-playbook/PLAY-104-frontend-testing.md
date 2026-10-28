@@ -51,9 +51,9 @@ do servidor E2E estão no [README do projeto](../../README.md); os scripts efeti
 [package.json](../../package.json). Consulte esses pontos em vez de manter uma segunda lista de
 comandos neste guia.
 
-## Paridade do DS e contratos da R48
+## Paridade do DS e contratos da interface
 
-Mudanças no tema ou em componentes compartilhados devem preservar o conjunto acumulado aprovado,
+Mudanças no tema ou em componentes compartilhados devem preservar os contratos de interface,
 incluindo suas exceções. Use o [DESIGN.md](../../DESIGN.md), a [UI-007 — Modais e ações
 compartilhadas](../ui-definitions/UI-007-modais-e-acoes-compartilhadas.md) e a [UI-008 — Análise de
 Campo](../ui-definitions/UI-008-analise-de-campo.md) como contratos, sem copiar uma regra de largura
@@ -89,10 +89,10 @@ componente em foco.
 
 Ao usar uma referência congelada, preservar fontes, CSS, manifests e tentativas originais. Conferir
 que ela não importa componentes vivos já alterados e que a ordem do CSS continua equivalente,
-inclusive em relação aos defaults injetados pelo Sonner. Não trocar a referência final pela cópia
-anterior à última revisão nem suprimir falhas preexistentes para apresentar uma suíte inteiramente
-verde. Artefatos locais e hashes ficam na continuidade operacional; os documentos duráveis apontam
-para fontes e testes do produto.
+inclusive em relação aos defaults injetados pelo Sonner. Use a referência aprovada e identificada
+pelos hashes. Não suprima falhas preexistentes para apresentar uma suíte inteiramente verde.
+Artefatos locais e hashes ficam na continuidade operacional; os documentos duráveis apontam para
+fontes e testes do produto.
 
 Ao validar texto responsivo, medir também `scrollWidth`, `clientWidth`, altura e `white-space` do
 número, da unidade e do controle editável, após carregar a fonte. O retângulo externo pode caber

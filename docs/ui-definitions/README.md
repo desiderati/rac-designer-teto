@@ -38,8 +38,7 @@ especialmente em telas operacionais, tabelas, cards, formulários e exportaçõe
     - Define foco, viewport visual, rolagem e acesso às ações com teclado em tela baixa.
 
 - [UI-007 — Modais e ações compartilhadas](UI-007-modais-e-acoes-compartilhadas.md)
-    - Define as regiões de rolagem, cabeçalhos, recuos, ações em 460 px e exceções das famílias
-      consolidadas na R48.
+    - Define as regiões de rolagem, cabeçalhos, recuos, ações em 460 px e exceções de cada família.
 
 - [UI-008 — Análise de Campo](UI-008-analise-de-campo.md)
     - Define planta expansível, editor inline por largura do card, nível sem quebra e critérios

@@ -56,7 +56,7 @@ transitórios devem declarar explicitamente seu ciclo de vida.
     - Definições duráveis de comportamento visual para superfícies operacionais, áreas dimensionadas e exportações.
     - [Modais e ações compartilhadas](ui-definitions/UI-007-modais-e-acoes-compartilhadas.md) e
       [Análise de Campo](ui-definitions/UI-008-analise-de-campo.md) consolidam a composição e as
-      exceções aprovadas da R48; a identidade geral está no [DESIGN.md](../DESIGN.md).
+      exceções de cada família; a identidade geral está no [DESIGN.md](../DESIGN.md).
 
 7. [product-requirements/README.md](product-requirements/README.md)
     - PRDs canônicos do projeto, com basename `PRD-{id_number}-{slug}.prd`, sidecar `*.prd.assets/` e JSON derivado

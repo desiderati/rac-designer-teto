@@ -8,7 +8,7 @@ order: 7
 status: active
 lang: pt-BR
 created: 2026-10-24
-updated: 2026-10-26
+updated: 2026-10-27
 tags: [design-system, modais, responsividade]
 ---
 
@@ -16,9 +16,9 @@ tags: [design-system, modais, responsividade]
 
 ## Contexto e escopo
 
-Consolidar o contrato acumulado da R48 incorporado à aplicação: confirmações, configurações,
-checklist, conta e sincronização, inserção de casa, imagens, fotos, PDF, 3D e editores flutuantes.
-As regras de negócio, estados, callbacks, preferências e persistência continuam nos fluxos nativos.
+Definir a composição de confirmações, configurações, checklist, conta e sincronização, inserção de
+casa, imagens, fotos, PDF, 3D e editores flutuantes. As regras de negócio, estados, callbacks,
+preferências e persistência continuam nos fluxos nativos.
 
 O [DESIGN.md](../../DESIGN.md) define a identidade geral. Esta definição organiza a composição; a
 [UI-004](UI-004-avisos-e-progresso-pdf.md) mantém as particularidades de toast, PDF e 3D; a
@@ -114,7 +114,7 @@ Full, Compact e Mobile desses formulários.
 | Família                              | Contrato a preservar                                                                                                                                                                                         |
 |--------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Modais comuns em paisagem até 999 px | A apresentação padrão usa 75% da largura, com teto de 720 px para Dialog e 512 px para AlertDialog. O assistente de pilotis conserva seu teto de 400 px.                                                     |
-| PDF                                  | Superfície branca própria, largura útil até 892 px, limite da viewport e toolbar completa. Não herdar a redução geral para 75% nem restaurar a antiga regra de 50%.                                          |
+| PDF                                  | Superfície branca própria, largura útil até 892 px, limite da viewport e toolbar completa. A largura própria é independente da regra geral de 75%.                                                           |
 | 3D                                   | Cena ocupa o espaço restante do cabeçalho, sem espaçamento duplo. A expansão preserva a largura total disponível e a margem de 8 px; não limitar fullscreen pela regra de 75%.                               |
 | Imagens e fotos                      | Revisão de imagem segue os recuos comuns; PhotoViewer preserva sua apresentação escura e seus controles. Processamento, qualidade e erros permanecem nativos.                                                |
 | Toasts                               | Preservar anatomia, cores, durações, ações e dispensa da UI-004. No mobile, centralizar e rolar somente o conteúdo longo, mantendo o X no cartão.                                                            |
@@ -168,13 +168,3 @@ cabeçalho, conteúdo e ações quando a composição possuir essas regiões.
 - [Viewer 3D](../../client/src/components/rac-editor/@viewer-3d/ui/House3DViewer.tsx).
 - [Regressão de rolagem e ações](../../e2e/r48-modal-contract.spec.ts).
 - [Estratégia de validação frontend](../engineering-playbook/PLAY-104-frontend-testing.md).
-
-## Proveniência local e limites
-
-O conjunto acumulado aprovado da R48 tem digest de fontes
-`25bf54bb4893933ea9c858bd954166fc8784451df8f25fbfd97b97d0f9198355`. A cópia selada em
-`outputs/proposta-identidade-visual-20261021/reference-r48-final/` e o relatório de incorporação no
-work-item local de 24/10/2026 são proveniência efêmera preservada, sem funcionar como links duráveis
-ou requisito para iniciar um servidor de revisão. As fontes e testes acima sustentam o contrato
-atual. O aceite humano das decisões da R48 e as provas técnicas da incorporação são evidências
-distintas; esta documentação não declara novo aceite visual da aplicação ou de aparelho físico.

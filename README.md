@@ -117,9 +117,8 @@ técnico, siga esta ordem:
 
 Consulte a [Arquitetura atual do RAC Designer
 TETO](docs/architecture-diagrams/TECH-001-arquitetura-atual.md) para as três visões conectadas de
-módulos, camadas e persistência, com fontes Mermaid versionadas e o recorte histórico das imagens
-aprovadas. Os PNGs históricos não estão disponíveis no checkout atual; os diagramas continuam
-legíveis nos blocos Mermaid da nota.
+módulos, camadas e persistência. O pacote contém fontes Mermaid, blocos renderizáveis na nota e
+imagens PNG, com os contratos e as fontes de referência de cada visão.
 
 - `client/src/domain/house/` concentra agregado, casos de uso e contratos do domínio da casa
 
@@ -164,9 +163,9 @@ legíveis nos blocos Mermaid da nota.
 
 ### Contratos de interface
 
-A identidade compartilhada incorporada da R48 está no [DESIGN.md](DESIGN.md). Modais e editores
-reutilizam `ModalFrame` para separar cabeçalho, conteúdo rolável e ações; `ModalActions` mantém a
-ordem visual e de teclado nos limites responsivos. Consulte [Modais e ações
+A identidade compartilhada do produto está no [DESIGN.md](DESIGN.md). Modais e editores reutilizam
+`ModalFrame` para separar cabeçalho, conteúdo rolável e ações; `ModalActions` mantém a ordem visual
+e de teclado nos limites responsivos. Consulte [Modais e ações
 compartilhadas](docs/ui-definitions/UI-007-modais-e-acoes-compartilhadas.md) antes de criar uma
 variação local.
 
@@ -205,7 +204,7 @@ componentes vivos que já foram alterados.
 Portas, revisões e estado dos servidores pertencem à continuidade local, não a um default do Design
 System. Manter um servidor rodando quando solicitado; fechar uma aba não o encerra. Integrar ao
 produto é uma etapa explicitamente autorizada, validada nos componentes nativos e nos contratos da
-R48 acima, sem tomar o cenário forçado da prévia como roteamento real da aplicação.
+interface acima, sem tomar o cenário forçado da prévia como roteamento real da aplicação.
 
 ## 🗂️ Estrutura do Repositório
 
@@ -281,7 +280,8 @@ geral do projeto e os comandos reais de trabalho.
    Use pnpm para instalar e atualizar as dependências. O arquivo `pnpm-lock.yaml` é o lockfile
    canônico do projeto; `--frozen-lockfile` instala as versões registradas sem atualizá-lo.
    A configuração em `pnpm-workspace.yaml` define as permissões de build e os overrides, incluindo
-   a remoção do Canvas 2 opcional do Fabric e do jsdom 20, preservando o Canvas 3 dos testes.
+   a exclusão das dependências opcionais de Canvas 2 do Fabric e do jsdom 20, mantendo o Canvas 3
+   dos testes.
 
    Os arquivos `package-lock.json` e `bun.lock` permanecem no repositório, mas não são a referência
    para esta instalação. Os comandos `npm run` abaixo apenas executam os scripts do `package.json`

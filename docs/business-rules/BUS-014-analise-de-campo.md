@@ -89,6 +89,6 @@ O estado `fieldAnalysis.prepared` e as definições pendentes são consumidos so
 documento anterior e conserva a preparação para nova tentativa.
 
 O metadado é opcional e usa o transporte atual do documento. Os dados estruturais permanecem nos
-campos canônicos; registros sem o metadado mantêm o fluxo anterior. A prévia e as definições de
-contraventamento não persistem instâncias Fabric. Autosaves anteriores são concluídos antes da
-análise e suspensos enquanto ela está aberta.
+campos canônicos; registros sem o metadado usam o fluxo nativo de inclusão da casa. A prévia e as
+definições de contraventamento não persistem instâncias Fabric. Autosaves anteriores são concluídos
+antes da análise e suspensos enquanto ela está aberta.
