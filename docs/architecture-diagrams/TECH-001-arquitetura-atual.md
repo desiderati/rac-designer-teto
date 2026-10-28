@@ -6,7 +6,7 @@ doc_type: technical-reference
 status: active
 lang: pt-BR
 created: 2026-10-17
-updated: 2026-10-25
+updated: 2026-10-27
 tags: [arquitetura, modulos, persistencia]
 ---
 
@@ -21,9 +21,9 @@ RAC](../engineering-playbook/PLAY-006-ports-and-adapters.md). Não atesta implan
 disponibilidade ou configuração de serviços remotos.
 
 Os três arquivos Mermaid deste pacote são a fonte canônica dos diagramas; seus blocos nesta nota
-devem permanecer sincronizados. Os PNGs históricos foram representações derivadas aprovadas
-visualmente na sessão de origem; seus hashes continuam no manifesto, mas os arquivos não estão
-presentes nem versionados neste checkout. Os blocos Mermaid abaixo preservam a leitura conectada das
+devem permanecer sincronizados. Os PNGs históricos são representações derivadas aprovadas
+visualmente na sessão de origem. Os três arquivos recuperados neste checkout correspondem byte a
+byte aos hashes do manifesto original. Os blocos Mermaid abaixo preservam a leitura conectada das
 três visões. Não substituem os contratos do código.
 
 ### Atualidade das imagens e das fontes
@@ -33,16 +33,32 @@ Naquela conferência, novos uploads passaram a ser descritos pela rota `/api/pri
 mantendo `/manus-storage/*` legível por compatibilidade. As cópias Mermaid corrigiram somente esses
 rótulos na macro e na persistência, sem alterar nós, conexões, agrupamentos ou estilos.
 
-Os snapshots Mermaid de 16/10/2026 e os hashes dos arquivos acompanham o [manifesto de
-preservação](TECH-001-arquitetura-atual.assets/manifesto.json), para relacionar as imagens
-históricas às fontes que as originaram. Essa diferença de rótulo não implica troca de armazenamento:
-o servidor continua transferindo bytes para S3 e intermediando a leitura.
+O [manifesto de preservação](TECH-001-arquitetura-atual.assets/manifesto.json) registra os nomes e
+hashes dos snapshots Mermaid de 16/10/2026, mas esses snapshots não estão presentes neste checkout.
+As fontes Mermaid atuais, revisadas em 17/10/2026, permanecem disponíveis. Essa diferença de rótulo
+não implica troca de armazenamento: o servidor continua transferindo bytes para S3 e intermediando a
+leitura.
 
 A revisão documental de 25/10/2026 não regenerou imagens nem modificou as fontes ou os blocos
 Mermaid. A estrutura retratada continua sendo o recorte de 17/10/2026; os contratos posteriores de
 fotos, ledger e backup estão no [TECH-002](../TECH-002-contrato-fotos-privadas.md) e no
 [OPS-002](../OPS-002-backup-storage.md). O manifesto histórico não atesta a disponibilidade atual
 dos PNGs nem representa uma nova validação da arquitetura ou do ambiente publicado.
+
+### PNGs históricos recuperados
+
+A conferência de 27/10/2026 relacionou os arquivos recuperados aos hashes do manifesto original,
+preservado sem alterações. Os nomes históricos no manifesto diferem dos nomes atuais:
+
+| Visão                     | PNG disponível                                                                               | Nome no manifesto original |
+|---------------------------|----------------------------------------------------------------------------------------------|----------------------------|
+| 01 · Macro                | [01-arquitetura-macro.png](TECH-001-arquitetura-atual.assets/01-arquitetura-macro.png)       | `macro.png`                |
+| 02 · Camadas e módulos    | [02-camadas-e-modulos.png](TECH-001-arquitetura-atual.assets/02-camadas-e-modulos.png)       | `camadas.png`              |
+| 03 · Dados e persistência | [03-dados-e-persistencia.png](TECH-001-arquitetura-atual.assets/03-dados-e-persistencia.png) | `dados.png`                |
+
+A correspondência dos bytes preserva as imagens aprovadas na origem. Não houve regeneração,
+reconstituição dos snapshots Mermaid antigos ou novo aceite visual. O recorte arquitetural continua
+sendo o de 17/10/2026, com as diferenças de rótulos descritas acima.
 
 ## Escolha da visão
 
@@ -120,7 +136,7 @@ blocos abaixo são cópias sincronizadas para leitura nesta nota.
 
 O Mermaid abaixo inclui a rota privada e sua compatibilidade no recorte documentado. A [fonte macro
 versionada](TECH-001-arquitetura-atual.assets/01-arquitetura-macro.mmd) permite ler e renderizar o
-diagrama sem depender do PNG histórico ausente.
+diagrama sem depender do PNG histórico.
 
 ```mermaid
 flowchart LR
@@ -169,7 +185,7 @@ flowchart LR
 
 O Mermaid preserva as responsabilidades e conexões documentadas. A [fonte de camadas
 versionada](TECH-001-arquitetura-atual.assets/02-camadas-e-modulos.mmd) permite renderizar a visão
-sem depender do PNG histórico ausente.
+sem depender do PNG histórico.
 
 ```mermaid
 flowchart TB
@@ -326,8 +342,9 @@ ou IndexedDB conforme o modo. Isso não configura sincronização offline geral.
 
 A promoção preserva os 12 componentes/15 relações da macro, 15/19 de camadas e 11/11 de dados. A
 revisão visual e o aceite anteriores dos PNGs permanecem registrados no manifesto; não representam
-uma nova geração nem validação no ambiente publicado. A conferência de 25/10/2026 verifica os links
-e preserva as fontes disponíveis; não declara recuperação dos PNGs ausentes. A estrutura e a
+uma nova geração nem validação no ambiente publicado. A conferência de 25/10/2026 verificou os links
+e preservou as fontes disponíveis, sem declarar recuperação dos PNGs então ausentes. A conferência
+de 27/10/2026 confirmou os três PNGs recuperados pelos hashes originais. A estrutura e a
 equivalência das cópias Mermaid são conferidas separadamente da renderização visual.
 
 ## Proveniência local
@@ -342,8 +359,9 @@ output/arquitetura-macro-diagrams e output/arquitetura-imagegen-v6.assets/diagra
 .agents/changelogs/2026-10/20261016.changelog.md e no work-item de geração. Esses insumos e
 tentativas permanecem como evidência local, sem serem necessários para navegar neste pacote. Esta
 promoção original registrou fontes, imagens aprovadas e explicações reutilizáveis. No checkout atual
-estão disponíveis as fontes e o manifesto; a revisão documental não substitui nem recria as imagens
-aprovadas na origem.
+estão disponíveis as fontes atuais, os três PNGs recuperados e o manifesto; os snapshots Mermaid
+antigos continuam indisponíveis. A revisão documental não substitui nem recria as imagens aprovadas
+na origem.
 
 ## Fontes verificadas
 

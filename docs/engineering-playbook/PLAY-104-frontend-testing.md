@@ -203,6 +203,23 @@ test("should allow user to log in", async ({page}) => {
 });
 ```
 
+### Capturas e arquivos auxiliares por teste
+
+Os E2E de [Análise de Campo](../../e2e/house-field-analysis.spec.ts) e
+[tutorial](../../e2e/guided-tour.spec.ts) usam `testInfo.outputPath(...)` para capturas e JSON de
+geometria. Use o destino gerenciado pelo Playwright para os novos artefatos de cada teste e
+tentativa, evitando caminhos fixos no acervo histórico. Preserve as asserções e os nomes que
+identificam o cenário ou a transição medida.
+
+As saídas do runner estão sujeitas à limpeza e à política de retenção da execução. Esse isolamento
+não garante conservação entre execuções. Quando uma captura ou arquivo auxiliar sustentar uma
+validação ou um aceite, preserve a cópia correspondente no acervo de evidências, mantendo sua
+relação com o teste, o cenário e a execução que a produziu.
+
+Novas execuções não devem sobrescrever capturas, manifests ou outros arquivos históricos já
+preservados. Mantenha separadas as saídas dos testes e as evidências retidas; a geração de uma nova
+captura não substitui o aceite visual anterior.
+
 ### Ciclo da casa, persistência e orientação 3D
 
 Para os tipos 3 e 6, cubra a sequência completa: planta isolada, inserção das elevações, remoção da
