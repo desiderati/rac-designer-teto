@@ -36,19 +36,18 @@ mudanças locais fora do escopo.
 
 ## Família GPT-6
 
-| Modelo        | Melhor encaixe                                                                                  |
-|---------------|-------------------------------------------------------------------------------------------------|
-| `gpt-6-astra` | Trabalho mais complexo, aberto ou de alto impacto que exige julgamento profundo.                |
-| `gpt-6-sol`   | Trabalho cotidiano ou complexo que precisa equilibrar capacidade, velocidade e custo relativo.  |
-| `gpt-6-luna`  | Trabalho claro, repetível, estruturado ou de alto volume com critério de sucesso objetivo.      |
+| Modelo          | Melhor encaixe                                                                                  |
+|-----------------|-------------------------------------------------------------------------------------------------|
+| `gpt-6.2-astra` | Trabalho mais complexo, aberto ou de alto impacto que exige julgamento profundo.                |
+| `gpt-6.2-sol`   | Trabalho cotidiano ou complexo que precisa equilibrar capacidade, velocidade e custo relativo.  |
+| `gpt-6-luna`    | Trabalho claro, repetível, estruturado ou de alto volume com critério de sucesso objetivo.      |
 
-Na dúvida entre as variantes, comece com Sol. Reserve Astra para decisões ou execuções em que a
-profundidade adicional justifique seu custo; use Luna para trabalho bem delimitado. Na dúvida sobre
-esforço, comece com `medium` e ajuste com uma tarefa representativa.
+Nos catálogos, use Sol para o trabalho cotidiano e Astra quando a profundidade adicional justificar
+seu custo. Para tarefas curtas e bem delimitadas, comece com Sol em `low`. Luna fica como opção de
+comparação quando a superfície ainda o oferecer; não é o padrão das configurações dos catálogos.
 
-As tabelas refletem os esforços aceitos por cada variante: Luna e Sol vão de `none` a `max`; Astra
-vai de `low` a `max` e não oferece `none`. Não invente uma combinação ausente para tornar as tabelas
-simétricas.
+As tabelas mostram os esforços de `low` a `max` usados como referência. Não presuma `none` ou
+qualquer outro esforço que o seletor da superfície não confirme.
 
 ## Exemplos por esforço
 
@@ -60,7 +59,6 @@ historicamente usado em cada mudança.
 
 | Esforço  | Exemplo concreto de uso                                                                                                                            |
 |----------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `none`   | Extrair nome, branch, SHA e status de uma lista de pipelines e devolver um CSV, sem interpretar as falhas.                                         |
 | `low`    | Atualizar a versão do mesmo pacote em 30 manifests e confirmar que nenhum arquivo fora da lista mudou.                                             |
 | `medium` | Executar formatter, testes focais e `git diff --check` em 40 repositórios e entregar uma matriz verde/vermelha.                                    |
 | `high`   | Reexecutar somente os steps falhos de uma lista aprovada de pipelines, impedir duplicatas e acompanhar o estado terminal.                          |
@@ -71,7 +69,6 @@ historicamente usado em cada mudança.
 
 | Esforço  | Exemplo concreto de uso                                                                                                                                        |
 |----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `none`   | Trocar a paleta de um componente React pelos tokens já aprovados do Design System, sem redesenhar a tela.                                                      |
 | `low`    | Adicionar estados de loading, vazio e erro à tabela de clientes usando componentes e contrato de API existentes.                                               |
 | `medium` | Criar uma tela CRUD de clientes conectada à API existente, com autenticação, Design System e testes de aceite já especificados.                                |
 | `high`   | Refatorar o módulo React de gestão de clientes e aplicar o Design System em lista, detalhe e formulário, preservando os contratos tRPC e Keycloak.             |
@@ -88,15 +85,13 @@ historicamente usado em cada mudança.
 | `xhigh`  | Refatorar uma aplicação legada para Clean Architecture e aplicar o Design System por etapas, preservando regras de negócio e integrações reais.             |
 | `max`    | Diagnosticar um `403` produtivo que cruza load balancer, política de segurança, VPN e aplicação, com contenção, causa raiz, correção permanente e rollback. |
 
-Combinações como Luna com `max` ou Sol com `none` são suportadas, mas raramente são o melhor ponto
-de partida. Em geral, troque primeiro a variante quando o perfil da tarefa mudou; aumente o esforço
-quando a mesma variante precisa de mais planejamento, análise ou verificação.
+Em geral, troque a variante quando o perfil da tarefa mudou. Aumente o esforço quando a mesma
+variante precisa de mais planejamento, análise ou verificação.
 
 ## Como interpretar o esforço
 
 | Opção                | Tipo             | Use quando                                                                                                                                                   |
 |----------------------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `none`               | Esforço          | A tarefa é transformação ou extração direta e a latência é a prioridade.                                                                                     |
 | `low` / Light        | Esforço          | O escopo é curto, claro e tem condição de sucesso óbvia.                                                                                                     |
 | `medium`             | Esforço          | O trabalho geral precisa equilibrar velocidade, planejamento e profundidade.                                                                                 |
 | `high`               | Esforço          | Há várias etapas, ferramentas, fontes ou verificações relevantes.                                                                                            |
@@ -113,8 +108,8 @@ orquestração custaria mais que o paralelismo.
 
 ## Regras de recomendação
 
-1. Escolha Luna para volume e repetição, Sol para o cotidiano e tarefas complexas, e Astra para o
-   trabalho mais exigente ou de alto impacto.
+1. Escolha Sol em `low` para volume e repetição com escopo claro, Sol em esforço maior para trabalho
+   mais complexo, e Astra para o trabalho mais exigente ou de alto impacto.
 
 2. Escolha o esforço separadamente; capacidade do modelo e profundidade de raciocínio não são a
    mesma decisão.
@@ -130,7 +125,7 @@ orquestração custaria mais que o paralelismo.
 ## Formato da recomendação contextual
 
 ```text
-Modelo: gpt-6-sol
+Modelo: gpt-6.2-sol
 Esforço: high
 Por quê: a tarefa é multiarquivo, usa ferramentas e exige regressão cuidadosa, mas tem contrato e
 critério de sucesso claros.

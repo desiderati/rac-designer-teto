@@ -34,6 +34,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -41,7 +42,7 @@ import sys
 import tomllib
 import unicodedata
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Iterable, Iterator, NoReturn
 from urllib.parse import unquote
 
@@ -147,6 +148,314 @@ class DocsGovernancePolicy:
     allowed_nested_readmes: frozenset[str]
     allowed_duplicate_identities: frozenset[tuple[str, int]]
     filename_patterns: tuple[re.Pattern[str], ...]
+    jira_project_keys: frozenset[str] = frozenset({"ARQ"})
+    collection_prefixes: frozenset[str] = frozenset()
+    reserved_document_ids: frozenset[str] = frozenset()
+
+
+def is_ticket_identity(prefix: str, policy: DocsGovernancePolicy) -> bool:
+    """Explicit project conventions override the default SAT Jira key."""
+    return (
+        prefix in policy.jira_project_keys and prefix not in policy.collection_prefixes
+    )
+
+
+def document_identity(name: str) -> str | None:
+    match = DOCS_CANONICAL_NAME_RE.fullmatch(name)
+    if match is None:
+        return None
+
+    return f"{match['sigla']}-{match['number']}"
+
+
+COLLECTION_BY_DIRECTORY = {
+    "architecture-decisions": "ADR",
+    "bug-analysis": "BUG",
+    "data-models": "MER",
+    "engineering-playbook": "ENG",
+    "execution-runbooks": "RUN",
+    "git-governance": "GIT",
+    "incident-reports": "INC",
+    "knowledge-base": "KB",
+    "product-requirements": "PRD",
+    "prompts": "PROMPT",
+    "security": "SEC",
+    "system-specifications": "SPEC",
+    "technical-specifications": "TECH",
+    "solution-design": "SD",
+    "solution-designs": "SD",
+    "implementation-plans": "PLAN",
+    "plans": "PLAN",
+    "governance": "GOV",
+    "operations": "OPS",
+    "runbooks": "RUNBOOK",
+    "test-specifications": "SPEC",
+}
+
+COLLECTION_BY_ROLE = {
+    "architecture-decision": "ADR",
+    "architecture-decision-record": "ADR",
+    "bug-analysis": "BUG",
+    "data-model": "MER",
+    "engineering-playbook": "ENG",
+    "execution-runbook": "RUN",
+    "git-governance": "GIT",
+    "incident-report": "INC",
+    "incident-record": "INC",
+    "knowledge-base": "KB",
+    "product-requirement": "PRD",
+    "prompt": "PROMPT",
+    "security-guide": "SEC",
+    "system-specification": "SPEC",
+    "technical-specification": "TECH",
+    "solution-design": "SD",
+    "design-specification": "SD",
+    "implementation-plan": "PLAN",
+    "governance": "GOV",
+    "policy": "GOV",
+    "operational-guidance": "OPS",
+    "runbook": "RUNBOOK",
+    "test-specification": "SPEC",
+}
+
+
+def collection_signal(relative: str, fields: dict[str, str]) -> tuple[str | None, bool]:
+    """Only role and semantic directory evidence can reclassify a generic ID."""
+    role = COLLECTION_BY_ROLE.get(
+        fields.get("doc_role", "").strip().strip("\"'").lower()
+    )
+
+    directory = next(
+        (
+            COLLECTION_BY_DIRECTORY[part]
+            for part in reversed(PurePosixPath(relative).parts[1:-1])
+            if part in COLLECTION_BY_DIRECTORY
+        ),
+        None,
+    )
+
+    return role or directory, bool(role and directory and role != directory)
+
+
+def reconcile_document_identity(
+    text: str, name: str, policy: DocsGovernancePolicy
+) -> tuple[str, list[str]]:
+    """Align only explicit identity slots; leave prose, tickets and fences opaque.
+
+    Returning findings as well as the corrected text lets the read-only validator
+    and the repairer consume exactly the same rule in both package layouts.
+    """
+
+    identity = document_identity(name)
+    if identity is None:
+        return text, []
+
+    prefix = identity.rsplit("-", 1)[0]
+    if is_ticket_identity(prefix, policy):
+        return text, [f"Jira key {identity} cannot be the document identity"]
+
+    findings: list[str] = []
+    leading = re.compile(r"^(?P<id>[A-Z][A-Z0-9]*-\d{3,4})(?=$|[\s:—–-])")
+
+    def align(value: str, slot: str, *, explicit: bool = False) -> str:
+        match = leading.match(value)
+        if not match or match["id"] == identity:
+            return value
+
+        old_prefix = match["id"].rsplit("-", 1)[0]
+        if not explicit and is_ticket_identity(old_prefix, policy):
+            return value
+
+        findings.append(f"{slot} identity {match['id']} must match {identity}")
+        return identity + value[match.end() :]
+
+    frontmatter = FRONTMATTER_RE.match(text)
+    if frontmatter:
+        body = frontmatter["body"]
+        # Only top-level scalar fields, never nested values or multiline YAML.
+        scalar = re.compile(
+            r"^(?P<key>title|document_id|doc_id|id|adr_number):(?P<space>[ \t]*)"
+            r"(?P<quote>[\"']?)(?P<value>[^\r\n]*?)(?P=quote)(?P<tail>[ \t]*)(?=\r?$)",
+            re.MULTILINE,
+        )
+
+        def replace_scalar(match: re.Match[str]) -> str:
+            value = align(
+                match["value"],
+                match["key"],
+                explicit=match["key"] in {"document_id", "doc_id", "adr_number"},
+            )
+
+            return f"{match['key']}:{match['space']}{match['quote']}{value}{match['quote']}{match['tail']}"
+
+        body = scalar.sub(replace_scalar, body)
+        text = (
+            text[: frontmatter.start("body")] + body + text[frontmatter.end("body") :]
+        )
+
+    frontmatter = FRONTMATTER_RE.match(text)
+    body_start = frontmatter.end() if frontmatter else 0
+    output: list[str] = [text[:body_start]]
+    marker: str | None = None
+    length = 0
+    seen_h1 = False
+    for line in text[body_start:].splitlines(keepends=True):
+        bare = line.rstrip("\r\n")
+        if marker:
+            if re.fullmatch(rf"\s{{0,3}}{re.escape(marker)}{{{length},}}\s*", bare):
+                marker = None
+        else:
+            fence = FENCE_OPEN_RE.match(bare)
+            if fence:
+                marker, length = fence["fence"][0], len(fence["fence"])
+            elif not seen_h1:
+                heading = re.match(r"^ {0,3}#[ \t]+(?P<title>[^\r\n]*)", line)
+                if heading:
+                    line = (
+                        line[: heading.start("title")]
+                        + align(heading["title"], "H1")
+                        + line[heading.end("title") :]
+                    )
+
+                    seen_h1 = True
+
+        output.append(line)
+
+    return "".join(output), findings
+
+
+def _sealed_path(repo: Path, value: object, *, manifest: bool = False) -> Path:
+    """Resolve one exact, local, regular evidence path without following links."""
+    if not isinstance(value, str) or not value or "\\" in value:
+        raise ValueError("sealed_evidence: expected a repository-relative path")
+
+    relative = PurePosixPath(value)
+    if (
+        relative.is_absolute()
+        or relative.as_posix() != value
+        or ".." in relative.parts
+        or any(character in value for character in "*?[]")
+        or relative.parts[0] != "docs"
+        or (manifest and relative.name != "SHA256SUMS.json")
+        or (not manifest and (relative.suffix != ".md" or relative.name == "README.md"))
+    ):
+        raise ValueError(f"sealed_evidence: invalid exact path: {value}")
+
+    current = repo
+    for part in relative.parts:
+        current /= part
+        if current.is_symlink():
+            raise ValueError(f"sealed_evidence: symbolic link is not allowed: {value}")
+
+    if not current.is_file():
+        raise ValueError(f"sealed_evidence: file not found: {value}")
+
+    return current
+
+
+def load_sealed_evidence(repo_root: Path) -> frozenset[Path]:
+    """Verify explicit pins against both current bytes and the original manifest.
+
+    Shared by the metadata validator, formatter and structural repairer in both
+    mapped distributions. No manifest or document is ever rewritten here.
+    """
+
+    repo = repo_root.resolve()
+    config = repo / DOCS_GOVERNANCE_CONFIG
+    if not config.exists():
+        return frozenset()
+
+    if config.is_symlink() or config.parent.is_symlink():
+        raise ValueError("sealed_evidence: configuration must not be a symbolic link")
+
+    try:
+        data = tomllib.loads(config.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, tomllib.TOMLDecodeError) as exc:
+        raise ValueError(
+            "sealed_evidence: invalid documentation configuration"
+        ) from exc
+
+    policy = data.get("sealed_evidence")
+    if policy is None:
+        return frozenset()
+
+    if (
+        not isinstance(policy, dict)
+        or set(policy) != {"schema", "files"}
+        or type(policy["schema"]) is not int
+        or policy["schema"] != 1
+        or not isinstance(policy["files"], list)
+        or not 1 <= len(policy["files"]) <= 128
+    ):
+        raise ValueError(
+            "sealed_evidence: expected schema 1 and an explicit files list"
+        )
+
+    verified: set[Path] = set()
+    for entry in policy["files"]:
+        if not isinstance(entry, dict) or set(entry) != {"path", "manifest", "sha256"}:
+            raise ValueError("sealed_evidence: expected path, manifest and sha256")
+
+        pinned = entry["sha256"]
+        if not isinstance(pinned, str) or re.fullmatch(r"[0-9a-f]{64}", pinned) is None:
+            raise ValueError("sealed_evidence: invalid SHA-256 pin")
+
+        path = _sealed_path(repo, entry["path"])
+        manifest = _sealed_path(repo, entry["manifest"], manifest=True)
+        if path in verified:
+            raise ValueError(f"sealed_evidence: duplicate path: {entry['path']}")
+
+        try:
+            relative = path.relative_to(manifest.parent).as_posix()
+        except ValueError as exc:
+            raise ValueError(
+                "sealed_evidence: manifest must own the evidence subtree"
+            ) from exc
+
+        try:
+            if manifest.stat().st_size > 1024 * 1024:
+                raise ValueError("oversized manifest")
+
+            payload = json.loads(manifest.read_text(encoding="utf-8"))
+            rows = payload["files"]
+            if not isinstance(rows, list) or len(rows) > 10000:
+                raise ValueError("invalid files list")
+
+            matches = [
+                row
+                for row in rows
+                if isinstance(row, dict) and row.get("path") == relative
+            ]
+
+            raw = path.read_bytes()
+        except (OSError, UnicodeError, ValueError, KeyError, TypeError) as exc:
+            raise ValueError(
+                f"sealed_evidence: invalid manifest: {entry['manifest']}"
+            ) from exc
+
+        if (
+            len(matches) != 1
+            or matches[0].get("sha256") != pinned
+            or hashlib.sha256(raw).hexdigest() != pinned
+            or ("bytes" in matches[0] and matches[0]["bytes"] != len(raw))
+        ):
+            raise ValueError(f"sealed_evidence: integrity mismatch: {entry['path']}")
+
+        try:
+            raw.decode("utf-8")
+        except UnicodeError as exc:
+            raise ValueError(
+                f"sealed_evidence: invalid UTF-8: {entry['path']}"
+            ) from exc
+
+        if raw.startswith(b"\xef\xbb\xbf"):
+            raise ValueError(
+                f"sealed_evidence: UTF-8 BOM is not allowed: {entry['path']}"
+            )
+
+        verified.add(path)
+
+    return frozenset(verified)
 
 
 def _fail(message: str, code: int = 2) -> NoReturn:
@@ -388,6 +697,31 @@ def _load_docs_governance_policy(
 
     violations.extend(regex_violations)
 
+    identity_options: dict[str, frozenset[str]] = {}
+    for key, default in (
+        ("jira_project_keys", ["ARQ"]),
+        ("collection_prefixes", []),
+        ("reserved_document_ids", []),
+    ):
+        values, errors = _read_string_list(
+            docs_governance.get(key, default), f"docs_governance.{key}"
+        )
+
+        violations.extend(errors)
+        pattern = (
+            DOCUMENT_ID_RE
+            if key == "reserved_document_ids"
+            else re.compile(r"[A-Z][A-Z0-9]*")
+        )
+
+        for value in values:
+            if not pattern.fullmatch(value):
+                violations.append(
+                    f"docs_governance.{key}: invalid identity value: {value}"
+                )
+
+        identity_options[key] = frozenset(values)
+
     if violations:
         return None, violations
 
@@ -396,15 +730,19 @@ def _load_docs_governance_policy(
         allowed_nested_readmes=frozenset(allowed_nested_readmes),
         allowed_duplicate_identities=frozenset(allowed_duplicate_identities),
         filename_patterns=filename_patterns,
+        **identity_options,
     ), []
 
 
 def _validate_frontmatter(
-    targets: list[ValidationTarget], required_fields: tuple[str, ...]
+    targets: list[ValidationTarget],
+    required_fields: tuple[str, ...],
+    *,
+    sealed_evidence: frozenset[Path] = frozenset(),
 ) -> list[str]:
     violations: list[str] = []
     for target in targets:
-        if not target.frontmatter_required:
+        if not target.frontmatter_required or target.path in sealed_evidence:
             continue
 
         text = target.path.read_text(encoding="utf-8")
@@ -853,6 +1191,26 @@ def _validate_docs_governance(
             continue
 
         if DOCS_CANONICAL_NAME_RE.fullmatch(path.name):
+            _, findings = reconcile_document_identity(
+                markdown_path.read_text(encoding="utf-8"), path.name, policy
+            )
+
+            violations.extend(f"{relative}: {finding}" for finding in findings)
+            if path.name.startswith("DOC-") and "DOC" not in policy.collection_prefixes:
+                fields = (
+                    _parse_frontmatter(markdown_path.read_text(encoding="utf-8")) or {}
+                )
+
+                family, conflict = collection_signal(relative, fields)
+                if conflict:
+                    violations.append(
+                        f"{relative}: conflicting documentary family evidence; operator review required"
+                    )
+                elif family:
+                    violations.append(
+                        f"{relative}: generic DOC identity must be reclassified into {family}"
+                    )
+
             continue
 
         if _is_superpowers_owned_filename(relative):
@@ -1393,7 +1751,16 @@ def main() -> int:
     violations: list[str] = []
     ok_messages: list[str] = []
 
-    violations.extend(_validate_frontmatter(targets, required_fields))
+    try:
+        sealed_evidence = load_sealed_evidence(repo_root)
+    except ValueError as exc:
+        print(f"[validate_documentation_metadata] FAILED: {exc}", file=sys.stderr)
+        return 1
+
+    violations.extend(
+        _validate_frontmatter(targets, required_fields, sealed_evidence=sealed_evidence)
+    )
+
     violations.extend(_validate_navigation_link_uniqueness(repo_root))
 
     if args.enforce_docs_governance:
@@ -1448,7 +1815,17 @@ def main() -> int:
         print(message)
 
     checked = len(targets)
-    frontmatter_checked = sum(1 for target in targets if target.frontmatter_required)
+    frontmatter_checked = sum(
+        1
+        for target in targets
+        if target.frontmatter_required and target.path not in sealed_evidence
+    )
+
+    if sealed_evidence:
+        print(
+            f"[validate_documentation_metadata] OK: {len(sealed_evidence)} sealed evidence file(s) verified against pinned manifests"
+        )
+
     print(
         "[validate_documentation_metadata] OK: "
         f"{checked} file(s), {frontmatter_checked} frontmatter candidate(s) validated"

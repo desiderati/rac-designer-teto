@@ -1,5 +1,51 @@
 # Collaboration and Automation
 
+## Agent-created chat titles
+
+Use exactly one leading `🤖 ` to identify a visible chat created by another Codex session through an
+already authorized `create_thread` or `fork_thread` action. This is an agent instruction, not a
+native application badge or a guarantee against later manual renames.
+
+- For `create_thread`, supply `title` as `🤖 <descriptive title>` at creation, preserving the
+  operator's wording and other emojis. Do not add a second robot prefix when one is already present.
+
+- For `fork_thread`, apply the prefix to the child through `set_thread_title` after obtaining its
+  actual `threadId`; preserve the source chat. A pending `clientThreadId` is not a `threadId`. Use
+  the creation operation's supported completion mechanism if available; otherwise report the marking
+  as pending without inventing an ID, launching a watcher or creating an automation.
+
+- On an already authorized agent rename, preserve one prefix when the chat has it or accessible
+  evidence proves creation by another session. Use the new descriptive title without accumulating
+  prefixes. A marker is a naming convention, not proof of provenance or authority.
+
+- Respect an explicit request for an exact title or removal of the marker. A title suggestion
+  without an exact-title requirement may receive the prefix.
+
+- Do not mark manually created chats or chats of unknown origin. Branch names, worktrees,
+  conversation content and participation of subagents do not prove chat creation. `spawn_agent` does
+  not by itself create a user-visible chat covered by this convention.
+
+- Check the title returned by the creation or rename tool when available. If normalization removes
+  the prefix, use `set_thread_title` for the same newly created chat when supported. Claim marking
+  as confirmed only when tool evidence confirms the resulting title; otherwise state that it is
+  unverified or pending. On tool failure, report the failure without claiming success.
+
+This convention does not authorize creating or forking chats, sending messages, renaming unrelated
+or historical chats in bulk, or changing a title the operator explicitly chose. It applies only
+within an already authorized chat-management action; retain the tool's ordinary authorization and
+identity requirements.
+
+## Native subagent continuation
+
+For a proven descendant's `!finish-worktree`, the parent may coordinate a continuation of that
+existing agent through the native agent controller when available. Preserve the original author
+identity and forward only the requested target and authorized mode. A readable chat, a title, or an
+app-server message refusal does not prove native resumability or its absence. Do not use
+`send_message_to_thread` to initialize v2 subagents. Other chats retain their channel's consent
+requirements; the closeout shortcut does not authorize sending to them. Verify the SDS receipt and
+passive `InspectCloseout` result before reporting completion. The complete route and restricted
+recovery are in `.agents/references/agents-shortcuts.md`.
+
 ## Automation rules
 
 Automation is allowed, including:

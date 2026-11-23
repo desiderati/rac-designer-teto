@@ -16,7 +16,7 @@ point the user to `@Agents Shortcuts` for that catalog.
 | Command                                                                       | When to use                                                                                                                | Simple example                                                                           |
 |-------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
 | `Agents Examples`, `Agents Example`, `@Agents Examples`, or `@Agents Example` | Show examples from `.agents/references/agents-examples.md` without spawning subagents.                                     | "Show practical examples for the installed custom agents."                               |
-| `Agents Shortcuts`, `Agents Shortcut`, or `@Agents Shortcuts`                 | Show compact `!` chat control shortcuts with when-to-use guidance and examples, without executing them.                    | "Which `!` commands can I use here?"                                                     |
+| `Agents Shortcuts`, `Agents Shortcut`, or `@Agents Shortcuts` | Show the grouped catalog through usable Panorama, with complete Markdown fallback; only a temporary local visualization may be written, never execute shortcuts. | "Which `!` commands can I use here?" |
 | `Agents Usage` or `@Agents Usage`                                             | Explain how custom agent orchestration works in this repository.                                                           | "When should I use subagents instead of keeping the work centralized?"                   |
 | `Models Usage` or `@Models Usage`                                             | List GPT-6 examples when called alone, or recommend one model and effort for a described task.                           | "@Models Usage: which GPT-6 model and effort fit this multiarquivo correction?"        |
 | `@Brainstorm`                                                                 | Enquadrar uma ideia, requisito ou solução nebulosa e encaminhá-la a Product Owner ou Solutions Architect, sem implementar. | "@Brainstorm enquadre esta ideia antes de decidir se preciso de PRD ou solution design." |
@@ -26,7 +26,7 @@ point the user to `@Agents Shortcuts` for that catalog.
 | `fellowship of architects`                                                    | Use the architecture council by its natural-language name.                                                                 | "fellowship of architects: compare these refactoring options."                           |
 | `@League of Agents`                                                           | Invoke team-mode orchestration; add `!loop` in the same request only for explicit bounded composition.                     | "@League of Agents investigate this bug and use specialists only if useful."             |
 | `league of agents`                                                            | Evaluate useful delegation without automatically creating an autonomous loop.                                              | "league of agents: investigate this bug and use specialists only if that adds value."    |
-| `!auto-review`                                                                | Expand the preset League + `!loop` + `$code-review` over unpublished Git changes.                                          | "!auto-review"                                                                           |
+| `!review auto`                                                                | Expand the preset League + `!loop` + `$code-review` over unpublished Git changes.                                          | "!review auto"                                                                           |
 | `@Council of Agents`                                                          | Directly invoke the project-scoped Council custom agent for a qualifying decision.                                         | "@Council of Agents pressure test this architecture choice."                             |
 | `council of agents`                                                           | Use the Council flow by its natural-language name.                                                                         | "council of agents: should I build or buy this automation?"                              |
 | `council this`                                                                | Use a compact textual cue for the Council flow when a decision needs structured debate.                                    | "council this: should I buy a tool or build an internal automation?"                     |
@@ -70,11 +70,12 @@ design does not activate this entrypoint without the explicit agent invocation.
 
 ## Code-Review Routing
 
-For `!review`, its `local` or `agent` modifiers, `@code-reviewer`, or equivalent natural-language
+For `!review`, its `check`, `local`, or `agent` modifiers, `@code-reviewer`, or equivalent natural-language
 intent, load `.agents/references/code-review-routing.md`. Local review is chat-first. Delegate only
 when an explicit independent pass, broad/unknown scope, comparative judgment, or context isolation
 justifies `code-reviewer`; fall back transparently when that role is unavailable. Artifact-only
-review stays with its artifact owner, and all review modes remain diagnostic. Shadow mode discloses
+review stays with its artifact owner. Only explicit plain `!review` can format files before the
+diagnostic pass, within the limits of the routing reference. Shadow mode discloses
 the selected route without persisting raw prompts or changing behavior silently.
 
 ## Council-Mode Flow
@@ -149,7 +150,7 @@ adjudicate the finding as `investigate`, `fix`, `dismiss`, or `defer`. Only `fix
 implementation role. Dismissals and non-blocking deferrals do not interrupt the user; consolidate a
 human decision only when every useful remaining action depends on it.
 
-`!auto-review` is the preset expansion of League + `!loop` + `$code-review`, not a separate
+`!review auto` is the preset expansion of League + `!loop` + `$code-review`, not a separate
 orchestration policy. Its first invocation is plan-only and must resolve the unpublished Git
 manifest plus a 15-iteration `$autonomous-loop` contract. A subsequent `!confirm` authorizes only
 the bounded local review, proven eligible fixes, validation, and atomic commits described by that
@@ -168,6 +169,15 @@ not additional specialist roles. When the same request also invokes `!loop`, com
 `$autonomous-loop`: League owns roles, delegation, adjudication, validation, and consolidation; the
 loop owns bounded iteration and stop control. This generic composition does not imply code review, a
 Git manifest, fixes, or commits. `!loop` alone does not activate League.
+
+## Frontend routing
+
+For UI/frontend work, read [Frontend Workflow](frontend-workflow.md). It requests actual delegation
+of authorized frontend implementation/correction to `frontend-engineer`, with explicit-choice and
+capability exceptions. Its criteria also select the optional Impeccable specialist; command gates
+remain mandatory. `!next-workflow ui` only recommends the same route, without activation.
+This installed routing exception takes precedence over the generic simple/linear-task preferences
+below. It does not activate League or a cascade of specialists.
 
 ## When To Use Agents
 

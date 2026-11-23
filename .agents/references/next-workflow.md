@@ -48,26 +48,20 @@ Separate three choices:
 2. Procedure: only the skills needed for the requested result.
 3. Presentation: prose, a table, a diagram, an in-conversation preview, or a project deliverable.
 
-A skill and an agent are not interchangeable categories. Prefer the current agent with one skill
-when the task is cohesive; recommend delegation only for a real benefit in specialization, context
-isolation, or independent review. Recommendation is not agent activation.
+A skill and an agent are not interchangeable categories. For UI/frontend, apply the shared [Frontend
+Workflow](frontend-workflow.md) selection contract, including its frontend-engineer implementation
+route and explicit-choice exceptions. For other domains, prefer the current agent with one skill
+when cohesive and delegate for a concrete benefit. Recommendation is not agent activation.
 
 For non-UI work, use that domain's actual owner and authorization contract. The `ui` modifier does
 not turn backend implementation into visual work or authorize access to external systems.
 
 ## UI and frontend decisions
 
-Use these as selection cues, not mandatory sequential steps:
-
-| Requested result                                            | Candidate responsibility or skill                | Important boundary                                                                                   |
-|-------------------------------------------------------------|--------------------------------------------------|------------------------------------------------------------------------------------------------------|
-| Assess an existing proposal or implementation               | `@ui-reviewer`                                   | Diagnose against the active contract; no implementation during review.                               |
-| Research UX patterns or guide a targeted review/correction  | `$ui-ux-pro-max`                                 | Not research-only; use focused guidance, not a new product-wide system for a small card.             |
-| Establish a durable visual direction                        | `@ui-designer` or `$frontend-design`             | Reconcile proposals with the project's actual design contract.                                       |
-| Explore or compare interface alternatives inside the chat   | `$visualize`                                     | Can create variants directly; four variants alone do not require Impeccable.                         |
-| Explicit Impeccable critique, shape, craft, audit or polish | `@ui-impeccable-specialist`                      | Follow the selected command's context, confirmation and write boundaries.                            |
-| Implement an approved direction                             | `$frontend-development` or `@software-developer` | Preserve stack, states, accessibility and tests; preview approval is not blanket execution approval. |
-| Verify reflow, overflow or loading parity                   | `$responsiveness`                                | Not a replacement for choosing a new visual direction.                                               |
+Read [Frontend Workflow](frontend-workflow.md) for the single selection matrix and its capability,
+precedence, handoff and fallback rules. Recommend that route only; never execute its dispatch from
+this shortcut. It distinguishes `@frontend-engineer` with `$frontend-development` and conditional
+`$responsiveness`, direction, review, research and the optional `@ui-impeccable-specialist`.
 
 When a project supplies the SKILL-009 guide, use it as supporting UI guidance and verify the
 selected current contracts. Do not hardcode a catalog path into consumers or require that guide in

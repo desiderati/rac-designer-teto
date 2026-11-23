@@ -79,3 +79,5 @@ rtk/history.db
 /.playwright-cli/
 /recovery-backups/
 .agents/skill-icon-candidates/
+.agents/knowledge-consolidation/
+.agents/runtime-downloads/

@@ -26,6 +26,9 @@ The shared spine owns only the invariants that every durable-curation flow needs
 - durable versioned case records remain documentary sources even when reusable learning is also
   promoted into `docs/`
 
+- a consolidated guide, contract, or reference states the verified current contract by default; the
+  source's execution chronology does not become the guide's structure
+
 The spine does not own review severities, refactoring risk posture, prompt status, heuristic drift,
 regression ledgers, or implementation planning. Those remain in the source workflow that produced
 the artifact.
@@ -82,6 +85,47 @@ Use exactly one promotion plan:
 - `não se aplica`: classification is `sem promoção`
 
 Do not write durable documentation when the classification and promotion plan do not agree.
+
+## Session assessment
+
+`session-assessment` applies the Common Promotion Contract as a read-only recommendation, not as
+permission to promote. `!docs` and `!documentation` are exact aliases for this mode. It does not
+change structured classification values or the authorized consolidation workflow.
+
+- Review the entire available current session, including compaction summaries and directly related
+  artifacts. State missing history or evidence. Do not recover other chats or scan unrelated
+  records.
+
+- Look for reusable procedures, decisions, recurring pitfalls, exceptions, architecture and
+  operating guidance. A successful intervention alone is not reusable knowledge. Separate a request,
+  proposal or hypothesis from an accepted decision and from verified execution.
+
+- Resolve the repository owner and compare each candidate with the relevant current durable
+  documents and primary sources. Prefer complementing an existing document. If the owner is unclear,
+  report the unresolved destination; do not invent a repository, filename or identifier.
+
+- Apply the common promotion criteria above. Report `conhecimento novo`, `complemento`, `já
+  coberto`, `apenas operacional` or `evidência insuficiente` as assessment outcomes, not new
+  persisted enum values. An ADR candidate still belongs to the architecture-decision route; do not
+  record it as an accepted decision merely because it is recommended.
+
+- For a recommended promotion, give the reusable learning, evidence, actual documentary gap and
+  proposed destination. For already-covered learning, identify the document and recommend no
+  duplicate, including when another session or automation already promoted it. Do not investigate
+  that other session to establish provenance when the current durable document is sufficient.
+
+- No files, indexes, frontmatter, changelogs, scaffolding or Git operations are changed. Neither
+  `claro_seguro` nor `requires_operator: false` lifts this boundary. Monthly housekeeping
+  reorganization gates do not apply to a session assessment; do not run that automation or its audit
+  as a prerequisite.
+
+- Stop after the bounded recommendation. If nothing is supported, return “Nenhuma promoção
+  documental recomendada para esta sessão.” Mention coverage limitations separately; insufficient
+  evidence is not proof that the entire historical session contains no durable learning.
+
+A later explicit request to promote leaves this mode and uses the existing promotion gates, with
+fresh source and duplicate checks when the evidence has changed. Assessment alone never authorizes
+writing and does not require an operational record of its own.
 
 ## Structured Source Fields
 
@@ -147,21 +191,12 @@ Sanitized, Git-tracked records under `.agents/production-changes/`, `.agents/ris
 They may appear in `already_covered_by` or as documentary source links when repository governance
 allows it.
 
-For daily changelogs that can contain multiple entries, the changelog frontmatter may carry
-file-level defaults and entry-specific decisions:
-
-```yaml
-durable_curation:
-  schema_version: 1
-  default_classification: untriaged
-  default_promotion_plan: untriaged
-  entries: []
-```
-
-Each `entries` item, when used, should identify the changelog entry by stable heading text or time,
-point to a correlated work-item when one exists, and then reuse the same fields as the single-case
-block. Work-item frontmatter remains the preferred source of structured curation when a changelog
-and work-item describe the same case.
+Independent operational entries are identified by stable entry ID and source SHA-256, not
+heading/time or a generated view. Query the changelog owner and reference the correlated work-item
+when available. Work-item frontmatter remains the preferred structured curation source; do not
+invent a destination, evidence strength or promotion decision for an event. Legacy daily files may
+retain their existing file-level defaults and entry-specific decisions unchanged. Preserve those
+historical decisions; no mass normalization is required to record another event.
 
 ## Structured Decision Rules
 
@@ -203,6 +238,9 @@ When local operational artifacts support a durable note:
 
 - preserve only the minimum source identity needed for traceability in plain text
 
+- keep operational provenance in the source work-item or changelog by default; a guide does not
+  require an ephemeral provenance section
+
 When durable versioned case records support a durable note:
 
 - keep the original sanitized case record as durable technical history
@@ -213,6 +251,25 @@ When durable versioned case records support a durable note:
 
 - never replace the original risk assessment, security record, bug analysis, incident, or
   production-change record with the synthesized note
+
+## Current-State Editorial Contract
+
+For consolidated guides, contracts, and references, describe the verified applicable state: purpose,
+behavior, limits and exceptions, decision-useful rationale, reusable validation, and references
+accessible to the intended audience. Do not turn attempts, execution order, or removed references
+into the default narrative. An obsolete reference may simply be removed; explain its removal only
+when that fact still affects compatibility or a future decision.
+
+Keep history when it helps future decisions, validation, compatibility, exceptions, risks, or the
+reason for the current contract. Changelogs, including a changelog section within a mixed document,
+are legitimate historical surfaces. ADRs, incidents, case records, and release notes keep their own
+chronology. Judge mixed documents by section and purpose; no new metadata or classifier is required.
+Dates and historical vocabulary alone are not editorial defects.
+
+Revalidate current claims against primary sources. If sources conflict or currency is uncertain,
+state the exact limit or suspend current-state promotion. If an essential source is inaccessible to
+readers, provide an authorized minimal durable synthesis supported by accessible evidence. Ephemeral
+sources remain inputs, never canonical links.
 
 ## Fenced Code Boundary
 

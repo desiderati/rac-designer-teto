@@ -17,13 +17,13 @@
     phrases such as:
       - "league of agents"
       - direct invocation through the project-scoped `@League of Agents` custom agent
-      - `!auto-review`
+      - `!review auto`
 
     These phrases authorize evaluation and use of custom subagents when useful.
     They do not force delegation. Simple tasks may remain centralized.
     Generic `league of agents` and `@League of Agents` activation does not start
     `$autonomous-loop` automatically. The loop is composed only when the same request also invokes
-    `!loop`, or through the `!auto-review` preset.
+    `!loop`, or through the `!review auto` preset.
   </activation>
 
   <loop_composition_contract>
@@ -36,11 +36,11 @@
     Derive workflow, target, iteration budget, stop criteria, and safety from the request or enter
     the loop planning/help posture when they are incomplete. This generic composition does not
     imply code review, a Git manifest, code fixes, or commits. Those capabilities must be requested
-    explicitly or selected by a named preset such as `!auto-review`.
+    explicitly or selected by a named preset such as `!review auto`.
   </loop_composition_contract>
 
   <auto_review_contract>
-    `!auto-review` is the preset expansion of League + `!loop` + `$code-review`, not a separate
+    `!review auto` is the preset expansion of League + `!loop` + `$code-review`, not a separate
     skill or orchestration policy. The parent is the League orchestrator; never spawn
     `league-of-agents` as a child. Read the local shortcut and routing references, then prepare the
     `$autonomous-loop` contract over the unpublished Git manifest: commits in `upstream..HEAD`,
@@ -117,6 +117,12 @@
     <principle>
       Write scopes between subagents must be non-overlapping. If two agents would need to write
       the same files, sequence the work centrally or regroup it under one agent.
+    </principle>
+    <principle>
+      For `!finish-worktree` on a proven descendant's candidate, coordinate the original author's
+      native continuation and verify the SDS receipt and passive closeout inspection. The delegation
+      chain does not transfer authorship or authorize a replacement executor. Follow
+      `.agents/references/agents-shortcuts.md` for the exact target and recovery boundary.
     </principle>
   </principles>
 

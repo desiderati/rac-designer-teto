@@ -38,6 +38,7 @@ Optional local-only directories when the repository adopts those conventions:
 .agents/council-sessions/
 .agents/pruning-reports/
 .agents/refactorings/
+.agents/skill-icon-candidates/
 ```
 
 Optional local-only file:
@@ -47,6 +48,14 @@ Optional local-only file:
 ```
 
 ### Directory purposes
+
+- `.agents/skill-icon-candidates/`
+    - local, gitignored proposals; preserve original bytes and use batch subdirectories when useful
+    - not durable documentation, not indexed by `OBSIDIAN.md`, and never disposable cache
+    - in the skill catalog, use the `skill-development-session` governed closeout: copy to the
+      primary checkout, reuse identical files and archive divergent originals with verified hashes
+      before worktree removal; never overwrite a different candidate or use manual deletion instead
+
 
 - `.agents/changelogs/`
     - factual daily record of relevant technical work, decisions, evidence, validations, and pending items
@@ -73,7 +82,7 @@ Optional local-only file:
     - `.agents/templates/work-item-full.template.md` exists only for phase-by-phase tracking when the lite note would
       hide meaningful state
     - if the work front needs local non-Markdown files, keep them in a sidecar such as
-      `AAAAMMDD-{slug}.work-item.assets/` beside the note and promote only the relevant subset later
+      `AAAAMMDD-HHMM-{slug}.work-item.assets/` beside the note and promote only the relevant subset later
     - if the work front benefits from agent-readable structured artifacts such as task decomposition, validation
       summaries, or review references, keep them as derived files in that same sidecar, for example
       `task-plan.json`, `test-report.json`, or `review-links.json`
@@ -314,7 +323,8 @@ If none of these is true and the task is likely to conclude inside the active co
 promotion to changelog, do not open a work-item by default.
 
 - Create or resume a local work item under
-  `.agents/work-items/YYYY-MM/YYYYMMDD-short-slug.work-item.md` only after that eligibility gate
+  `.agents/work-items/YYYY-MM/YYYYMMDD-HHMM-short-slug.work-item.md` only after that eligibility
+  gate
 
 - When a mandatory trigger exists, create or resume the work-item before the first remote mutation.
   If the trigger becomes clear only later in the session, stop and open or update the work-item
@@ -342,8 +352,20 @@ promotion to changelog, do not open a work-item by default.
   or large diffs
 
 - When a work-item needs local files such as screenshots, exports, logs, or diffs, store them in a
-  sidecar directory `.agents/work-items/YYYY-MM/AAAAMMDD-{slug}.work-item.assets/` beside the note,
-  not in a shared `.agents/assets/` folder
+  sidecar directory `.agents/work-items/YYYY-MM/AAAAMMDD-HHMM-{slug}.work-item.assets/` beside the
+  note, not in a shared `.agents/assets/` folder
+
+- Derive the evidence directory from the complete work-item filename with
+  `note.with_suffix(".assets")`. Use one dated basename for both paths. Never construct the sidecar
+  slug independently or omit the date or `.work-item` suffix.
+
+- Store execution context JSON, including `*-active.json`, inside that derived sidecar. Return
+  temporary paths in stdout or keep them in the native temporary directory when no persistent
+  artifact is needed. A filename containing `active` is not lifecycle evidence.
+
+- An already authorized local housekeeping operation proceeds autonomously for eligible items.
+  Preserve ambiguous items and continue independent units. Ask only when a concrete operation needs
+  a semantic choice or new authority; preserving an item never needs renewed approval.
 
 - When the work front benefits from structured helper artifacts such as task decomposition,
   validation summaries, or review references, keep them as derived files in that same sidecar and
@@ -391,14 +413,26 @@ promotion to changelog, do not open a work-item by default.
 - After promotion, either collapse the work-item to a short local stub, archive it locally with
   references to the durable artifacts, or keep it open only if continuity risk still remains
 
-- `reter localmente? sim` is an explicit local hold and blocks automatic archiving or purge until
-  the flag is removed or changed
+- Record retention in `reter localmente? sim|não`, with reason and release criterion for `sim`. Any
+  directive to retain the record or paired evidence requires `sim`; completion and elapsed age never
+  release it. The same decision covers the record and its evidence family.
 
-- If a work-item is no longer useful in the hot local layer but still lacks the normal archival
-  contract, it may be marked with `arquivamento pendente? sim`, `arquivamento pendente desde` and
-  `motivo do arquivamento pendente`. Automated housekeeping may archive such marked items after the
-  configured cold period, but must still preserve active, blocked, interrupted, and locally retained
-  items.
+- `reter localmente? sim` and affirmative historical retention directives block automatic pending
+  marking, archiving or purge until explicitly resolved. A contradictory negative field does not
+  override a positive directive. Keep historical text intact; housekeeping reads it through its
+  shared field owner, excluding quoted/code examples and negative or narrative statements.
+  Structural normalization and independent units continue under their existing preservation rules.
+
+- Recurring local housekeeping archives after 45 days and compresses after 90 days of the same
+  substantive activity, independent of task closure or promotion. Keep `atualizado em` accurate;
+  consultation and mechanical organization do not refresh it. The SDS session binding and explicit
+  retention protect the connected evidence. `resume` means actual resumed work. Historical pending
+  archive fields remain history, not prerequisites to the recurring flow.
+
+- Durable documents must be understandable without local `.agents` evidence. Use textual provenance
+  or promote essential knowledge to a shared source; do not create hyperlinks to local-only records.
+  A mere citation does not retain the local record. Existing link curation is separate from
+  housekeeping.
 
 - Never auto-delete a work-item that is active, blocked, interrupted, unpromoted, or still carries
   local-only evidence
@@ -438,12 +472,52 @@ For non-trivial tasks, do not let skipped phases or changed decisions remain imp
 
 - Follow the instructions in `.agents/prompts/changelog.prompt.md`.
 
-- Use daily changelogs under: `.agents/changelogs/YYYY-MM/AAAAMMDD.changelog.md`. If the monthly
-  directory or the file for the day does not exist, create them.
+- Use the changelog owner `record` once for a complete schema-2 entry at
+  `.agents/changelogs/YYYY/MM/DD/YYYYMMDD-HHMMSSffffff-<ASCII-slug-max64>-<id32>.entry.md`. Assemble
+  the complete narrative in memory and write only the final Markdown. The owner generates the
+  identity and zoned `recorded_at` once when they are not supplied; do not ask the operator for
+  mechanical values. Derive the daily path from `recorded_at` in its own explicit offset;
+  `occurred_at` remains independent. Report success only after writing and closing without error. Do
+  not create publication intents, stages, drafts, preparations, state or temporary files.
 
-- The template is located at `.agents/templates/changelog.template.md`.
+- If a write fails while the process is still active, report the error and try to remove only the
+  incomplete file created by that call; if removal fails, report its path. An abrupt interruption
+  may leave an incomplete file. Do not recover, rescan or repeat the write automatically. When the
+  result is unknown, check the original destination through the owner's confirmation/read API before
+  any new attempt; never repeat the business operation to recover its narrative.
 
-- A daily changelog entry is mandatory in the same session whenever any of these
+- Readers report each incomplete or invalid file with its path and cause, continue reading valid
+  entries and legacy dailies, and declare limited coverage. Partial content is not a valid record,
+  promotion candidate or proof of completion. Do not repair, delete or rewrite it automatically; any
+  correction is specific to that record and grounded in the original narrative or evidence.
+
+- Resolve cold entries through the owner without extracting or recreating active copies:
+  `.agents/changelogs/.archived/YYYY-MM/F.entry.md` or the root member `F.entry.md` in
+  `.agents/changelogs/.archived/YYYY-MM.zip`. Preserve basename, ID, dates, hash and bytes.
+  Identical copies represent one event; same-ID divergent bytes block promotion without overwriting
+  either. Keep historical references literal as provenance; operational checks resolve moved entries
+  by proven identity/hash and verified bytes, without rewriting old receipts.
+
+- Keep the business operation's result separate from the changelog result. A successful write does
+  not prove the operation completed. If the operation completed but recording failed, report both
+  outcomes without claiming a complete audit, repeating or undoing the operation. Preserve each
+  consumer's own transaction journals, receipts and readiness audits; pending transactions remain
+  subject to their own contract.
+
+- Use the body template `.agents/templates/changelog.template.md`; omit empty optional sections.
+
+- Promote worktree entries by ID and exact bytes, preserving original times and paths. Same-ID
+  conflicts block. Incorporation is a separate correlated event after proven incorporation. Preserve
+  transaction journal/receipt for readiness audits. This convention authorizes no Git operations.
+
+- Retain legacy daily history `AAAAMMDD.changelog.md`, its archived dispositions and evidence byte
+  for byte. Do not convert, move, normalize or delete that history. On-demand views are not evidence
+  sources or stored events.
+
+- Week in Review excludes worktree/archive replicas and uses recorded_at for independent events;
+  late incorporation or regenerated views never expand the requested analysis window.
+
+- An operational changelog entry is mandatory in the same session whenever any of these
   happened:
     - material technical work, implementation, review, or validation with decisions
       or evidence worth preserving
@@ -474,3 +548,42 @@ For non-trivial tasks, do not let skipped phases or changed decisions remain imp
 
 - If a relevant technical fact, discarded path, or decision is still unclear, ask for clarification
   before writing the entry.
+
+## Shared operational filenames
+
+The canonical catalog policy is `docs/SKILL-004-local-continuity-governance.md`. Its operational
+reference is `agents-housekeeping/references/collection-layout.md` in the effective skills root.
+Write new records directly into the monthly collection using these names:
+
+- `work-items/YYYY-MM/YYYYMMDD-HHMM-<slug>.work-item.md`
+
+- `code-reviews/YYYY-MM/YYYYMMDD-HHMM-<slug>.code-review.md`
+
+- `solution-reviews/YYYY-MM/YYYYMMDD-HHMM-<slug>.solution-review.md`
+
+- `refactorings/YYYY-MM/YYYYMMDD-HHMM-<slug>.refactoring.md`, `.regression-checklist.md`,
+  `.regression-run.md`
+
+- `skill-evaluations/YYYY-MM/YYYYMMDD-HHMM.skill-evaluation.md`
+
+- `council-sessions/YYYY-MM/council-report-YYYYMMDD-HHMMSS.html` and
+  `council-transcript-YYYYMMDD-HHMMSS.md`
+
+- `pruning-reports/YYYY-MM/YYYYMMDD-HHMM.pruning-report.md`
+
+Paths are relative to `.agents/`. Sidecars replace only the final extension with `.assets/`; Council
+shares `council-YYYYMMDD-HHMMSS.assets/`. JSON helpers belong in an explicitly linked sidecar or
+`YYYY-MM/unassigned.assets/`, retaining their producer names. Work-items use HHMM; legacy seconds
+are reduced to minutes, and unknown time uses 0000. Native housekeeping receipts live in
+`pruning-reports/receipts/YYYY-MM/` and keep `layout-<sha256>.pruning-report.md` and
+`layout-<sha256>.pruning-report.assets/journal.json`.
+
+Housekeeping normalizes old active names using recognized filename dates, explicit metadata, mtime,
+native birth time and finally zeros. An unknown date is `00000000`, an unknown time is `0000`, and
+the reserved partition is `0000-00`. These are organizational markers, never factual timestamps or
+archival age. Existing canonical names remain stable; collisions retain both units with a stable
+hash discriminator. Producers do not implement a second migration engine.
+
+Changelog is excluded from filesystem-date inference and zero placeholders. Use its direct writer
+for valid `operational-entry/2` filenames under `YYYY/MM/DD/`; preserve old daily logs and archived
+entry basenames, IDs, dates, bytes and hashes. Keep `refactorings/heuristics/` untouched.

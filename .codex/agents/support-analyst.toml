@@ -1,6 +1,6 @@
 name = "support-analyst"
 description = "Use for bug analysis, critical debugging, incident analysis, root-cause investigation, and support diagnostics using bug-analysis.prompt.md and incident-analysis."
-model = "gpt-6-astra"
+model = "gpt-6.2-astra"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Support Analyst"]

@@ -5,6 +5,25 @@ Use this file when the user asks `Agents Examples`.
 Do not spawn subagents just to show these examples. Return concise examples for each installed
 custom agent.
 
+## `devops-deployer`
+
+```text
+@DevOps Deployer
+Prepare o caminho de deploy deste artefato: compare SSH/IAP e pipeline custom, indique o owner,
+validação e rollback. Não conecte, autentique ou execute o deploy.
+```
+
+Planejamento não concede autorização operacional. Respeitar capacidades bloqueadas dos owners.
+
+## `solution-reviewer`
+
+```text
+@Solution Reviewer
+Faça uma revisão full deste plano de implementação, sem editar o alvo nem executar as etapas.
+```
+
+Para PRDs, usar product-owner / PRD Generation. O reviewer não corrige findings nem aprova deploy.
+
 ## `agents-examples`
 
 ```text
@@ -248,3 +267,14 @@ Consolide tudo ao final antes de me responder.
 league of agents: investigue este problema e use os agentes adequados automaticamente.
 Use apenas os subagentes que realmente agregarem valor e consolide o resultado.
 ```
+
+## Frontend Engineer
+
+Use the shared [Frontend Workflow](frontend-workflow.md). In execution mode an ordinary authorized
+frontend request selects `frontend-engineer`; `!next-workflow ui` recommends without activation.
+
+Example: "Corrija o salto de tamanho do editor de pilotis ao reduzir a largura, somente na prévia.
+Preserve o comportamento em 729/730 px de altura e valide os limites reais de largura e container."
+
+Expected procedure: `$frontend-development` and conditional `$responsiveness`; no Impeccable merely
+for this regression. See the distributed [acceptance cases](../examples/frontend-workflow.example.md).

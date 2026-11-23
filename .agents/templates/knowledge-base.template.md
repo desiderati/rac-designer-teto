@@ -1,93 +1,40 @@
 ---
-tags: [ classificação, módulo, docs ]
-aliases: [ Título Alternativo ]
-created: AAAA-MM-DD
-updated: AAAA-MM-DD
-source_changelogs:
-  - YYYY-MM/AAAAMMDD.changelog.md
-source_work_items:
-  - .agents/work-items/AAAAMMDD-tarefa.work-item.md
-source_assets:
-  - .agents/work-items/AAAAMMDD-tarefa.work-item.assets/
-source_errors:
-  - .agents/errors.md
+title: "Título da nota"
+doc_role: technical-reference
+tags: [tema, módulo]
 ---
 
 # Título da nota
 
-## Contexto
+## Finalidade e contexto
 
-Descrever onde o problema, decisão ou padrão apareceu.
+Indicar a quem a orientação se aplica e qual decisão ou tarefa ela apoia.
 
-## Proveniência local e recorte
+## Contrato vigente
 
-- Artefatos de origem:
-    - changelog(s) relevante(s)
-    - work-item correlato, quando existir
-    - `.agents/errors.md`, quando existir erro recorrente de agente sanitizável e relevante para 
-      workflow ou guardrail
-    - sidecar `.work-item.assets/`, quando existir
-    - artefato local efêmero, quando usado; não tratar como referência canônica e não criar link
+Descrever somente o comportamento, procedimento ou decisão aplicável que foi confirmado em fontes
+atuais. Preservar nomes técnicos, comandos e valores contratuais necessários ao leitor.
 
-- Fase executada:
-    - descrever a etapa realmente concluída
+## Limites e exceções
 
-- Hipótese invalidada:
-    - descrever a hipótese descartada ou refutada
+Delimitar pré-condições, compatibilidade ainda válida, exceções e riscos que alteram o uso da regra.
+Se a vigência não puder ser confirmada, explicitar o limite e não apresentar a hipótese como
+contrato.
 
-- Desenho futuro ou follow-up:
-    - descrever o que ficou como próximo passo, sem misturar com a fase já executada
+## Justificativa para decisões futuras
 
-## Sintomas ou sinais
+Registrar apenas o contexto histórico que ainda explique a escolha, a compatibilidade, um risco ou
+uma validação futura. O histórico operacional completo permanece no changelog ou registro de caso.
+Omitir esta seção quando não houver justificativa útil ao leitor.
 
-- sinal 1
-- sinal 2
+## Validação reutilizável
 
-## Impacto
-
-Descrever o impacto operacional, técnico ou arquitetural.
-
-## Diagnóstico
-
-### Hipóteses
-
-- hipótese 1
-- hipótese 2
-
-### Evidências
-
-- evidência 1
-- evidência 2
-
-## Causa raiz
-
-Descrever a causa raiz confirmada ou o melhor entendimento atual com a incerteza explicitada.
-
-## Decisão adotada
-
-Descrever a decisão tomada e por que ela foi escolhida.
-
-## Estratégia recomendada
-
-- ação recomendada 1
-- ação recomendada 2
-
-## Validação
-
-- validação 1
-- validação 2
-
-## Riscos e pendências
-
-- risco ou pendência 1
+Indicar como confirmar que o contrato se aplica e quais sinais mostram que ele deixou de valer.
 
 ## Referências
 
-### Referências duráveis
+- Apontar para código, documentação, ADR ou registro versionado e acessível ao público desta nota.
 
-- [[INDEX]]
-- link para documentação, código, ADR ou artefato operacional versionado
-
-### Proveniência local efêmera
-
-- origem local não versionada, citada em texto simples e sem link
+- Se uma fonte essencial for efêmera ou inacessível, incorporar uma síntese mínima durável
+  autorizada e sustentada por evidência acessível; caso contrário, declarar a limitação ou suspender
+  a promoção.

@@ -32,6 +32,23 @@ Nota de entrega: alterações locais ainda não publicadas.
 
 The note is secondary delivery residue, not the only next action.
 
+### Blocked explicit outcome
+
+The user requested local worktree closeout. An unrelated edit in the primary checkout blocked it.
+Keep the edit untouched and offer one conditional prompt:
+
+````text
+Sugestão de prompt para próxima ação:
+
+```text
+Verifique somente em leitura se a master está limpa. Se estiver e os demais gates passarem, retome o fechamento já autorizado da worktree de origem, sem alterar o trabalho de outras sessões e sem push. Se não for possível confirmar a condição, pare e informe o bloqueio.
+```
+````
+
+If the worktree is ambiguous, the condition cannot be verified safely, or resuming would need new
+authorization, report the blocker without a suggested prompt. A commit merely left over after a
+completed request remains a delivery note.
+
 Omit `Melhorias sugeridas:` for trivial, administrative-only, weakly grounded, or generic work.
 Preserve accepted scope and present adjacent capabilities as options, not requirements or defects.
 After a validated dry-run or plan, prefer a direct confirmation phrase over another planning turn
@@ -48,12 +65,10 @@ Confirmo executar a criação real do acesso já validado no dry-run para o usu�
 ```
 ````
 
-For `!next-prompt ultra`, recommend the task configuration without claiming that the shortcut
-changed it, then return exactly one fenced `text` block:
+For `!next-prompt meta`, prepare a standalone Codex goal prompt without recommending model or effort
+settings, creating a goal, or executing it. Return exactly one fenced `text` block:
 
 ````text
-Configuração recomendada: `gpt-5.6-sol` no modo `Ultra`. O atalho não altera o modelo, o modo ou o nível de raciocínio nem ativa agentes.
-
 ```text
 ## Objetivo
 
@@ -73,7 +88,7 @@ Não sincronizar instalações, fazer push, acessar produção ou modificar sist
 
 ## Método
 
-Orientar a execução por estratégia, critérios de decisão e evidências; permitir que o modo Ultra
+Orientar a execução por estratégia, critérios de decisão e evidências; permitir que o executor
 escolha e adapte ferramentas, sequência e quantidade de ciclos, salvo obrigação contratual ou
 instrução explícita do operador.
 

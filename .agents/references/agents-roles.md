@@ -3,28 +3,37 @@
 Use this reference when the repository has `.codex/agents/*.toml` installed from `agents-bootstrap`
 or a compatible skill installer and the task could benefit from a specialized Codex subagent.
 
-Custom agents are inert until an explicit agent/team request or an installed router selects a
-diagnostic delegation mode. They are role contracts, not general automatic workflow triggers. The
-base-pack exception is `.agents/references/code-review-routing.md`, which may select `code-reviewer`
-only under its selective, shadowed, non-mutating contract.
+Custom agents run after an explicit agent/team request or selection by an installed router.
+Read `.agents/references/frontend-workflow.md` for mandatory frontend implementation/correction
+routing and conditional Impeccable selection. That shared contract preserves explicit choices,
+negations, authorization, capability checks and coordinator ownership; help and advisory shortcuts
+never dispatch. `.agents/references/code-review-routing.md` selects diagnostic review under its
+selective, shadowed, non-mutating contract. Agent descriptions alone are not dispatch guarantees.
 
 Compatible skill installers may add role packs under `.codex/agents/` and matching contracts under
 `.agents/references/agents-overlays/`. When such files exist, read the relevant overlay before
 routing or delegating to those roles. Overlay content remains owned by its installing skill and must
 not be inlined into or inferred from this base reference.
 
-`agents-examples`, `agents-shortcuts`, `agents-usage`, and `models-usage` are read-only help
+`agents-examples`, `agents-usage`, and `models-usage` are read-only help
 entrypoints. They explain the local agent pack or model selection and must not be treated as
 delegation targets.
+
+`agents-shortcuts` is a help entrypoint with the same no-execution/no-delegation boundary and
+one write exception: a new local HTML visualization outside the repository, in the host-supplied
+durable thread directory for native delivery or physical temp for a permitted usable local viewer.
+Follow the Presentation contract in `agents-shortcuts.md` for optional Panorama, proportional
+shared column widths, native visualize delivery and complete Markdown fallback. It never writes
+repository files or renames chats while listing; Chat title markers require actual shortcut use.
 
 `league-of-agents` is an orchestration entrypoint for:
 
 - `league of agents`
 - direct `@League of Agents` invocation
-- `!auto-review`
+- `!review auto`
 
 It loads the local League of Agents contract and must not be used as a downstream specialist
-delegate. League remains non-looping unless the same request also invokes `!loop`; `!auto-review` is
+delegate. League remains non-looping unless the same request also invokes `!loop`; `!review auto` is
 the preset expansion of League + `!loop` + `$code-review`.
 
 `brainstorm` is a solution-cycle orchestration entrypoint for an unclear idea, requirement, or solution:
@@ -71,6 +80,15 @@ the council's diagnostic-only write boundary.
 It loads the fixed Fellowship of Architects prompt plus the shared `solutions-architect` profile
 catalog. It must not be used as a downstream specialist delegate.
 
+## Frontend coordination
+
+Use [Frontend Workflow](frontend-workflow.md) as the selection authority. `frontend-engineer` and
+`software-developer` are sibling implementers. Preserve an explicitly named generalist; use frontend
+skills locally when appropriate. Return specialist needs to the coordinator, with exclusive file
+ownership and bounded handoff; do not create a software-developer/frontend-engineer cycle.
+`ui-designer` owns unresolved direction, `ui-reviewer` independent diagnosis, and `quality-analyst`
+quality work when justified. `ui-impeccable-specialist` remains optional and installer-owned.
+
 ## Routing Matrix
 
 | Agent                      | Use for                                                                                                                                                                    | Primary prompts or skills                                                                                                                        | Write boundary                                                                                                                                   |
@@ -83,8 +101,9 @@ catalog. It must not be used as a downstream specialist delegate.
 | `council-of-agents`        | Council triggers: `council this`, `pressure test this`, `stress test this`, `war room this`, `premortem this`, `debate this`, `council of agents`, or `@Council of Agents` | `.agents/prompts/council-of-agents.prompt.md`, `.agents/references/agents-usage.md`, `.agents/references/agents-roles.md`                        | chairman orchestration, `.agents/council-sessions/` reports and transcripts; no specialist ownership                                             |
 | `agents-of-shield`         | `agents of shield` or direct `@Agents of Shield` fixed five-profile security council                                                                                       | `.agents/prompts/agents-of-shield.prompt.md`, `.agents/references/security-advisor-profiles.md`, `.agents/references/agents-roles.md`            | diagnostic security advisory output only; no code fixes, credential changes, or external mutations                                               |
 | `fellowship-of-architects` | `fellowship of architects` or direct `@Fellowship of Architects` fixed five-profile architecture council                                                                   | `.agents/prompts/fellowship-of-architects.prompt.md`, `.agents/references/solutions-architect-profiles.md`, `.agents/references/agents-roles.md` | architecture advisory output only; no implementation unless a separate bounded handoff is accepted                                               |
-| `league-of-agents`         | `league of agents`, direct `@League of Agents`, or `!auto-review` team-mode orchestration entrypoint                                                                       | `.agents/prompts/league-of-agents.prompt.md`, `.agents/references/agents-usage.md`, `.agents/references/agents-roles.md`                         | orchestration only; no specialist ownership                                                                                                      |
+| `league-of-agents`         | `league of agents`, direct `@League of Agents`, or `!review auto` team-mode orchestration entrypoint                                                                       | `.agents/prompts/league-of-agents.prompt.md`, `.agents/references/agents-usage.md`, `.agents/references/agents-roles.md`                         | orchestration only; no specialist ownership                                                                                                      |
 | `code-reviewer`            | Code review, repository-wide architecture-quality audits, performance/scalability audits, regression risk, missing tests, review reports                                   | `$code-review`, `.agents/references/code-review-routing.md`                                                                                      | `.agents/code-reviews/` and work-item sidecars only                                                                                              |
+| `frontend-engineer`       | Bounded frontend implementation, UI regression diagnosis and responsive validation | `$frontend-development`, conditional `$responsiveness`, `.agents/references/frontend-workflow.md` | delegated frontend files, tests and related docs; no recursive delegation |
 | `ui-designer`              | Pre-implementation UI direction, `DESIGN.md` stewardship, design contracts                                                                                                 | `$frontend-design`; optional `$ui-ux-pro-max` inputs                                                                                             | `DESIGN.md`, design docs, design-decision docs, and work-item sidecars only                                                                      |
 | `ui-reviewer`              | UI review, visual QA, accessibility-oriented interface critique                                                                                                            | `$frontend-design`, `$frontend-development`; recommend `ui-impeccable-specialist` when available and appropriate                                 | `.agents/code-reviews/` and work-item sidecars only                                                                                              |
 | `ui-impeccable-specialist` | Optional Impeccable shape, craft, polish, audit, extract, and asset production                                                                                             | `$impeccable`; installed by `$impeccable-installer` when that ecosystem is active                                                                | delegated UI code, assets, tests, or review artifacts required by the selected Impeccable command                                                |
@@ -97,6 +116,18 @@ catalog. It must not be used as a downstream specialist delegate.
 | `software-developer`       | Bounded implementation work                                                                                                                                                | `.agents/prompts/implementation-planning.prompt.md`                                                                                              | code, tests, and docs only inside the delegated task scope                                                                                       |
 | `quality-analyst`          | Test strategy, test specifications, quality review, validation planning                                                                                                    | `.agents/prompts/test-driven.prompt.md`, `.agents/prompts/verification.prompt.md`                                                                | quality artifacts and bounded test changes                                                                                                       |
 | `security-advisor`         | Security triage, contextual security review, risk advisory                                                                                                                 | `$security-scan`, `$security-review`, `.agents/templates/security-analysis.template.md`                                                          | `.agents/security-analysis/`, `.agents/security-scans/`, `.agents/security-reviews/`, and sanitized `docs/security/SEC-00N-*` only when promoted |
+
+
+## Deploy e revisão de solução
+
+- `devops-deployer`: orientação GCP, SSH/OpenSSH, IAP e Bitbucket Pipelines; ler
+  `.agents/references/devops-deployer.md`. Escrever somente planos/checklists e work-items
+  autorizados. Execução pertence aos owners e exige autorização própria; sem shell livre.
+- `solution-reviewer`: ADRs, RFCs, SDs e planos técnicos via `$solution-review`; único write é
+  o relatório efêmero sob `.agents/solution-reviews/`. Exclui PRDs (product-owner /
+  `$prd-generation`) e código (`$code-review`). Pass não autoriza implementação ou deploy.
+- Papéis inertes até invocação direta ou delegação explícita. Não alteram os triggers do Brainstorm,
+  Council, Fellowship, League ou o router de code review.
 
 ## Operating Rules
 
@@ -132,7 +163,8 @@ investigations, change models, or weaken safety to reduce cost.
   operator authorizes the applicable protocol.
 
 - Do not delegate to `agents-examples`, `agents-shortcuts`, `agents-usage`, or `models-usage`; they
-  are help shortcuts and must remain read-only.
+  are help shortcuts. Keep them read-only except for the temporary HTML exception defined in
+  `agents-shortcuts.md#presentation`; never execute examples or shortcuts.
 
 - Keep the parent agent responsible for orchestration, scope control, consolidation, and final
   user-facing judgment.

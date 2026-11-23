@@ -20,7 +20,9 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import re
+import stat
 import sys
 import textwrap
 import unicodedata
@@ -96,12 +98,72 @@ def _fail(message: str, code: int = 2) -> NoReturn:
     sys.exit(code)
 
 
+def _sealed_evidence_for_files(files: list[Path]) -> frozenset[Path]:
+    roots = set()
+    for path in files:
+        root = next((p for p in path.parents if (p / ".git").exists()), None)
+        if root is not None and (root / ".agents/documentation.toml").exists():
+            roots.add(root)
+
+    if not roots:
+        return frozenset()
+
+    # Both distributions place the independent packages beside each other.
+    source = (
+        Path(__file__).resolve().parents[1] / "validate_documentation_metadata/cli.py"
+    )
+
+    name = "_documentation_sealed_evidence_metadata"
+    spec = importlib.util.spec_from_file_location(name, source)
+    if spec is None or spec.loader is None:
+        raise ValueError("sealed_evidence: metadata package is unavailable")
+
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    try:
+        spec.loader.exec_module(module)
+    except OSError as exc:
+        raise ValueError("sealed_evidence: metadata package is unavailable") from exc
+
+    return frozenset(
+        path for root in roots for path in module.load_sealed_evidence(root)
+    )
+
+
+def _canonical_format_path(path: Path) -> Path:
+    path = path.absolute()
+    repository = None
+    # Recognize the lexical checkout before any descendant can redirect discovery.
+    for component in (*reversed(path.parents), path):
+        if repository is not None or component == path:
+            try:
+                metadata = component.lstat()
+            except FileNotFoundError:
+                break
+
+            if stat.S_ISLNK(metadata.st_mode) or (
+                getattr(metadata, "st_file_attributes", 0)
+                & stat.FILE_ATTRIBUTE_REPARSE_POINT
+            ):
+                _fail(f"symbolic link or reparse point is not allowed: {component}")
+
+        if repository is None and (component / ".git").exists():
+            repository = component
+
+    resolved = path.resolve()
+    if repository is not None and not resolved.is_relative_to(repository.resolve()):
+        _fail(f"documentation path escapes the repository: {path}")
+
+    return resolved
+
+
 def _markdown_files(paths: Iterable[Path]) -> list[Path]:
     files: list[Path] = []
-    for path in paths:
+    for supplied in paths:
+        path = _canonical_format_path(supplied)
         if path.is_dir():
             files.extend(
-                child
+                _canonical_format_path(child)
                 for child in sorted(path.rglob("*.md"))
                 if ".git" not in child.parts
             )
@@ -111,7 +173,7 @@ def _markdown_files(paths: Iterable[Path]) -> list[Path]:
         else:
             _fail(f"documentation path not found: {path}")
 
-    return sorted(dict.fromkeys(path.resolve() for path in files))
+    return sorted(dict.fromkeys(files))
 
 
 def _read_utf8(
@@ -960,13 +1022,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.line_width < 40:
         _fail("--line-width must be at least 40")
 
-    files = _markdown_files(
-        path.resolve() if path.is_absolute() else (Path.cwd() / path).resolve()
-        for path in args.paths
-    )
+    files = _markdown_files(args.paths)
 
     if not files:
         _fail("no Markdown files found")
+
+    try:
+        sealed_evidence = _sealed_evidence_for_files(files)
+    except ValueError as exc:
+        print(f"[format_markdown] FAILED: {exc}", file=sys.stderr)
+        return 1
 
     options = FormatOptions(
         line_width=args.line_width,
@@ -979,7 +1044,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     mojibake_errors: list[str] = []
 
     for path in files:
-        original, read_error, had_bom = _read_utf8(path, allow_bom_repair=args.write)
+        original, read_error, had_bom = _read_utf8(
+            path, allow_bom_repair=args.write and path not in sealed_evidence
+        )
+
         if read_error:
             encoding_errors.append(read_error)
             continue
@@ -990,6 +1058,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             mojibake_errors.extend(current_mojibake_errors)
             if current_mojibake_errors:
                 continue
+
+        if path in sealed_evidence:
+            continue
 
         formatted = format_markdown_text(original, options)
         if formatted != original or had_bom:

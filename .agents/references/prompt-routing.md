@@ -1,5 +1,13 @@
 # Prompt Routing and Chaining
 
+## Frontend selection
+
+For UI/frontend intent, use [Frontend Workflow](frontend-workflow.md) as the shared owner and
+procedure selector. It requests delegation for authorized implementation/correction, preserves
+explicit choices and scoped restrictions, and distinguishes Impeccable commands from ordinary
+responsive fixes. Advisory `!next-workflow ui` consults those criteria without executing them.
+Apply the stage-appropriate prompt below only when it adds value; do not duplicate the classifier.
+
 ## Prompt fitness evaluation
 
 Before invoking any prompt, determine whether it is the right tool for the task at hand.
@@ -124,7 +132,7 @@ for judgment.
   these League entries:
     - "league of agents"
     - direct invocation through `@League of Agents`
-    - `!auto-review`
+    - `!review auto`
 
 - Use `.agents/prompts/brainstorm.prompt.md` together with `.agents/references/brainstorm.md` only
   when the user directly invokes `@Brainstorm`. It accepts an unclear idea, requirement, or solution
@@ -161,6 +169,11 @@ for judgment.
 - Use `.agents/references/agents-shortcuts.md` as the answer source, without spawning subagents,
   when the user says "Agents Shortcuts", "Agents Shortcut", invokes `@Agents Shortcuts`, or asks
   which `!` shortcuts are accepted.
+  Follow its Presentation contract and [Native chat width](agents-shortcuts.md#native-chat-width):
+  prefer Panorama composition with native in-chat visualize delivery and a fragment in the
+  host-supplied durable thread directory outside the repository.
+  A permitted usable local viewer may use standalone temporary HTML; otherwise return the complete
+  grouped Markdown fallback. Never execute shortcuts or rename a chat merely to list them.
 
 - Use `.agents/references/agents-shortcuts.md` as the answer source, without executing shortcuts,
   when the user says `!help` alone or asks for help about accepted chat controls.
@@ -172,11 +185,13 @@ for judgment.
 - Use `.agents/references/agents-examples.md` as the answer source, without spawning subagents, when
   the user says "Agents Examples", "Agents Example", `@Agents Examples`, or `@Agents Example`.
 
-- Use `.agents/references/code-review-routing.md` for `!review`, `!review local`, `!review agent`,
-  `@code-reviewer`, and natural-language requests whose object may be implementation code, a Git
-  change, an ADR, a solution design, or an execution/readiness plan. Resolve capability, route, and
-  owner separately; supported technical artifacts use `$solution-review` when available and their
-  canonical artifact owner as a disclosed fallback.
+- Use `.agents/references/code-review-routing.md` for `!review` and its modifiers, including
+  `!review ui` and `!review auto`, as well as `@code-reviewer` and natural-language requests whose object
+  may be implementation code, a Git change, an ADR, a solution design, or an execution/readiness
+  plan. Resolve capability, route, and owner separately. Explicit `!review security` takes
+  precedence over the general route for technical artifacts. Otherwise, supported technical
+  artifacts use `$solution-review` when available and their canonical artifact owner as a
+  disclosed fallback.
 
 - Use `.agents/references/models-usage.md` as the answer source, without spawning subagents or
   changing configuration, when the user says "Models Usage" or `@Models Usage`. Without a task
@@ -199,76 +214,184 @@ for judgment.
   things like "explicar o repositório para público não técnico", "atualizar o REPOSITORY-OVERVIEW",
   or "gerar visão funcional do repositório".
 
+- For “há algo nesta sessão que valha promover à documentação durável?”, `!docs`, or
+  `!documentation`, use `$documentation` and `knowledge-base.prompt.md` in `session-assessment`
+  mode, not the promotion path. The two shortcuts are exact aliases. Apply the skill's read-only
+  mode even when the installed prompt is older; report a missing skill without installing it.
+  Consider the entire available current session and directly related evidence, not other chats
+  or a repository-wide audit. No files, changelog or Git operations; promotion requires a separate
+  explicit request. Follow the assessment contract in `agents-shortcuts.md` and the shared spine.
+
 ### Chat control shortcuts
+
+Route an actual `!send-password` or `!send-secret` invocation, or an explicit request to send a
+temporary password or operational secret, to `$password-manager` and its
+[native form contract](agents-shortcuts.md#send-a-temporary-password).
+Use only metadata supplied for this delivery. Do not route discussion or authoring to execution.
+
+For `!ste [valor]`, follow [STE clarity](agents-shortcuts.md#ste-clarity): rewrite the last
+substantive assistant answer with ASD-STE100-inspired clarity, default 100, numeric range 0–100,
+optional `%`. This is style intensity, not formal compliance. Preserve language, meaning,
+technical depth and caveats; do not summarize by default, infantilize, write files or activate a
+persistent mode. Invalid values or missing target text require clarification. At 0, return the
+text unchanged. Do not redirect to `!steer`, either `!explain` mode, a new skill or a new prompt.
+
+For `!steer`, `!consolidate`, `!plan`, `!prd`, `!sd` and `!adr`, follow
+[Contextual shortcuts](agents-shortcuts.md#contextual-shortcuts), including plan-type routing
+to existing prompts and skills. `!consolidate` takes no modifier.
+
+For `!x-ray [alvo]`, `!panorama [orientação]` and `!textbook [alvo]`, follow
+[Investigation, presentation, and book production](agents-shortcuts.md#investigation-presentation-and-book-production).
+Route X-ray to read-only investigation with Panorama composition, Panorama to `$panorama` with
+existing content, and textbook to manuscript preparation when needed and `$frontend-textbooks`.
+For standalone Panorama delivery, apply the same [Native chat width](agents-shortcuts.md#native-chat-width).
+Do not route examples or catalog listings to execution, or chain the shortcuts automatically.
 
 The `!` shortcuts are compact conversation controls. Interpret them as scoped intent signals for the
 current conversation, not as permission to skip safety checks or invent missing targets.
 
-| Shortcut            | Meaning                                                                                                           |
-|---------------------|-------------------------------------------------------------------------------------------------------------------|
-| `!again`            | Alias for `!retry`; retry only after explaining what failed and what will change.                                 |
-| `!architecture` | Document current architecture through `architecture-diagram.prompt.md` and `$architecture-diagram`; Mermaid-only by default. |
-| `!are-you-sure`     | Audit Codex's previous claims against available evidence and correct unsupported claims.                          |
-| `!auto-review`      | Expand the preset League + `!loop` + `$code-review` over unpublished local Git changes.                           |
-| `!authorized`       | Alias for `!confirm`; authorize the exact action most recently proposed by Codex.                                 |
-| `!ays`              | Alias for `!are-you-sure`; run the same evidence-based certainty audit.                                           |
-| `!bootstrap`        | Run the default safe `agents-bootstrap` bundle in the current repository.                                         |
-| `!bootstrap-check`  | Run the same default `agents-bootstrap` bundle with `--dry-run`.                                                  |
-| `!changelog`        | Record material work; use `changelog.prompt.md` when available.                                                   |
-| `!closeout`         | Default to `!closeout session`; audit the current session and enumerate evidence-backed items possibly left open. |
-| `!closeout repo`    | Extend closeout to repository memory while separating session ownership and provenance.                           |
-| `!closeout session` | Audit only the current session without scanning unrelated repository continuity.                                  |
-| `!commit`           | Authorize creation of a local commit for the current scoped changes according to the repository convention.       |
-| `!confirm`          | Authorize the exact action most recently proposed by Codex in the current conversation.                           |
-| `!contest`          | Re-evaluate a contested Codex proposition, classifying and testing the operator's objection.                     |
-| `!continue`         | Accept the proposed approach and continue within the stated local scope.                                          |
-| `!current-scope`    | Exact alias for `!scope`; report the reconstructed conversational checkpoint read-only.                           |
-| `!deploy`           | Authorize deployment to Production by default.                                                                    |
-| `!deploy dev`       | Authorize deployment to the DEV environment.                                                                      |
-| `!deploy hml`       | Authorize deployment to the HML environment.                                                                      |
-| `!deploy prod`      | Explicit equivalent of the default `!deploy`.                                                                     |
-| `!deploy qas`       | Authorize deployment to the QAS environment.                                                                      |
-| `!eli10`            | Explain the current topic as if to a ten-year-old without losing essential accuracy.                              |
-| `!example`          | Provide one concrete, realistic example for Codex's proposal, suggestion, or approach without implementing.       |
-| `!explain`          | Briefly confirm whether the last instruction was understood and how Codex would proceed; not a plan.              |
-| `!finish-worktree`  | Validate integration, close the governed session, curate local evidence, and remove the proven linked worktree.   |
-| `!follow-up`        | Exact alias for `!status live`; report progress at the next safe point and continue the active task.              |
-| `!handoff`          | Prepare a continuity summary for later resumption.                                                                |
-| `!help`             | Show human-facing help for the current context; with an explicit skill, explain operator usage read-only.         |
-| `!hooks`            | Show configured project hooks and hooks visibly active in the current session without modifying them.             |
-| `!improve`          | Run a 30-day, read-only `$codex-self-improvement` review over exactly one current Git repository.                 |
-| `!improvement`      | Exact alias of `!improve`, with the same target, window, evidence, and no-mutation contract.                      |
-| `!loop`             | Route to `$autonomous-loop`; compose with League or Agents of Shield only when named in the same request.         |
-| `!mainquest`        | End the active side quest and restore the main objective, focus, unresolved remainder, and next action.          |
-| `!next-model` | Recommend one model/effort for the task in context; read-only, without changing settings or starting work. |
-| `!next-prompt`      | Return one copyable next-action prompt; `ultra` generates a standalone autonomous-task prompt.                    |
-| `!next-steps`       | List next steps, risks, and the smallest useful action.                                                           |
-| `!pause`            | Stop with current state, pending items, and the next action made explicit.                                        |
-| `!pdf`              | Create, edit, or inspect a local PDF; adapt composition and QA to its type, audience, and identity.               |
-| `!pr`               | Prepare or create a pull request only when repository, branch, target, and readiness are unambiguous.             |
-| `!remaining`        | Report remaining authorized scope and a heuristic time estimate with confidence, then continue the active task.  |
-| `!retry`            | Retry the last failed or blocked action after explaining what failed and what will change.                        |
-| `!review`           | Resolve the diagnostic route and owner through `code-review-routing.md`; code agent choice is shadowed.           |
-| `!review agent`     | Request `code-reviewer` for code; clarify rather than delegate a technical artifact to that agent.                |
-| `!review local`     | Force the compatible local review capability; clarify if an explicit artifact capability is unavailable.          |
-| `!scope`            | Report the reconstructed main mission, focus, unresolved remainder, active frame, and next action read-only.     |
-| `!sidequest`        | Preserve the main mission and enter one explicitly authorized temporary objective.                                |
-| `!status`           | Summarize current state, progress, blockers, and pending items.                                                   |
-| `!status live`      | Report completed, active, and next work at the next safe point, then continue without changing scope.            |
-| `!suggest`          | Return one prioritized grounded recommendation; `explore` maps up to 12 and shortlists 3.                         |
-| `!summary`          | Summarize the conversation from the available transcript and any explicit compaction summary.                     |
-| `!tell-me-more`     | Expand the immediately preceding substantive answer with useful detail without executing or authorizing work.     |
-| `!test`             | Run local tests/checks; use `test-driven.prompt.md` only for pre-implementation test specification.               |
-| `!time`             | Show elapsed session time using `codex-resolution-time` when available.                                           |
-| `!tmm`              | Exact alias for `!tell-me-more`; expand the immediately preceding substantive answer.                            |
-| `!understood`       | Restate how Codex understood the latest substantive message without proposing a solution.                         |
-| `!usage`            | Use `$codex-usage` when available to report current-session tokens, models, and estimated cost by ID first.       |
-| `!validate`         | Strict alias for `!verify`; use the same verification routing and guardrails.                                     |
-| `!verify`           | Run or describe verification; use `verification.prompt.md` when non-trivial or drift is plausible.                |
+Before dispatch, expand exact command tokens as specified in
+[Compact aliases](agents-shortcuts.md#compact-aliases): `!ns` → `!next-steps`, `!np` →
+`!next-prompt`, `!nm` → `!next-model`, `!nw` → `!next-workflow`, `!iw` →
+`!init-worktree`, and `!fw` → `!finish-worktree`. Leave the rest of the invocation unchanged
+and apply the canonical command's gates. Do not expand mentions, examples or longer tokens.
 
-`!next-model` is a read-only model/effort recommendation for the task supplied with the shortcut
-or the substantive task under discussion. Follow the `!next-model` contract in
+For `!rename-chat` or its exact alias `!rename-session`, follow
+[Chat renaming](agents-shortcuts.md#chat-renaming): infer the title from the main mission,
+preserve every leading emoji in the original order, and rename only the current chat using its
+native title tool. Neither command takes arguments. If a safe native rename is unavailable, suggest
+the title without changing the chat. Do not apply the marker reordering rule to renaming itself.
+
+For actual invocation of `!docs` / `!documentation`, `!improvement` / `!improve`,
+`!closeout` (all modes) or `!summary` (including `full`), apply
+[Chat title markers](agents-shortcuts.md#chat-title-markers) once on the current chat through the
+native title tool, if available. Preserve the exact title and unrelated icons; deduplicate and order
+the managed leading prefix as 📚 💡 🔎 📝. This title-only presentation exception does not widen
+the underlying read-only workflow. Mentions, examples and listing never rename; missing or failed
+title capability never prevents the shortcut's normal work.
+
+For `!sync [skill|automation] [name]`, follow
+[Sync](agents-shortcuts.md#sync): infer only one unambiguous contextual target, route skills to
+`$skill-synchronizer` single-skill flow and automations to `$codex-automation-sync` import.
+Preserve preview, validation, local customizations and specific overwrite authorization; never
+infer export, catalog-wide sync, Git operations or automation execution.
+
+| Shortcut                | Meaning                                                                                                           |
+|-------------------------|-------------------------------------------------------------------------------------------------------------------|
+| `!again`                | Alias for `!retry`; retry only after explaining what failed and what will change.                                 |
+| `!steer` | Incorporate an instruction at the next safe point and continue the active task. |
+| `!ste [valor]` | Rewrite the last substantive answer using the STE clarity contract, without activating a persistent mode. |
+| `!send-password` | Route explicit invocation to the native temporary-password confirmation form. |
+| `!send-secret` | Route explicit invocation to the native operational-secret confirmation form. |
+| `!consolidate` | Consolidate proposals, decisions, open questions, discarded options and executed work, read-only. |
+| `!plan` | Create or update the discussed plan; infer its type or use an English modifier. |
+| `!prd` | Create or update the discussed PRD through `$prd-generation`. |
+| `!sd` | Create or update the discussed design through `solution-design.prompt.md`. |
+| `!adr` | Record or update the discussed decision through `architecture-decision.prompt.md`. |
+| `!architecture` | Document current architecture through `architecture-diagram.prompt.md` and `$architecture-diagram`; Mermaid-only by default. |
+| `!are-you-sure`         | Audit Codex's previous claims against available evidence and correct unsupported claims.                          |
+| `!assess`               | Assess the proposal in the request or in focus, without executing it or starting an implementation plan.          |
+| `!authorized`           | Alias for `!confirm`; authorize the exact action most recently proposed by Codex.                                 |
+| `!ays`                  | Alias for `!are-you-sure`; run the same evidence-based certainty audit.                                           |
+| `!bootstrap`            | Run the default safe `agents-bootstrap` bundle in the current repository.                                         |
+| `!bootstrap-check`      | Run the same default `agents-bootstrap` bundle with `--dry-run`.                                                  |
+| `!sync` | Synchronize one skill or automation from catalog to local runtime through its existing owner; infer omitted target only when unambiguous. |
+| `!changelog`            | Record material work; use `changelog.prompt.md` when available.                                                   |
+| `!closeout`             | Default to `!closeout session`; audit the current session and enumerate evidence-backed items possibly left open. |
+| `!closeout repo`        | Extend closeout to repository memory while separating session ownership and provenance.                           |
+| `!closeout session`     | Audit only the current session without scanning unrelated repository continuity.                                  |
+| `!commit`               | Authorize creation of a local commit for the current scoped changes according to the repository convention.       |
+| `!confirm`              | Authorize the exact action most recently proposed by Codex in the current conversation.                           |
+| `!contest`              | Re-evaluate a contested Codex proposition, classifying and testing the operator's objection.                      |
+| `!continue`             | Accept the proposed approach and continue within the stated local scope.                                          |
+| `!current-scope`        | Exact alias for `!scope`; report the reconstructed conversational checkpoint read-only.                           |
+| `!deploy`               | Authorize deployment to Production by default.                                                                    |
+| `!deploy dev`           | Authorize deployment to the DEV environment.                                                                      |
+| `!deploy hml`           | Authorize deployment to the HML environment.                                                                      |
+| `!deploy prod`          | Explicit equivalent of the default `!deploy`.                                                                     |
+| `!deploy qas`           | Authorize deployment to the QAS environment.                                                                      |
+| `!docs` | Assess durable knowledge from the current session, read-only, through `$documentation` in `session-assessment` mode. |
+| `!documentation` | Exact alias of `!docs`, with the same session scope and read-only boundary. |
+| `!eli10`                | Explain the current topic as if to a ten-year-old without losing essential accuracy.                              |
+| `!example`              | Provide one concrete, realistic example for Codex's proposal, suggestion, or approach without implementing.       |
+| `!explain [readback]` | Briefly confirm understanding and approach; with `readback`, restate understanding only. Neither mode authorizes execution. |
+| `!init-worktree`       | Initialize or reuse this chat's governed worktree in the current Git repository through public SDS InitWorktree.   |
+| `!iw`                  | Exact alias for `!init-worktree`, with the same SDS and Git gates. |
+| `!finish-worktree`      | Deliver scoped work locally: review, commit, direct FF or governed GCR, verified SDS cleanup and selective skill sync. |
+| `!fw`                  | Exact alias for `!finish-worktree`; preserves the target and restrictions. |
+| `!follow-up`            | Exact alias for `!status live`; report progress at the next safe point and continue the active task.              |
+| `!handoff`              | Prepare a continuity summary for later resumption.                                                                |
+| `!help`                 | Show human-facing help for the current context; with an explicit skill, explain operator usage read-only.         |
+| `!history`              | Request a playful activity summary, with the declared historical-record or conversation fallback when needed.     |
+| `!hooks`                | Show configured project hooks and hooks visibly active in the current session without modifying them.             |
+| `!housekeeping` | Delegate work-items/changelogs review for one Git repository or eligible children of one proven aggregator to `$agents-housekeeping`. |
+| `!improve`              | Run a 30-day, read-only `$codex-self-improvement` review over exactly one current Git repository.                 |
+| `!improvement`          | Exact alias of `!improve`, with the same target, window, evidence, and no-mutation contract.                      |
+| `!loop`                 | Route to `$autonomous-loop`; compose with League or Agents of Shield only when named in the same request.         |
+| `!mainquest`            | End the active side quest and restore the main objective, focus, unresolved remainder, and next action.           |
+| `!next-model`           | Recommend one model/effort for the task in context; read-only, without changing settings or starting work.        |
+| `!nm`                   | Exact alias for `!next-model`. |
+| `!next-workflow`        | Recommend the minimal workflow, model/effort and one prompt; `ui` prioritizes UI/frontend without execution.      |
+| `!nw`                   | Exact alias for `!next-workflow`, including `ui`. |
+| `!next-prompt`          | Return one copyable next-action prompt; `meta` generates a standalone autonomous-task prompt.                     |
+| `!np`                   | Exact alias for `!next-prompt`, including `meta`. |
+| `!next-steps`           | List next steps, risks, and the smallest useful action.                                                           |
+| `!ns`                   | Exact alias for `!next-steps`. |
+| `!pause`                | Stop with current state, pending items, and the next action made explicit.                                        |
+| `!panorama [orientação]` | Compose existing content through `$panorama`, with native presentation or Markdown fallback.                    |
+| `!pdf`                  | Create, edit, or inspect a local PDF; adapt composition and QA to its type, audience, and identity.               |
+| `!pr`                   | Prepare or create a pull request only when repository, branch, target, and readiness are unambiguous.             |
+| `!remaining`            | Report remaining authorized scope and a heuristic time estimate with confidence, then continue the active task.   |
+| `!rename-chat`          | Rename only the current chat based on its main mission, preserving its leading emojis. |
+| `!rename-session`       | Exact alias for `!rename-chat`. |
+| `!retry`                | Retry the last failed or blocked action after explaining what failed and what will change.                        |
+| `!review`               | Select the route first; format only eligible files on the default code path, then review the diff.                 |
+| `!review check`         | Use the smart diagnostic route in read-only mode, without formatting writes.                                       |
+| `!review security`      | Delegate the indicated scope to `security-advisor` for one contextual `$security-review` pass in read-only mode.     |
+| `!review ui`            | Delegate a bounded interface review to `ui-reviewer` in read-only mode; return findings in chat.                   |
+| `!review agent`         | Request `code-reviewer` for code; clarify rather than delegate a technical artifact to that agent.                |
+| `!review auto`          | Plan the governed review of unpublished Git changes; require `!confirm` before corrections or local commits.       |
+| `!review local`         | Force the compatible local review capability; clarify if an explicit artifact capability is unavailable.          |
+| `!scope`                | Report the reconstructed main mission, focus, unresolved remainder, active frame, and next action read-only.      |
+| `!sidequest`            | Preserve the main mission and enter one explicitly authorized temporary objective.                                |
+| `!status`               | Summarize current state, progress, blockers, and pending items.                                                   |
+| `!status live`          | Report completed, active, and next work at the next safe point, then continue without changing scope.             |
+| `!suggest`              | Return one prioritized grounded recommendation; `explore` maps up to 12 and shortlists 3.                         |
+| `!summary`              | Summarize the entire accessible session by default; preserve all topics, evidence distinctions, and deferrals.    |
+| `!summary full`         | Actively recover the current chat from its first recorded message; report partial coverage and known gaps. |
+| `!tell-me-more`         | Expand the immediately preceding substantive answer with useful detail without executing or authorizing work.     |
+| `!test`                 | Run local tests/checks; use `test-driven.prompt.md` only for pre-implementation test specification.               |
+| `!textbook [alvo]`      | Reuse or draft a grounded manuscript, then produce local HTML and Letter PDF through `$frontend-textbooks`.       |
+| `!time`                 | Show elapsed session time using `codex-resolution-time` when available.                                           |
+| `!tmm`                  | Exact alias for `!tell-me-more`; expand the immediately preceding substantive answer.                             |
+| `!usage`                | Use `$codex-usage` when available to report current-session tokens, models, and estimated cost by ID first.       |
+| `!validate`             | Strict alias for `!verify`; use the same verification routing and guardrails.                                     |
+| `!verify`               | Run or describe verification; use `verification.prompt.md` when non-trivial or drift is plausible.                |
+| `!worktrees` | Inventory current-repository linked worktrees read-only; correlate accessible chat candidates through SDS and preserve unknown identities. |
+| `!x-ray [alvo]`        | Investigate a repository, document, or concept read-only and present the evidence through Panorama.               |
+
+`!housekeeping [repository]` opens only the work-items/changelogs Review UI through
+`$agents-housekeeping`. An explicit target overrides the current workspace. A Git root uses
+`--repo-root`; a proven aggregator uses canonical `--discover-repos-under` limited to its eligible
+Git descendants, excluding its own non-Git `.agents/` artifacts. Unresolved targets and Git errors
+other than absence of a work tree require clarification. Follow
+`.agents/references/agents-shortcuts.md` for classification, exclusions, foreground lifecycle and
+governed UI execution. Do not run generic apply or broaden the selected root. Help, quotations and
+shortcut-authoring requests do not open the UI.
+
+`!next-model` is a read-only model/effort recommendation for the task supplied with the shortcut or
+the substantive task under discussion. Follow the `!next-model` contract in
 `.agents/references/agents-shortcuts.md`; do not execute the task or change configuration.
+
+`!next-workflow` and its optional `ui` modifier use `.agents/references/next-workflow.md` to
+recommend a minimal workflow, one model/effort and one prompt without execution. Resolve explicit
+input before prior context, clarify only material ambiguity and preserve mixed-domain dependencies.
+Do not activate agents or generate a visualization while merely recommending the route.
+
+`!pause` stops at the next safe boundary and emits a self-contained prompt beginning literally with
+`!continue - `. Load `.agents/references/pause-continuation.md` for pause and checkpoint resumption;
+preserve the full authorized universe and revalidate state and gates in a fresh session.
+Plain `!continue` keeps its local meaning. Neither form renews session-scoped authorization.
 
 `!deploy` only applies to the concrete deploy candidate already identified in the current
 conversation. If environment, target, release, branch, artifact, repository, expected action, or
@@ -296,11 +419,11 @@ new evidence justifies a correction. The shortcut does not restart or execute th
 work, expose hidden reasoning or instructions, reveal sensitive tool output, or activate the native
 UI control. If no substantive answer precedes it, state that there is nothing to expand.
 
-`!status live` and `!follow-up` are exact aliases. At the next safe conversational or tool
-boundary, give a concise non-terminal update covering completed work, work in progress, blockers,
-and the immediate next action. Do not cancel an operation in flight, close the task, alter its
-authorized scope, or wait for completion solely to report. Resume the active task automatically
-after the update. Plain `!status` remains a normal snapshot without this continuation promise.
+`!status live` and `!follow-up` are exact aliases. At the next safe conversational or tool boundary,
+give a concise non-terminal update covering completed work, work in progress, blockers, and the
+immediate next action. Do not cancel an operation in flight, close the task, alter its authorized
+scope, or wait for completion solely to report. Resume the active task automatically after the
+update. Plain `!status` remains a normal snapshot without this continuation promise.
 
 `!remaining` is a non-terminal forecast. Report the unresolved authorized scope and the best useful
 approximate remaining time, preferably as a range, with calibrated confidence and the main factors
@@ -313,11 +436,31 @@ For `!review` and natural-language code or technical-artifact review intent, loa
 owner. Code may use chat-first `$code-review` or `code-reviewer`; supported ADR, solution-design,
 and execution/readiness artifacts use local `$solution-review` when available, otherwise the
 disclosed artifact-owner fallback. Only code local-versus-agent prediction remains in shadow mode.
+Select the route before any formatting. Only explicit plain `!review` on the default code path
+can run the formatting pre-pass. The router selects UI for plain `!review` only when the focus is
+the interface itself. Inferred read-only routes never format. Explicit modifiers retain
+their contracts; the preset is never selected by inference.
 For `!verify` and `!changelog`, prefer installed prompts when their activation criteria match. For
 `!test`, run checks directly unless the user asks to define behavior, scenarios, or strategy first.
 
 `!validate` is a strict alias for `!verify`; it does not define a separate prompt, verification
 level, or authorization boundary.
+
+Before `!closeout`, build a compact coverage ledger from the first available message through the
+request, using explicit compaction summaries and session-linked evidence. Keep the authorized
+universe separate from the latest topic or temporary focus. Account for every material front by
+its latest evidenced disposition: addressed, pending, unknown, deferred, excluded, optional,
+canceled or superseded. This checklist requires no new persisted artifact.
+
+A requested or authorized action is not an executed result. Unverified completion claims and
+missing native Windows evidence remain unverified; simulations, prepared packages and instructions
+do not prove native execution. Do not substitute closure of the latest front for closure of the
+entire session. Preserve later exclusions, cancellations and deferrals without reopening them.
+Missing history or mandatory evidence prevents an unqualified global completion claim.
+
+The pure `agents_bootstrap.closeout_coverage.check_closeout_coverage` evaluator and the conversational
+corpus in `tests/fixtures/closeout-scenarios.json` check explicit ledgers, not transcript truth or
+execution. Passing these checks does not guarantee model compliance or add a mandatory command.
 
 `!closeout` defaults to `!closeout session`. Reconstruct only the current session from the available
 transcript, explicit compaction summaries, and artifacts explicitly created, resumed, or linked by
@@ -336,24 +479,20 @@ optional; distinguish operator action from work that remains automatic; and expl
 nothing remains. If evidence is incomplete, state the transcript or compaction limitation instead of
 claiming full closure. Each shortcut is read-only and does not authorize pending work or mutation.
 
-For `!closeout` and `!closeout session`, the current-session universe contains every evidence-backed
-item explicitly discussed or adopted in this session, including work that is genuinely pending,
-deliberately deferred, explicitly outside the authorized execution scope, or optional. After the
-addressed-scope summary, always render `Itens possivelmente em aberto` as a Markdown table with the
-columns `Prioridade`, `Item`, `Situação`, and `Próxima ação necessária`. Derive priority only from
-session evidence and use `Não informada` when it is absent. Do not import items from other sessions
-or invent speculative follow-ups. When no eligible item exists, state exactly `Nenhum item
-possivelmente em aberto.`
+For `!closeout`, `!closeout session` and `!closeout repo`, present
+`Itens possivelmente em aberto` after the addressed-scope summary. Follow the
+[presentation and priority rules](agents-shortcuts.md#closeout-priorities-and-uncertainty) for the
+ordered Panorama blocks, the labeled Markdown list fallback, and the exact empty message.
 
-The table must not include routine delivery residue. Preserve commit, push, publication, and
+This section must not include routine delivery residue. Preserve commit, push, publication, and
 catalog-to-runtime synchronization only under the terminal `Nota de entrega` required below. This
 keeps useful delivery state visible without classifying it as a functional or contextual pending
 item.
 
 ### Outcome-first delivery residue filter
 
-Apply this filter to automatic continuation suggestions and to `!suggest`, `!next-prompt`, `!next-steps`,
-`!closeout`, `!status`, `!pause`, `!handoff`, `!verify`, and `!validate`:
+Apply this filter to automatic continuation suggestions and to `!suggest`, `!next-prompt`,
+`!next-steps`, `!closeout`, `!status`, `!pause`, `!handoff`, `!verify`, and `!validate`:
 
 - Rank functional gaps, evidence gaps, decisions, risks, and context-derived improvements before
   routine delivery residue.
@@ -370,25 +509,54 @@ Apply this filter to automatic continuation suggestions and to `!suggest`, `!nex
 - Promote delivery work out of the note only when it is the explicit requested outcome or blocks a
   proven functional acceptance criterion. Even then, show all other material findings first.
 
-This filter does not change explicit delivery shortcuts such as `!commit`, `!pr`, `!auto-review`,
-`!bootstrap`, `!finish-worktree`, or `!changelog`, nor a request whose stated objective is delivery
-or synchronization.
+This filter does not change explicit delivery shortcuts such as `!commit`, `!pr`, `!review auto`,
+`!bootstrap`, `!finish-worktree`, or `!changelog`, nor a request whose stated objective
+is delivery or synchronization.
 
-For `!finish-worktree [target]`, delegate through the `agents-bootstrap` facade to the public
+For `!init-worktree`, follow `agents-shortcuts.md` and invoke public SDS `InitWorktree` from the
+current Git repository. The owner resolves Git identity, governance and this chat's exact scope;
+derive optional `TechnicalName` from clear context, with one short question only for material
+ambiguity. Keep catalog authoring automatic only in the canonical catalog; other repositories
+require this chat's explicit shortcut and real `ScopePath` values, never a fictitious `TargetSkill`.
+Use `-WorkKind repository` for subsequent repository owner actions. Missing or incompatible policy
+blocks before mutation. Do not expose Plan/Apply, install or synchronize skills, or extend
+`!finish-worktree` authorization.
+
+For `!finish-worktree [target]`, follow the complete default sequence in `agents-shortcuts.md`:
+review, commit, direct FF or automatic governed GCR, verified SDS closeout and branch retirement,
+then selective sync of incorporated skills unless explicitly excluded. Scope this to the proven
+work of this conversation. No changes to commit does not mean no commits to incorporate. Reuse
+still-valid evidence and continue through technical stages without new consent for the same result.
+Stop at real blockers. No push, rebase, unrelated branch changes or automatic scaffold refresh.
+Discussion does not invoke the shortcut.
+
+For the incorporation stage and equivalent natural-language incorporation-only requests, follow the
+full worktree incorporation contract in `agents-shortcuts.md`: classify before mutation, preserve
+valid seals and intent, and advance the primary by fast-forward only. Preserve review and validation
+and follow [authorization continuity](agents-shortcuts.md#authorization-continuity). Reconcile-only
+stops before commit and integration. Material new content, behavior
+or risk, uncertain equivalence or missing action authorization requires a specific human decision.
+An incorporation-only request stops before physical closeout; the complete shortcut continues to
+its authorized SDS cleanup stage.
+
+At the cleanup stage of `!finish-worktree [target]`, delegate through the `agents-bootstrap` facade to the public
 `skill-development-session` FinishWorktree action. Only the catalog resolved through `codex-profile`
-is eligible, regardless of caller cwd. Follow the owner's `references/worktree-closeout.md`:
-prove integration and cleanliness, preserve/reconcile known local collections without another
-confirmation, retain extra destination files and both versions of unresolved local differences,
-then remove only the linked worktree while preserving the branch. Never merge, push, sync or resolve
-Git conflicts. Keep `FinishWork` logical and `Close` limited to projection cleanup.
+is eligible, regardless of caller cwd. Follow the owner's `references/worktree-closeout.md`: prove
+integration and cleanliness, preserve/reconcile known local collections without another
+confirmation, retain extra destination files and both versions of unresolved local differences, then
+remove only the linked worktree and apply the owner's receipt-bound branch policy. The public SDS
+`FinishWorktree` action is cleanup-only: it never integrates commits, pushes, synchronizes the skill
+runtime, or resolves Git conflicts. Only the preceding incorporation stage advances `master`, by
+`git merge --ff-only <source>`; never use merge commits, squash or force. Keep `FinishWork` logical
+and `Close` limited to projection cleanup.
 
-For `!next-prompt ultra`, treat `ultra` as a modifier of `!next-prompt`. Resolve the target from an
+For `!next-prompt meta`, treat `meta` as a modifier of `!next-prompt`. Resolve the target from an
 objective supplied after the modifier or from the single unambiguous evidence-backed next action in
 the current context. Do not combine multiple pending items, infer a missing target, or silently
 expand the authorized universe.
 
-Recommend `gpt-5.6-sol` in `Ultra` mode when available, while stating that the shortcut does not
-change the model, mode, or reasoning effort or activate agents. Return exactly one fenced `text`
+Prepare a Codex goal prompt without recommending a model or reasoning effort. The shortcut does not
+create or execute a goal, change settings, or activate agents. Return exactly one fenced `text`
 block containing the copyable prompt. Make that prompt standalone by including `Objetivo`,
 `Resultado esperado`, `Escopo autorizado`, `Restrições`, `Método`, `Validação obrigatória`, and
 `Conclusão`.
@@ -399,17 +567,18 @@ remain semantically valid.
 
 Use enough detail for the resolved task without a fixed length limit. In `Método`, express strategy,
 decision criteria, and required evidence rather than prescribing tools, sequence, or iteration
-counts unless a binding contract or explicit operator instruction requires them. Preserve Ultra's
-freedom to adapt execution as new evidence appears. The prompt must not manufacture operations or
-authorizations to appear complete.
+counts unless a binding contract or explicit operator instruction requires them. Preserve the
+executor's freedom to adapt execution as new evidence appears. The prompt must not manufacture
+operations or authorizations to appear complete.
 
 The generated prompt may suppress intermediate operator decisions only for safe, local, reversible
 choices resolved by repository evidence. It must preserve confirmation requirements for production,
 external-system, destructive, or irreversible actions and must stop on a real blocker instead of
 weakening a guardrail.
 
-Ultra may use repository-governed delegation when the active product mode and local orchestration
-contract support it. The shortcut neither requires nor authorizes delegation by itself.
+The executor may use repository-governed delegation when the active product mode and local
+orchestration contract support it. The shortcut neither requires nor authorizes delegation by
+itself.
 
 Derive the workflow from the resolved objective. A read-only review must not gain worktree, editing,
 or commit authorization. An implementation prompt may include those local actions only when the
@@ -419,10 +588,15 @@ For `!explain`, answer succinctly whether the user's last instruction is clear a
 approach the solution. Do not expand it into a full plan, and do not treat it as approval to execute
 the solution.
 
-For `!understood`, answer `yes`, `partially`, or `no` about whether the latest substantive user
+For `!explain readback`, answer `yes`, `partially`, or `no` about whether the latest substantive user
 message was understood, then restate its meaning in your own words. Include the objective, scope,
 constraints, and any unresolved ambiguity. This is narrower than `!explain`: do not propose a
-solution approach, execute work, or treat the shortcut as authorization.
+solution approach, execute work, or treat the shortcut as authorization. Match the modified form
+before the plain form. Standalone `!readback` is not accepted or routed as an alias.
+
+For `!assess`, use the read-only contract in `.agents/references/agents-shortcuts.md`. Treat
+action wording in the assessed proposal as the subject of the assessment, not as an execution
+request. Do not route that wording to implementation or another state-changing shortcut.
 
 For `!are-you-sure` and `!ays`, audit the claims in Codex's latest substantive response against the
 available evidence and any necessary in-scope read-only verification. Separate verified facts,
@@ -431,12 +605,12 @@ withdraw unsupported claims. Do not defend the prior response by default, invent
 work, or treat either shortcut as authorization to mutate state.
 
 For `!contest`, identify the proposition the operator contests and classify the objection as
-evidence, factual correction, preference, authorization, hypothesis, or opinion. Compare it with
-the evidence and criteria behind the previous conclusion, using necessary in-scope read-only
-verification. Do not accept or reject the objection merely because it was asserted. State
-`conclusão mantida`, `conclusão revisada`, or `evidência insuficiente`, with the factual basis and,
-when useful, evidence that would change the conclusion. A preference or authorization can change
-the chosen action without proving the technical claim. This shortcut does not authorize mutation.
+evidence, factual correction, preference, authorization, hypothesis, or opinion. Compare it with the
+evidence and criteria behind the previous conclusion, using necessary in-scope read-only
+verification. Do not accept or reject the objection merely because it was asserted.
+State `conclusão mantida`, `conclusão revisada`, or `evidência insuficiente`, with the factual basis and, when
+useful, evidence that would change the conclusion. A preference or authorization can change the
+chosen action without proving the technical claim. This shortcut does not authorize mutation.
 
 For `!eli10`, explain the current topic as if to a ten-year-old. Use plain language, short
 explanations, concrete examples, and analogies; define essential jargon and preserve necessary
@@ -450,6 +624,12 @@ explicitly referenced, explain what the skill is for, when to use it, how an ope
 the work in natural language, which inputs are needed, what Codex will check or do, and what
 requires explicit authorization. Do not run scripts, probes, tools, external calls, installs, or
 mutations.
+
+For `!history`, expand the exact request and follow the source and fallback contract in
+`.agents/references/agents-shortcuts.md`. Prefer Computer History with its status and freshness
+checks; otherwise declare existing historical records or available conversations as the source.
+Never present conversations as observed computer activity or invent missing habits. Keep the summary
+read-only; do not install or enable observation or publish the result.
 
 For `!pdf`, compose `$pdf`, `$design-system`, and `$brand-system` to create, edit, or inspect a
 local PDF. If context is incomplete, ask for source/content, objective/audience, output path/name,
@@ -465,13 +645,18 @@ brand assets from Drive during normal use. If a required skill is unavailable, s
 suggest installing or synchronizing it; do not substitute an arbitrary renderer or brand asset.
 
 For `!bootstrap-check`, run `agents-bootstrap` in the current repository with `--dry-run`,
-`--with-rtk`, `--with-resolution-time`, `--with-self-improvement`, `--with-graphify`, and, during
-the pilot, `--with-scope-checkpoint`. Do not include `--with-graphify-hooks` or `--force`.
+`--with-rtk`, `--with-shell-enforcement`, `--with-resolution-time`, `--with-self-improvement`,
+`--with-graphify`, and, during the pilot, `--with-scope-checkpoint`. Do not include
+`--with-graphify-hooks` or `--force`.
 
 For `!bootstrap`, run the same default bundle without `--dry-run`, preserving existing files by
 default. Do not add `--force`, do not add `--with-graphify-hooks`, and stop to clarify when the
 target is outside the current repository or ambiguous. Because the bundle includes `--with-rtk`, it
 may verify or install the RTK binary and initialize global Codex configuration under `~/.codex/`.
+The shortcut explicitly includes the managed global shell-enforcement `PreToolUse` hook, affecting
+all repositories in that Codex profile: require RTK for external executables and limit unbounded
+full-file reads above 32 KiB. State the global effect, preserve unrelated hooks, and keep
+`!bootstrap-check` non-mutating. Direct CLI use still requires the explicit flag.
 
 For `!usage`, use `$codex-usage` when available. Report the active conversation/session weight as
 tokens, model data, and estimated cost when the local logs support it. Treat `costUSD` as an
@@ -485,12 +670,15 @@ normally from `.codex/hooks.json` when it exists, and separately list hook signa
 the current session. Do not edit hook files or infer that a configured hook actually ran unless
 there is session evidence.
 
-For `!improve` or `!improvement`, use `$codex-self-improvement` when available and resolve exactly one Git root for
-the active workspace. Review the last 30 days using an already-installed Observer and recent
-`.agents` evidence, keep the first pass read-only, and return an evidence-grounded shortlist. Do not
-install or update hooks, create assets, or edit files. If the workspace does not resolve to exactly
-one Git root, including an aggregator with multiple child repositories, ask for the exact target. If
-the skill is unavailable, report the missing dependency instead of substituting another workflow.
+For `!improve` or `!improvement`, use `$codex-self-improvement` when available and resolve exactly
+one Git root for the active workspace. Review the last 30 days using an already-installed Observer
+and recent `.agents` evidence, keep the first pass read-only, and return an evidence-grounded
+shortlist. Do not install or update hooks, create recommendation assets, or edit repository files.
+If the workspace does not resolve to exactly one Git root, including an aggregator with multiple
+child repositories, ask for the exact target. If the skill is unavailable, report the missing
+dependency instead of substituting another workflow. Present the shortlist through the
+[Improvement shortlist presentation](agents-shortcuts.md#improvement-shortlist-presentation)
+contract, including its numbered Markdown fallback.
 
 The routing precedence is deterministic:
 
@@ -504,9 +692,20 @@ The routing precedence is deterministic:
 Routed shortcuts already carry repository, time-window, evidence, and read-only context; they are
 not empty direct invocations of the skill.
 
-For `!summary`, summarize the conversation from the start of the session using the transcript
-currently available to the model and any explicit compaction summary. If earlier turns are
-unavailable, state that limitation instead of inventing missing details.
+For `!summary full`, match the modifier before the plain route and apply
+[Summary full](agents-shortcuts.md#summary-full): actively recover only the current chat from the
+first recorded message through the message before the invocation, then summarize. Report partial
+coverage explicitly when recovery cannot establish that interval.
+
+For `!summary` without arguments, cover the entire current session from its first available message,
+using the transcript and any explicit compaction summary. Apply the Whole-session summary contract
+in `.agents/references/agents-shortcuts.md`: include all material topics, requests, decisions,
+actions, observed results, and deferred, canceled, or optional items. Do not silently restrict
+coverage to recent work. Distinguish requested or authorized work from verified execution; preserve
+corrections and deferrals. Only an explicit argument or user instruction narrows scope. Check
+accessible-session coverage and declare compacted or unavailable history and known gaps; never
+invent details or claim unprovable completeness. Keep this read-only, without executing work,
+changing its status, scanning unrelated chats or artifacts, or exposing secrets or hidden context.
 
 For `!time`, use `codex-resolution-time` signals when available to report the elapsed session time.
 Do not claim the final current-turn duration before the `Stop` hook runs. If no timer signal is
@@ -548,9 +747,15 @@ separate, explicitly authorized handoff.
 
 Generic `league of agents` and direct `@League of Agents` are team-orchestration entries; they do
 not compose `$autonomous-loop` automatically. Composition occurs only when the same request also
-invokes `!loop`, or through the `!auto-review` preset below.
+invokes `!loop`, or through the `!review auto` preset below.
 
-For `!auto-review`, expand League + `!loop` + `$code-review`; do not create another skill or
+### Review auto governed plan
+
+Require an explicit invocation. Plain `!review` never infers `auto`; the review router can
+suggest it without starting the plan. Neither planning nor confirmation inherits the plain review
+formatting pre-pass. The retired shortcut has no dispatch entry.
+
+For `!review auto`, expand League + `!loop` + `$code-review`; do not create another skill or
 orchestration policy. Activate the League contract in the parent session and do not spawn
 `league-of-agents` as a child. Resolve the unpublished Git manifest from commits in
 `upstream..HEAD`, staged changes, unstaged changes, untracked files, renames, and deletions. If the

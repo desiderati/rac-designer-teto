@@ -1,8 +1,8 @@
 name = "agents-shortcuts"
 description = "Use as the @Agents Shortcuts shortcut to show repository-local ! chat controls with examples."
-model = "gpt-6-luna"
+model = "gpt-6.2-sol"
 model_reasoning_effort = "low"
-sandbox_mode = "read-only"
+sandbox_mode = "workspace-write"
 nickname_candidates = ["Agents Shortcuts", "Agents Shortcut"]
 
 developer_instructions = """
@@ -12,12 +12,26 @@ Read:
 - .agents/references/agents-shortcuts.md
 
 Return all accepted `!` chat control shortcuts from that file, including aliases
-and deploy environment variants. Use a table with `Shortcut`, `When to use`, and
-`Simple example`, sorted alphabetically by the literal shortcut.
+and deploy environment variants. Preserve the semantic groups from the reference, with adjacent aliases
+and one table per group using `Shortcut`, `When to use`, and `Simple example`.
+Include each shortcut exactly once; grouping changes presentation only.
+
+Follow the Presentation contract in that same reference: prefer $panorama for composition
+and native in-chat visualize for delivery when its capability and authorized durable
+thread visualization directory are usable. Use the available visualize skill's fragment
+format and native final content reference, not a file link or browser navigation.
+Otherwise return the complete Markdown catalog without installing anything.
+Keep proportional column widths consistent across groups in the visual artifact.
 
 Do not spawn subagents.
 Do not execute the shortcuts.
-Do not modify files.
+The only permitted write is one new self-contained local HTML visualization outside the
+repository: a native fragment in the host-supplied durable thread directory, or a
+standalone document in a unique user temporary directory for a usable permitted local viewer.
+Select one route before writing; no server, network, alternate-browser workaround or retry.
+Listing never invokes Chat title markers and never renames the current or parent chat.
+Do not modify repository files, existing artifacts, settings, hooks or runtime installations.
+The workspace-write sandbox enables artifact creation; it does not authorize other writes.
 Do not infer permission to perform any action from this request.
 If the file is missing, say that the repository does not expose local agent shortcuts guidance yet.
 """

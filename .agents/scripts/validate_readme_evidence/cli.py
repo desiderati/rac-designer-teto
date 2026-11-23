@@ -445,15 +445,94 @@ def _looks_placeholder_like(token: str) -> bool:
     return any(hint in token for hint in _PLACEHOLDER_HINTS)
 
 
+def _is_nonlocal_example(token: str, before: str, after: str) -> bool:
+    """Recognize negative examples and package layouts, not existence claims."""
+    # Scope the exception to this occurrence and clause, not every token on a line.
+    boundary = r"[.!?;](?:\s|$)|\b(?:mas|but)\b"
+    prefix = re.split(boundary, before.lower())[-1]
+    suffix = re.split(boundary, after.lower())[0]
+    explicit_claim = re.search(
+        r"\b(?:leia|abra|consulte|carregue|rode|execute|read|open|see|load|run)\b",
+        prefix,
+    ) or re.search(
+        r"\b(?:existe|existem|exists|existing|presente|present|localizado|localizada)\b",
+        prefix + suffix,
+    )
+
+    if explicit_claim:
+        return False
+
+    if re.search(
+        r"\b(?:são proibid[ao]s?|sao proibid[ao]s?|não usar|nao usar|do not use|prohibited)\b",
+        prefix,
+    ):
+        return True
+
+    normalized = token.replace("\\", "/")
+    package_relative = not normalized.startswith(("/", "./", "../")) and (
+        "/" not in normalized
+        or normalized.startswith(
+            ("scripts/", "references/", "templates/", "tests/", "assets/")
+        )
+    )
+
+    generic_scope = re.search(r"\b(?:cada|uma|each|a) skill\b", prefix + suffix)
+
+    distributed_file = re.match(
+        r"[\s*_]*(?:na raiz de cada skill|at the root of each skill)\b", suffix
+    )
+
+    layout_directory = normalized.endswith("/") and re.search(
+        r"\b(?:entrada pública|public entrypoint|auxiliares|layout|estrutura)\b",
+        prefix + suffix,
+    )
+
+    # Inspect prose adjacent to this occurrence, not another backticked path.
+    local_context = prefix.rsplit("`", 1)[-1] + token + suffix.split("`", 1)[0]
+    repository_claim = re.search(
+        r"\b(?:[nd](?:este|esse)|n[oa]|d[oa]|this|current)\s+"
+        r"(?:reposit[óo]rio|cat[áa]logo|projeto|repository|repo|catalog|project)\b",
+        local_context.lower(),
+    )
+
+    return bool(
+        package_relative
+        and (
+            distributed_file
+            or (
+                generic_scope
+                and layout_directory
+                and not repository_claim
+                and not _has_local_path_claim_context(token, local_context)
+            )
+        )
+    )
+
+
 def _extract_backticked_paths(text: str) -> Iterable[PathClaim]:
-    for line_index, line in enumerate(text.splitlines(), start=1):
-        for match in BACKTICK_RE.finditer(line):
+    lines = text.splitlines()
+    block_start = 0
+    for block_end in range(len(lines) + 1):
+        if block_end < len(lines) and lines[block_end].strip():
+            continue
+
+        block = "\n".join(lines[block_start:block_end])
+        for match in BACKTICK_RE.finditer(block):
             token = match.group(1)
             if _looks_placeholder_like(token):
                 continue
 
+            if _is_nonlocal_example(
+                token, block[: match.start()], block[match.end() :]
+            ):
+                continue
+
+            line_index = block_start + block.count("\n", 0, match.start()) + 1
+            line = lines[line_index - 1]
             if _looks_like_path(token, line):
                 yield line_index, _normalize(token)
+
+        block_start = block_end + 1
 
 
 def _extract_fenced_code_paths(text: str) -> Iterable[PathClaim]:

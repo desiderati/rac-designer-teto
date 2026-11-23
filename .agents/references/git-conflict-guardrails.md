@@ -83,6 +83,21 @@ means the source branch being squashed. This exception must not be generalized t
 cherry-pick, revert, stash, pull, patch, `git am`, UI merge tools, arbitrary scripts, or hand-edited
 conflict markers.
 
+## Worktree incorporation without rebase
+
+The incorporation stage of `!finish-worktree` uses fast-forward only. It must never initiate a
+rebase or abort a preexisting operation. If a Git operation or unresolved conflict already exists,
+stop mutation and keep diagnosis read-only until the operator resolves it.
+
+When direct fast-forward is unavailable and the source is clean, reviewed and preserved,
+`$git-change-reconciliation` may reconcile the preserved intent onto current `master` in a fresh
+candidate. This does not resolve conflicts in the source worktree. Follow [authorization
+continuity](agents-shortcuts.md#authorization-continuity) and the complete incorporation sequence in
+`agents-shortcuts.md`; preserve review, validation and GCR's uncommitted output. Existing consent
+covers the same demonstrated result; reconcile-only stops before commit and integration. Material
+new content, behavior or risk, uncertain equivalence or missing action authorization requires a
+specific human decision. Technical renewal never transfers ownership or weakens gates.
+
 ## Allowed Read-Only Diagnosis
 
 Codex may:

@@ -52,7 +52,8 @@ durable_curation:
 
 - artefatos locais / evidências efêmeras:
 
-- sidecar local de assets: `.agents/work-items/YYYY-MM/AAAAMMDD-{slug}.work-item.assets/` | ausente
+- sidecar local de assets: `.agents/work-items/YYYY-MM/AAAAMMDD-HHMM-{slug}.work-item.assets/` |
+  ausente
 
 - artefatos estruturados opcionais no sidecar: `task-plan.json` (derivado de
   `implementation-planning`, quando útil) | `test-report.json` | `review-links.json` | ausentes
@@ -90,18 +91,15 @@ durable_curation:
 
 - motivo para manter localmente:
 
+<!-- Escolher sim ou não. Toda instrução de reter o registro ou suas evidências exige sim.
+Preencher motivo e critério abaixo; conclusão e prazo não liberam retenção automaticamente. -->
 - reter localmente? não | sim
-
 - motivo da retenção local:
-
 - critério de liberação da retenção local:
-
 - arquivamento pendente? não | sim
-
 - arquivamento pendente desde:
-
 - motivo do arquivamento pendente:
-
 - referência do changelog / artefato durável:
-
 - sidecar promovido para artefato durável:
+
+<!-- Producer contract: derive the sidecar with note.with_suffix(".assets"); store all JSON helpers there, never beside the Markdown. -->

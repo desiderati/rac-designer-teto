@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
-"""Validate daily operational changelog files against the scaffold contract.
+"""Validate daily-tree operational entries and preserved legacy daily files.
 
 Checks enforced:
+- new entries use operational-entry/2 metadata and YYYY/MM/DD placement
+- incomplete independent files are violations, never valid events
 - filename matches `AAAAMMDD.changelog.md` (8 digits, ASCII)
 - top-level title `# Changelog - YYYY-MM-DD` with date matching the filename
 - optional YAML frontmatter with `durable_curation` has a structurally valid
   mapping, unique keys, typed values, and independently validated entries
-- at least one entry block opening with `## [HH:MM] <title>`
+- legacy entry blocks open with `## [HH:MM] <title>` or explicit
+  `## [horário não informado] <title>`; independent timestamps remain mandatory
 - each entry contains the minimum mandatory sub-sections in order:
   `### Contexto`, `### Decisão tomada`, `### Alterações realizadas`,
   `### Validação`, `### Tags`
-- repository mode inspects every Markdown file under `.agents/changelogs/`,
-  rejects non-canonical placement, and matches `YYYY-MM` to the filename date
+- repository mode inspects active Markdown under `.agents/changelogs/`, rejecting
+  non-canonical placement; legacy daily files retain YYYY-MM date alignment
+- cold files can be validated directly; repository mode excludes cold history
 
 Exits with non-zero status on any contract violation.
 """
@@ -19,14 +23,24 @@ Exits with non-zero status on any contract violation.
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
+import json
 import re
+import stat
 import sys
+import unicodedata
 from pathlib import Path, PureWindowsPath
 
 FILENAME_RE = re.compile(r"^(\d{4})(\d{2})(\d{2})\.changelog\.md$")
 MONTH_DIRECTORY_RE = re.compile(r"^(\d{4})-(\d{2})$")
 TITLE_RE = re.compile(r"^#\s+Changelog\s+-\s+(\d{4})-(\d{2})-(\d{2})\s*$", re.MULTILINE)
-ENTRY_HEADER_RE = re.compile(r"^##\s+\[(\d{2}):(\d{2})\]\s+\S.*$", re.MULTILINE)
+ENTRY_HEADER_RE = re.compile(r"^##[ \t]+\[(\d{2}):(\d{2})\][ \t]+\S.*$")
+UNKNOWN_TIME_ENTRY_HEADER_RE = re.compile(
+    r"^##[ \t]+\[horário não informado\][ \t]+\S.*$"
+)
+
+ENTRY_BOUNDARY_RE = re.compile(r"^ {0,3}##(?:[ \t]+.*)?$")
+FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
 ENTRY_VIOLATION_RE = re.compile(r"\bentry\s+(\d+):")
 CANONICAL_ERROR_RE = re.compile(r"^(?P<path>.+?\.changelog\.md):\s+(?P<detail>.+)$")
 LOOSE_ERROR_RE = re.compile(
@@ -83,6 +97,26 @@ CURATION_SCALAR_ENUMS = {
 }
 
 CURATION_BOOLEAN_KEYS = {"requires_operator"}
+MAX_COLLECTION_NODES = 10000
+
+
+def _unsafe_path(path: Path) -> bool:
+    """Inspect ancestors first, including broken links, without following targets."""
+    for component in reversed((path, *path.parents)):
+        try:
+            info = component.lstat()
+        except FileNotFoundError:
+            continue
+        except OSError:
+            return True
+
+        if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+            return True
+
+        if component != path and not stat.S_ISDIR(info.st_mode):
+            return True
+
+    return False
 
 
 def _extract_frontmatter(content: str) -> str | None:
@@ -340,12 +374,44 @@ def _parse_curation_mapping(
 
 
 def _split_entries(content: str) -> list[str]:
-    indices = [m.start() for m in ENTRY_HEADER_RE.finditer(content)]
-    if not indices:
-        return []
+    # Split on every real H2, including malformed entry headers. Code examples
+    # must neither create entries nor supply mandatory sections to their owner.
+    entries: list[list[str]] = []
+    fence = ""
+    frontmatter = False
+    for index, line in enumerate(content.splitlines()):
+        if index == 0 and line.strip() == "---":
+            frontmatter = True
+            continue
 
-    indices.append(len(content))
-    return [content[indices[i] : indices[i + 1]] for i in range(len(indices) - 1)]
+        if frontmatter:
+            if line.strip() == "---":
+                frontmatter = False
+
+            continue
+
+        marker = FENCE_RE.fullmatch(line)
+        if fence:
+            if (
+                marker
+                and marker[1][0] == fence[0]
+                and len(marker[1]) >= len(fence)
+                and not marker[2].strip()
+            ):
+                fence = ""
+
+            continue
+
+        if marker and (marker[1][0] != "`" or "`" not in marker[2]):
+            fence = marker[1]
+            continue
+
+        if ENTRY_BOUNDARY_RE.fullmatch(line):
+            entries.append([line.strip()])
+        elif entries:
+            entries[-1].append(line)
+
+    return ["\n".join(entry) for entry in entries]
 
 
 def _check_filename(path: Path) -> tuple[list[str], tuple[str, str, str] | None]:
@@ -468,23 +534,154 @@ def _check_entries(content: str) -> list[str]:
         return errors
 
     for index, entry in enumerate(entries, start=1):
+        lines = entry.splitlines()
+        header = ENTRY_HEADER_RE.fullmatch(lines[0])
+        if header is None and UNKNOWN_TIME_ENTRY_HEADER_RE.fullmatch(lines[0]) is None:
+            errors.append(
+                f"entry {index}: invalid header; expected `## [HH:MM] <title>`"
+                " or `## [horário não informado] <title>`"
+            )
+        elif header is not None and (int(header[1]) > 23 or int(header[2]) > 59):
+            errors.append(f"entry {index}: invalid time; expected 00:00 through 23:59")
+
+        sections = [line.rstrip() for line in lines[1:]]
         cursor = 0
         for section in MANDATORY_ENTRY_SECTIONS:
-            position = entry.find(section, cursor)
-            if position == -1:
+            try:
+                position = sections.index(section, cursor)
+            except ValueError:
                 errors.append(
                     f"entry {index}: missing or out-of-order section {section!r}"
                 )
 
-                cursor = len(entry)
+                cursor = len(sections)
                 continue
 
-            cursor = position + len(section)
+            cursor = position + 1
 
     return errors
 
 
+def validate_independent_file(path: Path) -> list[str]:
+    try:
+        if (
+            _unsafe_path(path)
+            or not stat.S_ISREG(path.lstat().st_mode)
+            or path.lstat().st_nlink != 1
+            or path.lstat().st_size > 1024 * 1024
+        ):
+            raise ValueError
+
+        content = path.read_bytes().decode("utf-8")
+        header, body = content.split("\n---\n\n", 1)
+        if not header.startswith("---\n") or not body.strip():
+            raise ValueError
+
+        data = json.loads(header[4:])
+        required = {
+            "schema",
+            "id",
+            "recorded_at",
+            "refs",
+            "corrects",
+            "commit_required",
+            "title",
+        }
+
+        if (
+            not isinstance(data, dict)
+            or not required <= set(data)
+            or set(data) - required - {"occurred_at"}
+            or data["schema"] != "operational-entry/2"
+            or not isinstance(data["id"], str)
+            or not re.fullmatch("[0-9a-f]{32}", data["id"])
+            or type(data["commit_required"]) is not bool
+        ):
+            raise ValueError
+
+        recorded = datetime.fromisoformat(data["recorded_at"])
+        title = data["title"]
+        if (
+            not isinstance(title, str)
+            or not title.strip()
+            or title != title.strip()
+            or len(title) > 240
+            or any(ord(character) < 32 for character in title)
+            or not body.startswith("# " + title + "\n\n")
+            or not body[len(title) + 4 :].strip()
+        ):
+            raise ValueError
+
+        normalized = unicodedata.normalize("NFKD", title)
+        normalized = normalized.encode("ascii", "ignore").decode().lower()
+        slug = re.sub(r"[^a-z0-9]+", "-", normalized).strip("-")[:64].rstrip("-")
+        filename = (
+            recorded.strftime("%Y%m%d-%H%M%S%f")
+            + "-"
+            + (slug or "registro")
+            + "-"
+            + data["id"]
+            + ".entry.md"
+        )
+
+        active_parts = (
+            recorded.strftime("%Y"),
+            recorded.strftime("%m"),
+            recorded.strftime("%d"),
+        )
+
+        valid_location = path.name == filename and (
+            tuple(path.parts[-4:-1]) == active_parts
+            or (
+                path.parent.name == recorded.strftime("%Y-%m")
+                and path.parent.parent.name == ".archived"
+            )
+        )
+
+        if recorded.utcoffset() is None or not valid_location:
+            raise ValueError
+
+        if (
+            "occurred_at" in data
+            and datetime.fromisoformat(data["occurred_at"]).utcoffset() is None
+        ):
+            raise ValueError
+
+        for key in ("refs", "corrects"):
+            if (
+                not isinstance(data[key], list)
+                or len(data[key]) > 128
+                or any(
+                    not isinstance(v, str) or not v.strip() or "\n" in v or "\r" in v
+                    for v in data[key]
+                )
+                or len(set(data[key])) != len(data[key])
+            ):
+                raise ValueError
+
+        if any(
+            not re.fullmatch("[0-9a-f]{32}", v) or v == data["id"]
+            for v in data["corrects"]
+        ):
+            raise ValueError
+
+        if any(
+            ord(character) < 32 and character not in "\n\r\t" for character in content
+        ):
+            raise ValueError
+
+        return []
+    except (OSError, ValueError, TypeError, KeyError, UnicodeError):
+        return ["invalid independent changelog entry"]
+
+
 def validate_file(path: Path) -> list[str]:
+    if _unsafe_path(path):
+        return ["unsafe changelog path: link or reparse point"]
+
+    if path.name.endswith(".entry.md"):
+        return validate_independent_file(path)
+
     if not path.exists():
         raise FileNotFoundError(f"changelog file not found: {path}")
 
@@ -516,23 +713,84 @@ def _relative(path: Path, root: Path) -> str:
 
 
 def _collect_markdown_files(changelog_root: Path) -> list[Path]:
-    if not changelog_root.exists():
-        return []
+    """Bound traversal and retain unsafe nodes as violations, never follow links."""
+    files: list[Path] = []
+    pending = [changelog_root]
+    observed = 0
+    while pending:
+        directory = pending.pop()
+        if _unsafe_path(directory):
+            files.append(directory)
+            continue
 
-    return sorted(
-        path
-        for path in changelog_root.rglob("*.md")
-        if path.is_file() and ".archived" not in path.relative_to(changelog_root).parts
-    )
+        for path in directory.iterdir():
+            observed += 1
+            if observed > MAX_COLLECTION_NODES:
+                raise ValueError("changelog inventory exceeds path limit")
+
+            info = path.lstat()
+            if _unsafe_path(path):
+                files.append(path)
+                continue
+
+            if path.name in {".archived", ".views"}:
+                continue
+
+            if stat.S_ISDIR(info.st_mode):
+                pending.append(path)
+            elif path.name.endswith(".md"):
+                files.append(path)
+
+    return sorted(files)
 
 
 def validate_repository(repo_root: Path) -> list[str]:
     changelog_root = repo_root / ".agents" / "changelogs"
     errors: list[str] = []
 
+    if _unsafe_path(changelog_root):
+        return [
+            f"{_relative(changelog_root, repo_root)}: unsafe changelog collection path"
+        ]
+
+    try:
+        info = changelog_root.lstat()
+    except FileNotFoundError:
+        return []
+    except OSError:
+        return [
+            f"{_relative(changelog_root, repo_root)}: unreadable changelog collection"
+        ]
+
+    if not stat.S_ISDIR(info.st_mode):
+        return [
+            f"{_relative(changelog_root, repo_root)}: unsafe changelog collection anchor"
+        ]
+
+    try:
+        collected = _collect_markdown_files(changelog_root)
+    except (OSError, ValueError):
+        return [
+            f"{_relative(changelog_root, repo_root)}: unsafe or bounded changelog inventory"
+        ]
+
     canonical_files: list[Path] = []
-    for path in _collect_markdown_files(changelog_root):
+    for path in collected:
+        if _unsafe_path(path) or not stat.S_ISREG(path.lstat().st_mode):
+            errors.append(f"{_relative(path, repo_root)}: unsafe changelog path")
+            continue
+
         relative = path.relative_to(changelog_root)
+        if path.name.endswith(".entry.md"):
+            if len(relative.parts) == 4:
+                canonical_files.append(path)
+            else:
+                errors.append(
+                    f"{_relative(path, repo_root)}: non-canonical independent entry location"
+                )
+
+            continue
+
         if len(relative.parts) == 1:
             errors.append(
                 "loose changelog file outside monthly directory: "
@@ -552,6 +810,10 @@ def validate_repository(repo_root: Path) -> list[str]:
             continue
 
         if not FILENAME_RE.fullmatch(path.name):
+            if path.name.endswith(".entry.md"):
+                canonical_files.append(path)
+                continue
+
             errors.append(
                 "non-canonical changelog filename in monthly directory: "
                 f"{_relative(path, repo_root)}"
@@ -574,6 +836,9 @@ def validate_repository(repo_root: Path) -> list[str]:
 
 
 def validate(path: Path) -> list[str]:
+    if _unsafe_path(path):
+        return ["unsafe changelog path: link or reparse point"]
+
     if path.is_dir():
         return validate_repository(path)
 

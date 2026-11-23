@@ -328,6 +328,246 @@ function Test-RipgrepPositionalPathGlob {
     return $false
 }
 
+function Get-PosixArgumentValue {
+    param([string]$Text)
+    # Decode literal quoting/escaping only. Never expand variables or run shell code.
+    $values = [System.Collections.Generic.List[string]]::new()
+    $word = [System.Text.StringBuilder]::new()
+    $quote = [char]0
+    $started = $false
+    for ($index = 0; $index -lt $Text.Length; $index++) {
+        $char = $Text[$index]
+        if ($quote -eq "'") {
+            if ($char -eq "'") { $quote = [char]0 }
+            else { [void]$word.Append($char) }
+            continue
+        }
+        if ($char -eq '\') {
+            if (($index + 1) -ge $Text.Length) { return @() }
+            $next = $Text[$index + 1]
+            if ($quote -eq [char]0 -or $next -in @('$', '`', '"', '\', "`n")) {
+                $index++
+                if ($next -ne "`n") { [void]$word.Append($next); $started = $true }
+            }
+            else { [void]$word.Append($char) }
+            continue
+        }
+        if ($char -eq '"') {
+            $quote = if ($quote -eq '"') { [char]0 } else { [char]'"' }
+            $started = $true
+            continue
+        }
+        if ($quote -eq [char]0 -and $char -eq "'") {
+            $quote = [char]"'"
+            $started = $true
+            continue
+        }
+        if ($quote -eq [char]0 -and [char]::IsWhiteSpace($char)) {
+            if ($started) { $values.Add($word.ToString()); [void]$word.Clear(); $started = $false }
+            continue
+        }
+        [void]$word.Append($char)
+        $started = $true
+    }
+    if ($quote -ne [char]0) { return @() }
+    if ($started) { $values.Add($word.ToString()) }
+    return @($values)
+}
+
+function Get-PosixShellToken {
+    param([string]$CommandText)
+    # Retain quoting and token positions; never expand or execute shell text.
+    $tokens = [System.Collections.Generic.List[object]]::new()
+    $hereDocuments = [System.Collections.Generic.List[object]]::new()
+    $pendingDelimiter = $null
+    $index = 0
+    while ($index -lt $CommandText.Length) {
+        $char = $CommandText[$index]
+        if ($char -eq "`n") {
+            $tokens.Add([pscustomobject]@{ Kind = 'separator'; Raw = "`n" })
+            $index++
+            foreach ($hereDocument in $hereDocuments) {
+                while ($index -lt $CommandText.Length) {
+                    $end = $CommandText.IndexOf("`n", $index)
+                    if ($end -lt 0) { $end = $CommandText.Length }
+                    $line = $CommandText.Substring($index, $end - $index).TrimEnd("`r")
+                    if ($hereDocument.StripTabs) { $line = $line.TrimStart([char]9) }
+                    $index = [Math]::Min($end + 1, $CommandText.Length)
+                    if ($line -ceq $hereDocument.Delimiter) { break }
+                }
+            }
+            $hereDocuments.Clear()
+            continue
+        }
+        if ([char]::IsWhiteSpace($char)) { $index++; continue }
+        if ($char -eq '#') {
+            while ($index -lt $CommandText.Length -and $CommandText[$index] -ne "`n") { $index++ }
+            continue
+        }
+        $start = $index
+        if ($CommandText.Substring($index) -match '^(?:&>>|&>|<<-|<<<|<<|>>|<>|<&|>&|>\||&&|\|\||[<>;&|])') {
+            $operator = $Matches[0]
+            $kind = if ($operator -match '^[;&|]+$') { 'separator' } else { 'redirect' }
+            $index += $operator.Length
+            $tokens.Add([pscustomobject]@{ Kind = $kind; Raw = $operator; Start = $start; End = $index })
+            if ($operator -in @('<<', '<<-')) { $pendingDelimiter = $operator }
+            continue
+        }
+        $quote = [char]0
+        while ($index -lt $CommandText.Length) {
+            $char = $CommandText[$index]
+            if ($quote -eq "'") {
+                if ($char -eq "'") { $quote = [char]0 }
+            }
+            elseif ($char -eq '\') { $index += 2; continue }
+            elseif ($char -eq '"') { $quote = if ($quote -eq '"') { [char]0 } else { [char]'"' } }
+            elseif ($quote -eq [char]0) {
+                if ($char -eq "'") { $quote = [char]"'" }
+                elseif ([char]::IsWhiteSpace($char) -or $char -in @('<', '>', ';', '&', '|')) { break }
+            }
+            $index++
+        }
+        $index = [Math]::Min($index, $CommandText.Length)
+        $raw = $CommandText.Substring($start, $index - $start)
+        $decoded = @(Get-PosixArgumentValue -Text $raw)
+        $value = if ($decoded.Count -eq 1) { $decoded[0] } else { $raw }
+        $tokens.Add([pscustomobject]@{ Kind = 'word'; Raw = $raw; Value = $value; Start = $start; End = $index })
+        if ($null -ne $pendingDelimiter) {
+            $hereDocuments.Add([pscustomobject]@{ Delimiter = $value; StripTabs = ($pendingDelimiter -eq '<<-') })
+            $pendingDelimiter = $null
+        }
+    }
+    return @($tokens)
+}
+
+function Get-PosixCommandSegment {
+    param([string]$CommandText)
+    $parts = [System.Collections.Generic.List[object]]::new()
+    $current = [System.Collections.Generic.List[object]]::new()
+    foreach ($token in @(Get-PosixShellToken -CommandText $CommandText)) {
+        if ($token.Kind -eq 'separator') {
+            if ($current.Count -gt 0) { $parts.Add([pscustomobject]@{ Tokens = @($current) }); $current.Clear() }
+        }
+        else { $current.Add($token) }
+    }
+    if ($current.Count -gt 0) { $parts.Add([pscustomobject]@{ Tokens = @($current) }) }
+    $segments = [System.Collections.Generic.List[object]]::new()
+    foreach ($part in $parts) {
+        $tokens = $part.Tokens
+        $commandIndex = 0
+        if ($tokens[0].Value -eq 'rtk') {
+            $commandIndex++
+            if ($tokens.Count -gt 1 -and $tokens[1].Value -eq 'proxy') { $commandIndex++ }
+        }
+        if ($commandIndex -ge $tokens.Count -or $tokens[$commandIndex].Kind -ne 'word') { continue }
+        if ($tokens[$commandIndex].Value -notmatch '(?:^|/)(?:rg|pwsh|powershell|cat)$') { continue }
+        $arguments = @($tokens | Select-Object -Skip ($commandIndex + 1))
+        $segments.Add([pscustomobject]@{
+                Name      = ($tokens[0..$commandIndex].Value -join ' ')
+                Args      = ($arguments.Raw -join ' ')
+                Arguments = $arguments
+            })
+    }
+    return @($segments)
+}
+
+function Get-PosixReadArgumentValue {
+    param([object[]]$Tokens)
+    $values = [System.Collections.Generic.List[string]]::new()
+    for ($index = 0; $index -lt $Tokens.Count; $index++) {
+        $token = $Tokens[$index]
+        if ($token.Kind -eq 'redirect') {
+            if (($index + 1) -lt $Tokens.Count -and $Tokens[$index + 1].Kind -eq 'word') {
+                $index++
+                # Input files are reads; output targets, descriptors and here-data are not.
+                if ($token.Raw -in @('<', '<>')) { $values.Add($Tokens[$index].Value) }
+            }
+            continue
+        }
+        if ($token.Raw -match '^\d+$' -and ($index + 1) -lt $Tokens.Count -and
+            $Tokens[$index + 1].Kind -eq 'redirect' -and $token.End -eq $Tokens[$index + 1].Start) { continue }
+        $values.Add($token.Value)
+    }
+    return @($values)
+}
+
+function Test-PosixNestedPowerShellCommand {
+    param([object[]]$Segments)
+    foreach ($segment in $Segments) {
+        if ($segment.Name -notmatch '(?:^|[/\s])(?:pwsh|powershell)$') { continue }
+        if ($segment.Args -match '(?:^|\s)-(?:Command|c)(?:\s|$)') { return $true }
+    }
+    return $false
+}
+
+function Test-PosixRipgrepPositionalPathGlob {
+    param([object[]]$Segments)
+    $optionsWithValues = @(
+        '-A', '--after-context', '-B', '--before-context', '-C', '--context',
+        '--context-separator', '-E', '--encoding', '-e', '--regexp', '-f', '--file',
+        '-g', '--glob', '--iglob', '--ignore-file', '-j', '--threads', '-M',
+        '--max-columns', '-m', '--max-count', '--max-depth', '--max-filesize',
+        '--path-separator', '--pre', '--pre-glob', '-r', '--replace', '--sort',
+        '--sortr', '-t', '--type', '--type-add', '--type-clear', '-T', '--type-not',
+        '--color', '--colors', '--engine', '--dfa-size-limit', '--regex-size-limit',
+        '--field-context-separator', '--field-match-separator', '--hostname-bin',
+        '--hyperlink-format'
+    )
+    foreach ($segment in $Segments) {
+        if ($segment.Name -notmatch '(?:^|[/\s])rg$') { continue }
+        $arguments = @(Get-PosixArgumentValue -Text $segment.Args)
+        $positionals = [System.Collections.Generic.List[string]]::new()
+        $pathOnly = $false
+        $patternByOption = $false
+        $endOptions = $false
+        for ($index = 0; $index -lt $arguments.Count; $index++) {
+            $argument = $arguments[$index]
+            if (-not $endOptions -and $argument -eq '--') { $endOptions = $true; continue }
+            if (-not $endOptions -and $argument -match '^--(?:regexp|file)=') {
+                $patternByOption = $true
+                continue
+            }
+            if (-not $endOptions -and $argument -match '^-(?:e|f).+') {
+                $patternByOption = $true
+                continue
+            }
+            if (-not $endOptions -and $argument -eq '--files') { $pathOnly = $true; continue }
+            if (-not $endOptions -and $argument -in $optionsWithValues) {
+                if ($argument -in @('-e', '--regexp', '-f', '--file')) {
+                    $patternByOption = $true
+                }
+                $index++
+                continue
+            }
+            if (-not $endOptions -and $argument.StartsWith('-')) { continue }
+            $positionals.Add($argument)
+        }
+        $pathStart = if ($patternByOption -or $pathOnly) { 0 } else { 1 }
+        for ($index = $pathStart; $index -lt $positionals.Count; $index++) {
+            if ($positionals[$index] -match '[/\\]' -and $positionals[$index] -match '[*?]') {
+                return $true
+            }
+        }
+    }
+    return $false
+}
+
+function Test-PosixUnboundedFullRead {
+    param([object[]]$Segments, [int64]$MaximumBytes = 32768)
+    foreach ($segment in $Segments) {
+        if ($segment.Name -notmatch '(?:^|[/\s])cat$') { continue }
+        foreach ($path in @(Get-PosixReadArgumentValue -Tokens $segment.Arguments)) {
+            if ($path.StartsWith('-') -or $path -match '[*?$`]') { continue }
+            try {
+                $item = Get-Item -LiteralPath $path -ErrorAction Stop
+                if (-not $item.PSIsContainer -and $item.Length -gt $MaximumBytes) { return $true }
+            }
+            catch { continue }
+        }
+    }
+    return $false
+}
+
 function Read-PreflightPolicy {
     param([string]$ConfigPath, [hashtable]$PatternRegistry)
     $policy = [ordered]@{
@@ -409,34 +649,47 @@ function Read-PreflightPolicy {
 }
 
 try {
-    if ($Event -ne "PreToolUse" -or $env:OS -ne "Windows_NT") { exit 0 }
+    if ($Event -ne "PreToolUse") { exit 0 }
     $command = Get-CommandText -Payload (Read-HookPayload)
     if ([string]::IsNullOrWhiteSpace($command)) { exit 0 }
 
-    $parsed = Get-ParsedCommand -CommandText $command
     $detected = [System.Collections.Generic.HashSet[string]]::new()
     $enforced = [System.Collections.Generic.HashSet[string]]::new()
-    if (Test-RtkCmdletBoundary -Invocations $parsed.Invocations) {
-        [void]$detected.Add("RTK_CMDLET_BOUNDARY")
-    }
-    if (Test-NestedPowerShellCommand -Invocations $parsed.Invocations) {
-        [void]$detected.Add("NESTED_POWERSHELL_COMMAND")
-    }
-    if (Test-ForeachPipeline -ParsedCommand $parsed -CommandText $command) {
-        [void]$detected.Add("FOREACH_PIPELINE")
-    }
-    if (Test-RipgrepPositionalPathGlob -Invocations $parsed.Invocations) {
-        [void]$detected.Add("RG_POSITIONAL_GLOB")
-    }
-    if (Test-AmbiguousVariableBoundary -ParsedCommand $parsed) {
-        [void]$detected.Add("POWERSHELL_AMBIGUOUS_VARIABLE_BOUNDARY")
-    }
-    if ($EnforceExecutionBudget) {
-        if (Test-UnroutedExecutable -Invocations $parsed.Invocations) {
+    if ($IsWindows -or $env:OS -eq 'Windows_NT') {
+        $parsed = Get-ParsedCommand -CommandText $command
+        if (Test-RtkCmdletBoundary -Invocations $parsed.Invocations) {
+            [void]$detected.Add("RTK_CMDLET_BOUNDARY")
+        }
+        if (Test-NestedPowerShellCommand -Invocations $parsed.Invocations) {
+            [void]$detected.Add("NESTED_POWERSHELL_COMMAND")
+        }
+        if (Test-ForeachPipeline -ParsedCommand $parsed -CommandText $command) {
+            [void]$detected.Add("FOREACH_PIPELINE")
+        }
+        if (Test-RipgrepPositionalPathGlob -Invocations $parsed.Invocations) {
+            [void]$detected.Add("RG_POSITIONAL_GLOB")
+        }
+        if (Test-AmbiguousVariableBoundary -ParsedCommand $parsed) {
+            [void]$detected.Add("POWERSHELL_AMBIGUOUS_VARIABLE_BOUNDARY")
+        }
+        if ($EnforceExecutionBudget -and (Test-UnroutedExecutable -Invocations $parsed.Invocations)) {
             [void]$detected.Add("UNROUTED_EXECUTABLE")
             [void]$enforced.Add("UNROUTED_EXECUTABLE")
         }
-        if (Test-UnboundedFullRead -Invocations $parsed.Invocations) {
+        if ($EnforceExecutionBudget -and (Test-UnboundedFullRead -Invocations $parsed.Invocations)) {
+            [void]$detected.Add("UNBOUNDED_FULL_READ")
+            [void]$enforced.Add("UNBOUNDED_FULL_READ")
+        }
+    }
+    else {
+        $segments = Get-PosixCommandSegment -CommandText $command
+        if (Test-PosixNestedPowerShellCommand -Segments $segments) {
+            [void]$detected.Add("NESTED_POWERSHELL_COMMAND")
+        }
+        if (Test-PosixRipgrepPositionalPathGlob -Segments $segments) {
+            [void]$detected.Add("RG_POSITIONAL_GLOB")
+        }
+        if ($EnforceExecutionBudget -and (Test-PosixUnboundedFullRead -Segments $segments)) {
             [void]$detected.Add("UNBOUNDED_FULL_READ")
             [void]$enforced.Add("UNBOUNDED_FULL_READ")
         }
@@ -500,12 +753,12 @@ try {
     $lines = [System.Collections.Generic.List[string]]::new()
     if ($denials.Count -gt 0) {
         $lines.Add(
-            "Windows Shell Preflight: a política local bloqueou uma forma sintaticamente frágil antes da execução."
+            "Shell Preflight: a política local bloqueou uma forma sintaticamente frágil antes da execução."
         )
     }
     else {
         $lines.Add(
-            "Windows Shell Preflight: o comando proposto corresponde a uma forma sintaticamente frágil."
+            "Shell Preflight: o comando proposto corresponde a uma forma sintaticamente frágil."
         )
     }
     foreach ($message in $denials) { $lines.Add($message) }

@@ -1,6 +1,6 @@
 name = "solution-reviewer"
 description = "Use for diagnostic review of ADRs, RFCs, solution designs and implementation, migration, rollout or readiness plans through Solution Review; exclude PRDs and code."
-model = "gpt-6-sol"
+model = "gpt-6.2-sol"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Solution Reviewer"]

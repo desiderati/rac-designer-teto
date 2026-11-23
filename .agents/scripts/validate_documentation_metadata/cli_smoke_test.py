@@ -33,19 +33,21 @@ class ValidateDocumentationMetadataCliTest(unittest.TestCase):
                 repo_root / "docs/README.md",
                 """
                 ---
+                title: Docs
                 doc_role: docs-index
                 ---
 
                 # Docs
 
                 - [Regras](business-rules/README.md)
-                - [Asset](product-requirements/PRD-005-release.prd.assets/checklist.md)
+                - [Release](product-requirements/PRD-005-release.prd.md)
                 """,
             )
             write(
                 repo_root / "docs/business-rules/README.md",
                 """
                 ---
+                title: Regras
                 doc_role: business-rules-index
                 ---
 
@@ -58,6 +60,7 @@ class ValidateDocumentationMetadataCliTest(unittest.TestCase):
                 repo_root / "docs/business-rules/BUS-001-regra-local.md",
                 """
                 ---
+                title: Regra Local
                 doc_role: business-rule
                 ---
 
@@ -65,9 +68,23 @@ class ValidateDocumentationMetadataCliTest(unittest.TestCase):
                 """,
             )
             write(
+                repo_root / "docs/product-requirements/PRD-005-release.prd.md",
+                """
+                ---
+                title: Release
+                doc_role: product-requirement
+                ---
+
+                # Release
+
+                - [Checklist](PRD-005-release.prd.assets/checklist.md)
+                """,
+            )
+            write(
                 repo_root / "docs/product-requirements/PRD-005-release.prd.assets/checklist.md",
                 """
                 ---
+                title: Checklist
                 doc_role: validation-checklist
                 ---
 
@@ -109,7 +126,7 @@ class ValidateDocumentationMetadataCliTest(unittest.TestCase):
             )
 
         self.assertEqual(result.returncode, 1)
-        self.assertIn("invalid TOML", result.stderr)
+        self.assertIn("invalid documentation configuration", result.stderr)
 
     def test_reports_frontmatter_candidate_not_reachable_from_obsidian(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -34,7 +34,8 @@ crie este arquivo antes da mutação; registre o que realmente foi executado.
   sensível.
 
 - Se disponível, valide este arquivo com `.agents/scripts/validate_production_changes.py` antes do
-  fechamento quando houver comandos, logs, links, capturas ou payloads relevantes.
+  fechamento quando o registro contiver evidência de comandos, logs, links, capturas, payloads ou
+  configuração.
 
 ## Resumo
 
@@ -75,26 +76,64 @@ crie este arquivo antes da mutação; registre o que realmente foi executado.
 
 ## Evidência
 
-- evidência antes:
+- configuração declarada antes: fonte, revisão ou versão e escopo esperado (por exemplo, commit e
+  caminho da configuração);
+
+- estado observado antes: alvo, ambiente, horário e evidência do que estava efetivamente em execução
+  (por exemplo, digest implantado ou regras efetivas);
+
 - evidência depois:
+
 - logs, links ou capturas relevantes:
+
 - evidência sanitizada usada no chat final:
+
 - valores redigidos ou mascarados:
+
 - limitações da evidência:
+
+Registre os dois estados separadamente: o arquivo em disco ou o commit não comprova o que estava em
+execução. Em caso de divergência, indique o que foi reconciliado e o que ficou inconclusivo. Se a
+comparação usar hash, indique o objeto e a forma de cálculo; quando a ordem não tiver efeito
+semântico, preserve a observação original e identifique separadamente o resultado normalizado.
+Quando uma evidência não existir ou não se aplicar, registre a limitação ou a justificativa.
 
 ## Validação
 
 - checks executados:
+
 - resultado dos checks:
+
 - impacto observado:
+
+- **Cloud Armor em preview (quando aplicável):** antes de criar o preview, confirme, por host, o
+  backend efetivo, se o logging está habilitado, a taxa de amostragem, o acesso aos logs e como
+  correlacionar a sonda autorizada (por exemplo, host, janela e identificador não sensível). Após a
+  execução, registre por host a referência sanitizada do log, a política, a prioridade e a decisão
+  simulada (`previewSecurityPolicy`), separadas da política, da prioridade e da decisão efetivamente
+  aplicada (`enforcedSecurityPolicy`) e do status HTTP observado. Se faltar evidência para a
+  correlação ou para distinguir as decisões, marque a validação daquele host como **pendente**. Não
+  atribua o status HTTP à regra em preview.
 
 ## Risco e Rollback
 
 - risco residual:
+
+- artefato de reversão: referência protegida da preimagem ou versão recuperável, alvo e evidência de
+  integridade quando aplicável; indicar se o artefato foi apenas localizado ou também validado para
+  recuperação;
+
 - rollback planejado:
+
 - condição de rollback:
+
 - rollback executado ou justificativa para não executar:
+
 - observações:
+
+O hash identifica uma observação, mas não substitui o artefato necessário para recuperar o estado.
+Se a reversão não se aplicar ou não estiver comprovada, explicite a limitação e seu efeito no risco.
+Registre apenas referências e evidência sanitizada, sem anexar configurações brutas com segredos.
 
 ## Pendências
 

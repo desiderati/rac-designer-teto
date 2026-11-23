@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -25,6 +26,47 @@ from urllib.parse import unquote
 
 
 SCHEMA_VERSION = 1
+
+
+def _metadata_owner() -> Any:
+    """Bind the sibling owner in catalog and installed layouts, never runtime."""
+    source = (
+        Path(__file__).resolve().parents[1] / "validate_documentation_metadata/cli.py"
+    )
+
+    name = "_documentation_metadata_repair"
+    spec = importlib.util.spec_from_file_location(name, source)
+    if spec is None or spec.loader is None:
+        raise RepairError("metadata package is unavailable")
+
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    try:
+        spec.loader.exec_module(module)
+        return module
+    except (OSError, ValueError) as exc:
+        raise RepairError(str(exc)) from exc
+
+
+def _identity_policy(repo: Path) -> tuple[Any, Any]:
+    owner = _metadata_owner()
+    policy, errors = owner._load_docs_governance_policy(
+        repo, Path(".agents/documentation.toml"), None
+    )
+
+    if errors:
+        raise RepairError("; ".join(errors))
+
+    return owner, policy
+
+
+def _sealed_evidence(repo: Path) -> frozenset[Path]:
+    try:
+        return _metadata_owner().load_sealed_evidence(repo)
+    except (OSError, ValueError) as exc:
+        raise RepairError(str(exc)) from exc
+
+
 CANONICAL_NAME = "SIGLA-NNN[N]-slug.md"
 CANONICAL_NAME_RE = re.compile(
     r"\A(?P<sigla>[A-Z][A-Z0-9]*)-(?P<number>\d{3,4})-"
@@ -120,22 +162,6 @@ SUPERPOWERS_PATTERNS = (
     ),
 )
 
-SIGLA_BY_DIRECTORY = {
-    "architecture-decisions": "ADR",
-    "bug-analysis": "BUG",
-    "data-models": "MER",
-    "engineering-playbook": "ENG",
-    "execution-runbooks": "RUN",
-    "git-governance": "GIT",
-    "incident-reports": "INC",
-    "knowledge-base": "KB",
-    "product-requirements": "PRD",
-    "prompts": "PROMPT",
-    "security": "SEC",
-    "system-specifications": "SPEC",
-    "technical-specifications": "TECH",
-}
-
 DIRECTORY_BY_SIGLA = {
     "ADR": "architecture-decisions",
     "BUG": "bug-analysis",
@@ -154,6 +180,11 @@ DIRECTORY_BY_SIGLA = {
 }
 
 DOC_ROLE_BY_SIGLA = {
+    "SD": "solution-design",
+    "PLAN": "implementation-plan",
+    "GOV": "governance",
+    "OPS": "operational-guidance",
+    "RUNBOOK": "runbook",
     "ADR": "architecture-decision",
     "BUG": "bug-analysis",
     "DATA": "data-model",
@@ -170,7 +201,6 @@ DOC_ROLE_BY_SIGLA = {
     "TECH": "technical-specification",
 }
 
-SIGLA_BY_DOC_ROLE = {value: key for key, value in DOC_ROLE_BY_SIGLA.items()}
 SIGLA_KEYWORDS = (
     (re.compile(r"\badr\b|decis[aã]o de arquitetura", re.IGNORECASE), "ADR"),
     (re.compile(r"\bprd\b|requisito de produto", re.IGNORECASE), "PRD"),
@@ -361,6 +391,7 @@ class RepairPlan:
     assumptions: list[str]
     warnings: list[str]
     protected_paths: list[str]
+    pending_reviews: list[str]
 
 
 def _run_git(
@@ -549,7 +580,14 @@ def _tracked_durable_records(repo: Path) -> list[Path]:
         records.extend(
             repo / Path(relative)
             for relative in tracked
-            if relative.startswith(prefix + "/") and relative.casefold().endswith(".md")
+            if relative.startswith(prefix + "/")
+            and relative.casefold().endswith(".md")
+            # Adjacent case assets belong to their evidence producer, not to the
+            # primary record's editorial contract (including canonical entries).
+            and not any(
+                part.casefold().endswith(".assets")
+                for part in Path(relative).parts[:-1]
+            )
         )
 
     return sorted(set(path for path in records if path.is_file()))
@@ -704,21 +742,39 @@ def _load_filename_exceptions(
 
 
 def _infer_sigla(
-    relative: str, title: str, fields: dict[str, str]
+    relative: str, title: str, fields: dict[str, str], policy: Any = None
 ) -> tuple[str, str, str]:
     name = Path(relative).name
-    existing = re.match(r"^(?P<sigla>[A-Z][A-Z0-9]{1,15})[-_. ]", name)
-    if existing:
+    existing = re.match(r"^(?P<sigla>[A-Z][A-Z0-9]*)[-_. ]", name)
+    ticket = bool(
+        existing
+        and policy
+        and _metadata_owner().is_ticket_identity(existing["sigla"], policy)
+    )
+
+    if (
+        existing
+        and (
+            existing["sigla"] != "DOC"
+            or policy
+            and existing["sigla"] in policy.collection_prefixes
+        )
+        and not ticket
+    ):
         return existing.group("sigla").upper(), "prefixo existente no nome", "alta"
 
-    doc_role = fields.get("doc_role", "").strip().lower()
-    if doc_role in SIGLA_BY_DOC_ROLE:
-        return SIGLA_BY_DOC_ROLE[doc_role], f"doc_role={doc_role}", "alta"
+    family, conflict = _metadata_owner().collection_signal(relative, fields)
+    if conflict:
+        return "DOC", "doc_role e diretório indicam famílias conflitantes", "ambígua"
 
-    parts = PurePosixPath(relative).parts
-    for part in reversed(parts[1:-1]):
-        if part in SIGLA_BY_DIRECTORY:
-            return SIGLA_BY_DIRECTORY[part], f"família semântica docs/{part}/", "alta"
+    if family:
+        return family, "doc_role ou família semântica", "alta"
+
+    if existing and not ticket:
+        return existing["sigla"], "prefixo existente no nome", "alta"
+
+    if ticket:
+        return "DOC", "chave Jira sem família documental comprovada", "ambígua"
 
     probe = f"{title} {name}"
     for pattern, sigla in SIGLA_KEYWORDS:
@@ -732,22 +788,40 @@ def _infer_sigla(
     )
 
 
-def _candidate_number(name: str) -> int | None:
-    for match in re.finditer(r"(?<!\d)(\d{1,4})(?!\d)", name):
-        value = int(match.group(1))
-        if 1 <= value <= 9999:
-            return value
-
-    return None
-
-
 def _next_number(used: set[int]) -> int:
-    for number in range(1, 1000):
-        if number not in used:
-            used.add(number)
-            return number
+    number = max(used, default=0) + 1
+    if number > 9999:
+        raise RepairError("No free documentation number remains for a SIGLA")
 
-    raise RepairError("No free documentation number remains for a SIGLA")
+    used.add(number)
+    return number
+
+
+def _historical_numbers(repo: Path, policy: Any) -> dict[str, set[int]]:
+    """Reserve identities reachable from this branch only, including deletions."""
+    used: dict[str, set[int]] = {}
+    if _run_git(repo, "rev-parse", "--verify", "HEAD", check=False).returncode == 0:
+        history = _git_text(
+            repo, "log", "--format=", "--name-only", "-z", "HEAD", "--", "docs"
+        )
+
+        for raw in history.split("\0"):
+            relative = raw.strip("\r\n")
+            if not relative or _is_support_path(relative):
+                continue
+
+            match = CANONICAL_NAME_RE.fullmatch(
+                PurePosixPath(relative).name
+            ) or STRUCTURED_PRD_NAME_RE.fullmatch(PurePosixPath(relative).name)
+
+            if match:
+                used.setdefault(match["sigla"], set()).add(int(match["number"]))
+
+    for identity in policy.reserved_document_ids:
+        prefix, number = identity.rsplit("-", 1)
+        used.setdefault(prefix, set()).add(int(number))
+
+    return used
 
 
 def _target_parent(relative: str, sigla: str) -> PurePosixPath:
@@ -772,6 +846,7 @@ def _move_target_for_document(
     sigla: str,
     number: int,
     title: str,
+    preserve_ticket: bool = False,
 ) -> str:
     path = PurePosixPath(relative)
     stem = Path(path.name).stem
@@ -780,7 +855,7 @@ def _move_target_for_document(
         stem = stem[: -len(".prd")]
         qualifier = ".prd"
 
-    slug_source = _strip_existing_identity(stem)
+    slug_source = stem if preserve_ticket else _strip_existing_identity(stem)
     if _slugify(slug_source) in {"readme", "index", "documento"}:
         slug_source = title
 
@@ -860,12 +935,19 @@ def _support_owner(
 
 def build_plan(repo: Path, protected_paths: Iterable[str]) -> RepairPlan:
     repo = _normalize_repo(repo)
+    sealed_evidence = _sealed_evidence(repo)
+    owner, policy = _identity_policy(repo)
     protected = sorted({_normalize_relative(path) for path in protected_paths})
     protected_set = set(protected)
     exceptions, warnings = _load_filename_exceptions(repo)
     moves: list[Move] = []
     assumptions: list[str] = []
+    pending_reviews: list[str] = []
     tracked = _tracked_paths(repo)
+    if _git_text(repo, "rev-parse", "--is-shallow-repository") == "true":
+        warnings.append(
+            "Histórico Git raso: IDs retirados fora da cobertura precisam de reserved_document_ids"
+        )
 
     readme_variants = sorted(
         path for path in tracked if "/" not in path and path.casefold() == "readme.md"
@@ -887,13 +969,29 @@ def build_plan(repo: Path, protected_paths: Iterable[str]) -> RepairPlan:
         moves.append(move)
 
     docs = repo / "docs"
-    used: dict[str, set[int]] = {}
+    used = _historical_numbers(repo, policy)
     documents: list[tuple[str, str, dict[str, str]]] = []
     normalized_release_note_sources: set[str] = set()
     normalized_release_note_targets: set[str] = set()
     if docs.exists():
+        # Reserve every current primary identity before proposing any rename.
+        # Untracked JSONs, sealed records and filename exceptions still own IDs.
+        for path in [*_iter_markdown_files(docs), *_iter_structured_documents(docs)]:
+            if _is_support_path(_relative(repo, path)):
+                continue
+
+            identity = CANONICAL_NAME_RE.fullmatch(
+                path.name
+            ) or STRUCTURED_PRD_NAME_RE.fullmatch(path.name)
+
+            if identity:
+                used.setdefault(identity["sigla"], set()).add(int(identity["number"]))
+
         for path in _iter_markdown_files(docs):
             relative = _relative(repo, path)
+            if path in sealed_evidence:
+                continue
+
             target = _canonical_release_note_target(relative)
             reason = (
                 "normalizar o diretório de release notes preservando o nome numérico"
@@ -947,6 +1045,7 @@ def build_plan(repo: Path, protected_paths: Iterable[str]) -> RepairPlan:
             relative = _relative(repo, path)
             if (
                 relative in normalized_release_note_sources
+                or path in sealed_evidence
                 or _is_support_path(relative)
                 or _is_protected_release(relative)
                 or _is_superpowers_owned(relative)
@@ -972,23 +1071,39 @@ def build_plan(repo: Path, protected_paths: Iterable[str]) -> RepairPlan:
     )
 
     for relative, title, fields in sorted(documents):
-        if CANONICAL_NAME_RE.fullmatch(Path(relative).name):
+        canonical = CANONICAL_NAME_RE.fullmatch(Path(relative).name)
+        sigla, reason, confidence = _infer_sigla(relative, title, fields, policy)
+        if confidence == "ambígua":
+            pending_reviews.append(
+                f"{relative}: {reason}; revisão de classificação necessária"
+            )
+
             continue
 
-        sigla, reason, confidence = _infer_sigla(relative, title, fields)
+        if canonical and canonical["sigla"] == sigla:
+            continue
+
         numbers = used.setdefault(sigla, set())
-        preferred = _candidate_number(Path(relative).stem)
-        if preferred is not None and preferred not in numbers:
+        existing = re.match(
+            r"^([A-Z][A-Z0-9]*)[-_. ](\d{1,4})(?=[-_. ]|$)", Path(relative).stem
+        )
+
+        preferred = int(existing[2]) if existing and existing[1] == sigla else None
+        if preferred is not None and preferred > 0:
             numbers.add(preferred)
             number = preferred
         else:
             number = _next_number(numbers)
+
+        prefix = re.match(r"^([A-Z][A-Z0-9]*)[-_. ]", Path(relative).name)
+        ticket = bool(prefix and owner.is_ticket_identity(prefix[1], policy))
 
         target = _move_target_for_document(
             relative,
             sigla=sigla,
             number=number,
             title=title,
+            preserve_ticket=ticket,
         )
 
         while target in reserved_targets and target != relative:
@@ -998,6 +1113,7 @@ def build_plan(repo: Path, protected_paths: Iterable[str]) -> RepairPlan:
                 sigla=sigla,
                 number=number,
                 title=title,
+                preserve_ticket=ticket,
             )
 
         reserved_targets.discard(relative)
@@ -1238,6 +1354,7 @@ def build_plan(repo: Path, protected_paths: Iterable[str]) -> RepairPlan:
         assumptions=sorted(set(assumptions)),
         warnings=sorted(set(warnings)),
         protected_paths=protected,
+        pending_reviews=sorted(pending_reviews),
     )
 
 
@@ -2227,6 +2344,10 @@ def _build_index_entries(repo: Path) -> dict[str, list[tuple[str, str]]]:
 
         owner = _nearest_index(relative, indexes)
         title = _extract_title(_read_text(path)[0], path.stem)
+        identity = _metadata_owner().document_identity(path.name)
+        if identity and not title.startswith(identity):
+            title = f"{identity} — {title}"
+
         entries.setdefault(owner, []).append((relative, title))
 
     for path in _iter_structured_documents(docs):
@@ -2257,7 +2378,17 @@ def _apply_moves(repo: Path, moves: Sequence[Move]) -> dict[str, str]:
             raise RepairError(f"Repair source no longer exists: {move.source}")
 
         if target.exists() and source.resolve() != target.resolve():
-            raise RepairError(f"Repair target already exists: {move.target}")
+            same_case_alias = (
+                source.name.casefold() == target.name.casefold()
+                and source.parent.resolve() == target.parent.resolve()
+                and not source.is_symlink()
+                and not target.is_symlink()
+                and source.stat().st_nlink == 1
+                and source.samefile(target)
+            )
+
+            if not same_case_alias:
+                raise RepairError(f"Repair target already exists: {move.target}")
 
         _case_only_move(source, target)
         mapping[move.source] = move.target
@@ -2365,11 +2496,8 @@ def _ensure_docs_index(repo: Path, protected: set[str]) -> list[str]:
     return changed
 
 
-def _ensure_asset_owner_links(repo: Path, protected: set[str]) -> list[str]:
+def _asset_owner_pairs(repo: Path) -> list[tuple[Path, Path]]:
     docs = repo / "docs"
-    if not docs.exists():
-        return []
-
     pairs: list[tuple[Path, Path]] = []
     central = docs / "documentation-assets"
     if central.is_dir():
@@ -2388,8 +2516,132 @@ def _ensure_asset_owner_links(repo: Path, protected: set[str]) -> list[str]:
             )
         )
 
+    return pairs
+
+
+def _asset_owner_link_text(
+    owner: str, asset_files: Sequence[PurePosixPath], text: str, newline: str
+) -> str:
+    links = [
+        f"- [{asset.name}]({_relative_link(owner, asset.as_posix())})"
+        for asset in asset_files
+    ]
+
+    return _replace_managed_section(
+        text,
+        begin=ASSETS_MARKER_BEGIN,
+        end=ASSETS_MARKER_END,
+        body=newline.join(["## Assets", "", *links]),
+        newline=newline,
+    )
+
+
+def _check_sealed_asset_owner_links(
+    repo: Path, moves: Sequence[Move], sealed_evidence: frozenset[Path]
+) -> None:
+    if not sealed_evidence:
+        return
+
+    docs = PurePosixPath("docs")
+    central = docs / "documentation-assets"
+    owner_directories: dict[Path, set[PurePosixPath]] = {}
+    for owner in sorted(sealed_evidence):
+        relative = PurePosixPath(_relative(repo, owner))
+        adjacent = relative.with_suffix(".assets")
+        directories = set()
+        if relative.parent == docs:
+            directories.add(central / relative.stem)
+
+        if central not in adjacent.parents:
+            directories.add(adjacent)
+
+        owner_directories[owner] = directories
+
+    # Pair discovery can reach the same owner through another spelling or link.
+    for owner, directory in _asset_owner_pairs(repo):
+        if not owner.is_file():
+            continue
+
+        resolved_owner = owner.resolve()
+        if resolved_owner in owner_directories:
+            owner_directories[resolved_owner].add(
+                PurePosixPath(directory.relative_to(repo).as_posix())
+            )
+
+    # The writer moves files first, then entire asset directories. Include files
+    # entering a directory as well as existing files that the plan moves away.
+    file_moves = [move for move in moves if move.kind != "asset-directory"]
+    directory_moves = [move for move in moves if move.kind == "asset-directory"]
+    sources = {
+        path for directories in owner_directories.values() for path in directories
+    }
+
+    sources.update(PurePosixPath(move.source) for move in directory_moves)
+    files = {
+        path
+        for source in sources
+        for path in (repo / source).rglob("*")
+        if path.is_file()
+    }
+
+    files.update(
+        repo / move.source for move in file_moves if (repo / move.source).is_file()
+    )
+
+    def after_moves(path: PurePosixPath) -> PurePosixPath:
+        for move in file_moves:
+            if path.as_posix() == move.source:
+                path = PurePosixPath(move.target)
+
+        for move in directory_moves:
+            source = PurePosixPath(move.source)
+            if path.is_relative_to(source):
+                path = PurePosixPath(move.target) / path.relative_to(source)
+
+        return path
+
+    destinations = {
+        after_moves(PurePosixPath(path.relative_to(repo).as_posix())): path
+        for path in sorted(files)
+    }
+
+    for owner, directories in owner_directories.items():
+        text, newline = _read_text(owner)
+        relative = _relative(repo, owner)
+        for directory in sorted(directories):
+            assets: list[PurePosixPath] = []
+            for path in sorted(destinations):
+                if directory not in path.parents:
+                    continue
+
+                original = destinations[path]
+                lexical = PurePosixPath(original.relative_to(repo).as_posix())
+                resolved = PurePosixPath(_relative(repo, original))
+                if lexical != resolved:
+                    if path != lexical or after_moves(resolved) != resolved:
+                        raise RepairError(
+                            f"Asset-link repair cannot verify moved link for sealed evidence: {relative}"
+                        )
+
+                    path = resolved
+
+                assets.append(path)
+
+            if (
+                assets
+                and _asset_owner_link_text(relative, assets, text, newline) != text
+            ):
+                raise RepairError(
+                    f"Asset-link repair would alter sealed evidence: {relative}"
+                )
+
+
+def _ensure_asset_owner_links(
+    repo: Path, protected: set[str], sealed_evidence: frozenset[Path]
+) -> list[str]:
+    sealed_paths = {_relative(repo, path) for path in sealed_evidence}
     changed: list[str] = []
-    for owner, asset_directory in pairs:
+    for owner, asset_directory in _asset_owner_pairs(repo):
         if not owner.is_file():
             continue
 
@@ -2402,22 +2654,20 @@ def _ensure_asset_owner_links(repo: Path, protected: set[str]) -> list[str]:
 
         owner_relative = _relative(repo, owner)
         text, newline = _read_text(owner)
-        links = [
-            f"- [{asset.name}]({_relative_link(owner_relative, _relative(repo, asset))})"
-            for asset in asset_files
-        ]
-
-        body = newline.join(["## Assets", "", *links])
-        updated = _replace_managed_section(
+        updated = _asset_owner_link_text(
+            owner_relative,
+            [PurePosixPath(_relative(repo, asset)) for asset in asset_files],
             text,
-            begin=ASSETS_MARKER_BEGIN,
-            end=ASSETS_MARKER_END,
-            body=body,
-            newline=newline,
+            newline,
         )
 
         if updated == text:
             continue
+
+        if _path_is_protected(owner_relative, sealed_paths):
+            raise RepairError(
+                f"Asset-link repair would alter sealed evidence: {owner_relative}"
+            )
 
         if _path_is_protected(owner_relative, protected):
             raise RepairError(
@@ -2854,6 +3104,21 @@ def apply_plan(
 ) -> dict[str, Any]:
     repo = Path(plan.repo_root)
     protected = set(plan.protected_paths)
+    sealed_evidence = _sealed_evidence(repo)
+    owner, policy = _identity_policy(repo)
+    for move in plan.moves:
+        for path in sealed_evidence:
+            relative = _relative(repo, path)
+            if any(
+                relative == item or relative.startswith(item + "/")
+                for item in (move.source, move.target)
+            ):
+                raise RepairError(
+                    f"Structural repair would move sealed evidence: {relative}"
+                )
+
+    _check_sealed_asset_owner_links(repo, plan.moves, sealed_evidence)
+
     before_blocks: dict[str, list[str]] = {}
     for path in [repo / surface for surface in ROOT_SURFACES]:
         if path.is_file():
@@ -2881,6 +3146,9 @@ def apply_plan(
 
     markdown_paths.extend(_tracked_durable_records(repo))
     for path in sorted(set(markdown_paths)):
+        if path in sealed_evidence:
+            continue
+
         relative_after = _relative(repo, path)
         relative_before = reverse_mapping.get(relative_after, relative_after)
         had_bom = _has_utf8_bom(path)
@@ -2894,6 +3162,9 @@ def apply_plan(
         )
 
         text = _normalize_portuguese_prose(text)
+        if relative_after.startswith("docs/") and not _is_support_path(relative_after):
+            text, _ = owner.reconcile_document_identity(text, path.name, policy)
+
         if (
             relative_after.startswith("docs/") and not _is_support_path(relative_after)
         ) or any(
@@ -2937,7 +3208,7 @@ def apply_plan(
                 changed.add(relative)
 
     changed.update(_ensure_docs_index(repo, protected))
-    changed.update(_ensure_asset_owner_links(repo, protected))
+    changed.update(_ensure_asset_owner_links(repo, protected, sealed_evidence))
     changed.update(_ensure_obsidian_navigation(repo, protected))
     changed.update(_deduplicate_root_navigation_surfaces(repo, protected))
 
@@ -2978,6 +3249,7 @@ def apply_plan(
         "mode": "apply",
         "repo_root": str(repo),
         "status": "aplicado",
+        "pending_reviews": plan.pending_reviews,
         "canonical_filename": CANONICAL_NAME,
         "moves": [asdict(move) for move in plan.moves],
         "content_targets": plan.content_targets,
@@ -2998,6 +3270,7 @@ def _render_plan(plan: RepairPlan) -> dict[str, Any]:
         "mode": "plan",
         "repo_root": plan.repo_root,
         "status": "planejado",
+        "pending_reviews": plan.pending_reviews,
         "canonical_filename": CANONICAL_NAME,
         "moves": [asdict(move) for move in plan.moves],
         "content_targets": plan.content_targets,

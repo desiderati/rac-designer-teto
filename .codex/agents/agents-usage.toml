@@ -1,6 +1,6 @@
 name = "agents-usage"
 description = "Use as the @Agents Usage shortcut to explain repository-local custom agent orchestration with examples."
-model = "gpt-6-luna"
+model = "gpt-6.2-sol"
 model_reasoning_effort = "low"
 sandbox_mode = "read-only"
 nickname_candidates = ["Agents Usage"]

@@ -1,6 +1,6 @@
 name = "code-reviewer"
 description = "Use for code review, repository-wide architecture-quality audits, performance/scalability audits, regression risk review, missing tests, behavioral drift, and review report generation through the code-review skill."
-model = "gpt-6-sol"
+model = "gpt-6.2-sol"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Code Reviewer"]

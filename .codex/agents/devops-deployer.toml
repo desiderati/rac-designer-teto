@@ -1,6 +1,6 @@
 name = "devops-deployer"
 description = "Use for governed deployment guidance, GCP, SSH/OpenSSH, IAP and Bitbucket Pipelines handoffs through existing owners; never as an unrestricted remote executor."
-model = "gpt-6-sol"
+model = "gpt-6.2-sol"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["DevOps Deployer"]

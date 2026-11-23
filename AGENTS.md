@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Installed from `agents-bootstrap` skill version `0.130.1-beta`.
+Installed from `agents-bootstrap` skill version `0.181.2-beta`.
 
 ## Context
 
@@ -34,19 +34,20 @@ Before repository-scoped operations, resolve the workspace kind from the active 
 ## Skill Development Contract
 
 - Resolve `sat.codex_skills_repo` via `codex-profile` to the canonical Git repository.
-- Use `skill-development-session` in a linked worktree; `.codex/skills` only as runtime.
-- Otherwise fail closed: never fall back silently to runtime. Require the `skill-validation` gate
-  and Ruff for changed Python.
+- For catalog skill authoring, use `skill-development-session` in a linked worktree automatically;
+  `.codex/skills` only as runtime. Other repositories stay in the current checkout unless this chat
+  invokes `!init-worktree`.
+- For catalog skill authoring, fail closed: never fall back silently to runtime. Require the
+  `skill-validation` gate and Ruff for changed Python.
 
 ## Mandatory Initial Reading
 
-Read `SEMANTIC-VERSIONING.md` before release choices. Read when present: `README.md`,
-`CONTRIBUTING.md`, workflow references, and relevant continuity. Consult `OBSIDIAN.md` only when the
-canonical document or rule is unknown. Read `SOUL.md`
-if it exists when interpreting repository agent philosophy, decision style, orchestration norms, or
-communication posture. `AGENTS.md` remains the authoritative operational contract. Read
-`.agents/errors.md` if it exists; do not create it as a routine startup artifact. Discover first;
-cap reads at 200 lines or 32 KiB, chunk larger files, and never batch full-file reads.
+Read `SEMANTIC-VERSIONING.md` before release choices. Read existing `README.md`, `CONTRIBUTING.md`,
+workflow references and relevant continuity. Use `OBSIDIAN.md` only for an unknown canonical source.
+Read `SOUL.md` if it exists when interpreting repository agent philosophy, decision style,
+orchestration norms, or communication posture. `AGENTS.md` remains the authoritative operational contract.
+Read `.agents/errors.md` if it exists; do not create it as a routine startup artifact.
+Discover first; cap reads at 200 lines or 32 KiB, chunk larger files, and never batch full-file reads.
 
 ## Core Operating Principles
 
@@ -75,6 +76,8 @@ cap reads at 200 lines or 32 KiB, chunk larger files, and never batch full-file 
   `insufficient evidence`, followed by the factual basis.
 
 ## Conditional Tool Routing
+
+Frontend: follow `.agents/references/frontend-workflow.md` for mandatory routing.
 
 - At most one discovery step may precede direct reading or execution.
 - Do not chain Obsidian and Graphify unless the selected document proves that an unknown code
@@ -193,6 +196,24 @@ and authorized. Never repeat blindly. The hook never edits/runs; this is not `!r
 
 Before interpreting or executing any shortcut, read `.agents/references/agents-shortcuts.md`.
 
+Apply its Chat title markers contract.
+For chat tables, apply its Chat Table Presentation rule.
+
+`!init-worktree` requests public SDS `InitWorktree` for the current Git repository. Follow the
+naming, ownership and governance contract in that reference; missing or incompatible policy blocks
+before mutation. Never install or synchronize a skill automatically.
+
+`!worktrees` inventories worktrees and proven session bindings
+read-only. Follow that reference; no cleanup. In the SAT catalog, correlate accessible chats through
+SDS; never read private bindings or infer identity.
+
+`!history` requests a playful activity and work-pattern summary. Follow that reference's exact
+expansion and declared history or conversation fallback; never invent activity or enable observation.
+
+`!finish-worktree [target]` runs review, commit, direct FF or governed GCR, verified SDS cleanup
+and selective skill sync unless excluded. Follow the scoped shortcut contract. Public SDS
+`FinishWorktree` remains cleanup-only. Discussion does not invoke it; no push.
+
 ## Git Branch Discipline
 
 Codex must not create or switch working branches unless the user explicitly requests that exact Git
@@ -206,9 +227,8 @@ commits unless the user deliberately asks for a different branch strategy.
 If the branch target or intent is ambiguous, stop and ask for clarification before running branch,
 checkout, worktree, merge, rebase, cherry-pick, pull, or PR-preparation commands.
 
-SAT EAM direct `master`: only `.agents/**`, `.codex/**`, and manifest paths via
-`agents-bootstrap-repo-installer`; require DEVOPS HTTPS, isolated credentials, `[skip ci]`,
-non-force; exclude app/infra.
+Repository-specific permissions belong to GRG. Follow the selected profile in the managed
+Repository Git Governance section; do not import restrictions from another profile.
 
 ## Git Freshness Guardrail
 
@@ -219,6 +239,12 @@ Outgoing commits, dirty worktrees, or missing session fetch are not freshness bl
 
 Do not run fetch, pull, merge, rebase, stash, or conflict-resolution commands without explicit
 current-session confirmation. Divergence or in-progress Git operations require read-only diagnosis.
+
+## Worktree Integration
+
+Follow `.agents/references/agents-shortcuts.md` for sealed/unsealed routing, fast-forward-only
+incorporation and same-result consent. Preserve seals, ownership and gates. Reconcile-only stops
+before commit/integration; never squash, create merge commits or rebase sealed sources.
 
 ## Git Conflict Guardrail
 
@@ -232,7 +258,8 @@ offer this option proactively.
 If a merge, rebase, cherry-pick, revert, stash, pull, patch application, or any other Git operation
 produces conflicts, stop write work and follow `.agents/references/git-conflict-guardrails.md`.
 
-Only read-only diagnosis is allowed while conflicts are unresolved. Commit creation or Git operation
+Only read-only diagnosis is allowed while conflicts are unresolved, except the bounded abort of a
+rebase initiated by the incorporation flow, as defined in the conflict guardrails. Commit creation or Git operation
 continuation is allowed if and only if the user has resolved the conflicts manually, except for the
 narrow `$bitbucket-pull-request` scripted exception above.
 
@@ -244,6 +271,10 @@ narrow `$bitbucket-pull-request` scripted exception above.
   specific file or prompt requires another language.
 
 - Use proper accents in Portuguese text.
+
+- Use plain Markdown in chat responses, including trace notes. Do not use raw HTML such as
+  `<details>` and `<summary>` to create collapsible sections. This rule applies only to chat
+  responses; HTML files produced as deliverables remain allowed.
 
 - Do not invent facts, commands, paths, behaviors, or decisions that are not grounded in repository
   evidence.
@@ -306,42 +337,18 @@ narrow `$bitbucket-pull-request` scripted exception above.
 
 ## Workflow Router
 
-Use these references as the authoritative detailed contracts:
+Binding references:
 
-- `.agents/references/agents-workflow.md`
-  - prompt map, typical sequences, and workflow visual.
-
-- `.agents/references/prompt-routing.md`
-  - prompt fitness, ambiguity rules, phrase routing, and chaining rules.
-
-- `.agents/references/code-review-routing.md`
-  - code-review modes, scope, shadow, and delegation.
-
-- `.agents/references/local-continuity.md`
-  - `.agents/` structure, work-items, skips, deviations, and changelog rules.
-
-- `.agents/references/documentation-governance.md`
-  - Graphify guidance, README impact, knowledge consolidation, and repository
-    overview rules.
-
-- `.agents/references/collaboration-and-automation.md`
-  - automation, large-work collaboration, workflow improvement signaling, and
-    final quality bar.
-
-- `.agents/references/git-conflict-guardrails.md`
-  - absolute prohibition on resolving Git conflicts, allowed read-only
-    diagnosis, and the narrow post-user-resolution continuation rule.
-
-- `.agents/references/agents-roles.md`
-  - installed custom agent roles, prompt and skill mappings, and write
-    boundaries.
-
-- `.agents/references/agents-usage.md`
-  - team-mode triggers, when to use agents, when not to use them, and help
-    routing for examples.
-
-- `.agents/references/agents-shortcuts.md`
-  - accepted compact `!` chat control shortcuts and their guardrails.
+- `.agents/references/agents-workflow.md`: prompt map, sequences and workflow visual.
+- `.agents/references/prompt-routing.md`: prompt fitness, ambiguity, phrase routing and chaining.
+- `.agents/references/code-review-routing.md`: review modes, scope, shadow and delegation.
+- `.agents/references/local-continuity.md`: structure, work-items, skips, deviations and changelogs.
+- `.agents/references/documentation-governance.md`: Graphify, README impact, knowledge consolidation and overview.
+- `.agents/references/collaboration-and-automation.md`: automation, collaboration, improvements, quality and `🤖` agent-created chats.
+- `.agents/references/git-conflict-guardrails.md`: conflict prohibition, read-only diagnosis and post-user-resolution continuation.
+- `.agents/references/agents-roles.md`: roles, prompt/skill mappings and write boundaries.
+- `.agents/references/agents-usage.md`: team triggers, agent selection and example help.
+- `.agents/references/next-workflow.md`: `!next-workflow [ui]`.
 
 ## Prompt Entrypoints
 
@@ -359,16 +366,7 @@ Use these references as the authoritative detailed contracts:
 - Use `.agents/prompts/league-of-agents.prompt.md` when the user explicitly says `league of agents`
   or directly invokes `@League of Agents`.
 
-- Use `.agents/prompts/council-of-agents.prompt.md` when the user explicitly asks to pressure-test a
-  high-stakes decision with one of these Council entries:
-    - `council this`
-    - `pressure test this`
-    - `stress test this`
-    - `war room this`
-    - `premortem this`
-    - `debate this`
-    - `council of agents`
-    - direct invocation through `@Council of Agents`
+- Use `.agents/prompts/council-of-agents.prompt.md` for Council triggers below.
 
 - Use `.agents/prompts/agents-of-shield.prompt.md` when the user explicitly invokes `@Agents of
   Shield` or asks for the `agents of shield` security council.
@@ -402,61 +400,35 @@ maintenance/refactoring in unknown code bypass it to `support-analyst` and `code
 Brainstorm only reclassifies those cases. It authorizes orchestration, not writing, councils,
 implementation, Git, deploy, or external mutation.
 
-Treat these user phrases as explicit authorization to evaluate custom-agent delegation for the
-current task:
+Explicit delegation triggers:
 
-- `league of agents`
-- direct invocation through the project-scoped `@League of Agents` custom agent
-- `!auto-review`
+- League: `league of agents`, project-scoped `@League of Agents`, or `!review auto`.
+  Read `.agents/prompts/league-of-agents.prompt.md`; evaluate delegation.
 
-When one of those phrases appears, read `.agents/prompts/league-of-agents.prompt.md`,
-`.agents/references/agents-usage.md`, and `.agents/references/agents-roles.md`, then decide whether
-to delegate.
+- Council: `council this`, `pressure test this`, `stress test this`, `war room this`,
+  `premortem this`, `debate this`, `council of agents`, or `@Council of Agents`.
+  Read `.agents/prompts/council-of-agents.prompt.md`; run only for real stakes, uncertainty,
+  and a meaningful trade-off.
 
-Treat these user phrases as explicit authorization to evaluate Council of Agents for the current
-decision:
+- Shield: `agents of shield` or `@Agents of Shield`.
+  Read `.agents/prompts/agents-of-shield.prompt.md` and
+  `.agents/references/security-advisor-profiles.md`; run only when the security question
+  benefits from the fixed profile set.
 
-- `council this`
-- `pressure test this`
-- `stress test this`
-- `war room this`
-- `premortem this`
-- `debate this`
-- `council of agents`
-- direct invocation through the project-scoped `@Council of Agents` custom agent
+- Fellowship: `fellowship of architects` or `@Fellowship of Architects`.
+  Read `.agents/prompts/fellowship-of-architects.prompt.md` and
+  `.agents/references/solutions-architect-profiles.md`; run only when the architecture question
+  benefits from the fixed profile set.
 
-When one of those phrases appears, read `.agents/prompts/council-of-agents.prompt.md`,
-`.agents/references/agents-usage.md`, and `.agents/references/agents-roles.md`, then run the council
-only when the question has real stakes, uncertainty, and a meaningful trade-off.
-
-Treat these user phrases as explicit authorization to evaluate Agents of Shield for the current
-security question:
-
-- `agents of shield`
-- direct invocation through the project-scoped `@Agents of Shield` custom agent
-
-When one of those phrases appears, read `.agents/prompts/agents-of-shield.prompt.md`,
-`.agents/references/security-advisor-profiles.md`, `.agents/references/agents-usage.md`, and
-`.agents/references/agents-roles.md`, then run the security council only when the question benefits
-from the fixed security profile set.
-
-Treat these user phrases as explicit authorization to evaluate Fellowship of Architects for the
-current architecture question:
-
-- `fellowship of architects`
-- direct invocation through the project-scoped `@Fellowship of Architects` custom agent
-
-When one of those phrases appears, read `.agents/prompts/fellowship-of-architects.prompt.md`,
-`.agents/references/solutions-architect-profiles.md`, `.agents/references/agents-usage.md`, and
-`.agents/references/agents-roles.md`, then run the architecture council only when the question
-benefits from the fixed architecture profile set.
+Also read `.agents/references/agents-usage.md` and
+`.agents/references/agents-roles.md` before agent evaluation or execution.
 
 When the user says `Agents Usage` or invokes `@Agents Usage`, do not spawn subagents. Read
 `.agents/references/agents-usage.md` and explain how agent orchestration works in this repository.
 
-When the user says `Agents Shortcuts`, `Agents Shortcut`, invokes `@Agents Shortcuts`, or asks which
-`!` shortcuts are accepted, do not spawn subagents. Read `.agents/references/agents-shortcuts.md`
-and return the accepted shortcuts with their guardrails. Do not execute the shortcuts.
+For `Agents Shortcuts`, `Agents Shortcut`, `@Agents Shortcuts`, or shortcut-list queries, read
+`.agents/references/agents-shortcuts.md`. Return all shortcuts and guardrails using its
+Presentation contract; never execute shortcuts, rename chats or spawn subagents.
 
 When the user says `!help` without an explicit skill, agent, or workflow, do not spawn subagents.
 Read `.agents/references/agents-shortcuts.md` and return concise human-facing help for the current
@@ -481,7 +453,7 @@ Use `.agents/work-items/` selectively, but create or resume a work-item before t
 mutation or when losing the sequence of discoveries, decisions, validations, and pending items would
 materially harm continuity.
 
-A daily changelog entry is mandatory in the same session when material technical work, operational
+An operational changelog entry is mandatory in the same session when material technical work, operational
 diagnosis, remote mutation, deployment, documentation promotion, or evidence-backed technical
 decision happened.
 
@@ -502,22 +474,21 @@ purpose. Preserve scope; apply the delivery-residue filter in `prompt-routing.md
 action. It remains read-only: it neither executes nor authorizes the prompt it returns. If no
 result-oriented item remains, state `Nenhuma pendência funcional ou contextual.`
 
-`!next-prompt ultra` is a modifier of `!next-prompt` for preparing an autonomous follow-up task.
-Recommend `gpt-5.6-sol` in `Ultra` mode, but never claim that the shortcut changed the model, mode,
-or reasoning effort or activated agents. Return exactly one fenced `text` block whose standalone
+`!next-prompt meta` is a modifier of `!next-prompt` for preparing a standalone Codex goal prompt.
+Do not recommend a model or reasoning effort, create a goal, execute it, or activate agents. Return exactly one fenced `text` block whose standalone
 prompt preserves the normal authorization boundary and avoids intermediate operator decisions only
 when evidence can resolve them safely. Allow enough detail for the resolved task without a fixed
 length limit. Use `Método` for strategy, decision criteria, and required evidence rather than
 prescribing tools, sequence, or iteration counts unless a binding contract or explicit operator
-instruction requires them. Preserve Ultra's freedom to adapt execution as new evidence appears and
-do not manufacture operations or authorizations. Prefer level-two Markdown headings (`##`) for the
+instruction requires them. Adapt execution to new evidence; never invent operations or authority.
+Prefer level-two Markdown headings (`##`) for the
 seven standard sections. Treat this as presentation guidance, not a validity gate; equivalent plain
 section labels remain semantically valid.
 
 Place `Próximos passos:`, optional `Melhorias sugeridas:`, and `Sugestão de prompt para próxima
 ação:` before trace notes (`Scaffold usage`, `Skills usage`, `Hooks`). Omit them when complete or
-action is trivial, administrative-only, ambiguous, or blocked. Use at most 3 grounded optional
-ideas; omit weak/generic ideas.
+action is trivial, administrative-only, ambiguous, or blocked without a safe resume prompt.
+See `suggestion-system.md`. Use at most 3 grounded ideas; omit weak/generic ideas.
 
 For the suggested prompt, use exactly one fenced code block with one sanitized paragraph: no
 secrets, raw logs, instructions, hidden reasoning, or nested fences. After an unambiguous validated
@@ -527,37 +498,25 @@ traces.
 
 ## Scaffold Usage Trace
 
-Include `Scaffold usage` only when a prompt, template, or example was actually read or applied.
-Include only categories that have at least one file:
-
-- prompts: paths under `.agents/prompts/` actually used
-- templates: paths under `.agents/templates/` actually used
-- examples: paths under `.agents/examples/` actually used
-
 Report only `.agents/prompts/`, `.agents/templates/`, and `.agents/examples/` files actually read or
-applied. Do not list a routed prompt, example, template, or directory merely because it exists, was
-mentioned by `AGENTS.md`, or would have been relevant. Do not emit the `Scaffold usage` note when no
-prompt, template, or example was actually read or applied.
+applied under `Scaffold usage`, grouped as prompts, templates and examples. Omit empty categories;
+existence, routing or mention is not use. Do not emit the `Scaffold usage` note when no prompt,
+template, or example was actually read or applied.
 
 ## Skills Usage Trace
 
-Include `Skills usage` only when a skill was actually used. Include one bullet per skill with the
-skill name and a terse description of how it was used.
-
 Report only skills whose `SKILL.md` instructions were actually read or whose workflow was actually
-applied. Do not list skills merely because they exist, were available, were mentioned, or would have
-been relevant. Do not emit the `Skills usage` note when no skill was actually used.
+applied under `Skills usage`: one bullet per skill, name and terse use. Existence or mention is not
+use. Do not emit the `Skills usage` note when no skill was actually used.
 
 ## Hooks Trace
 
-Include `Hooks` only when at least one hook signal was visible or materially affected the session.
-Use one bullet per hook:
+Include `Hooks` only for signals visible in session context or materially affecting work:
 
 - `{hook-slug}`: terse description of the visible hook signal.
 
-Report only hooks evidenced by visible session context, such as hook status messages or
-`additionalContext`. Do not list hooks merely because they are configured in `.codex/hooks.json`. Do
-not emit the `Hooks` note when no hook signal was visible.
+Do not list hooks merely because they are configured in `.codex/hooks.json`.
+Do not emit the `Hooks` note when no hook signal was visible.
 
 ## Knowledge Graph Interoperability
 
@@ -601,23 +560,6 @@ handoff.
 - `DELEGATE` requires the named governed workflow. `DENY`, `INVALID`, and
   `UNCONFIGURED` are fail-closed.
 <!-- END SAT REPOSITORY GOVERNANCE -->
-
----
-
-## Knowledge graph interoperability
-
-When a repository uses Graphify:
-
-- Use Graphify only when the structural relationship is unknown. If the file and symbol are known, open the source
-  directly.
-- Query an existing `graphify-out/graph.json` with `query`, `path`, or `explain`, use a small budget, and return at
-  most three source files before reading the canonical sources.
-- Never rebuild the graph or export an Obsidian vault automatically during a normal task. Build and incremental
-  update are deliberate index-maintenance operations.
-- Treat Graphify outputs as a derived structural index for navigation and retrieval, not as the canonical source of
-  truth.
-- If Graphify output conflicts with source code, versioned docs, or explicit technical decisions, prefer those primary
-  sources.
 
 @RTK.md
 

@@ -217,6 +217,19 @@ plan. Also run it after other material work when execution exposes a concrete op
 - do not load a new skill solely to generate suggestions
 - keep accepted scope, exclusions, and current stage authoritative
 
+#### Blocked outcomes
+
+When an explicit requested outcome is blocked, include exactly one sanitized, copyable `Sugestão de
+prompt para próxima ação:` if current evidence identifies the blocker and a safe, verifiable
+condition for resuming. Ask to check that condition first and to stop if it is not met or cannot be
+proved. Resume only the same target and already authorized actions if the condition is met and the
+applicable gates still pass. Carry over the original exclusions.
+
+Omit the prompt when the objective or target is ambiguous, no safe verification exists, or resuming
+would require new authorization, bypass a refusal, or touch another session's work. Report the
+blocker and any required decision without manufacturing a prompt. This exception does not promote
+routine delivery residue or change explicit shortcut contracts.
+
 ### `!suggest`
 
 Return exactly one highest-priority grounded recommendation:
@@ -252,18 +265,18 @@ Return exactly one sanitized, copyable prompt for the smallest evidence-backed n
 
 - if no result-oriented item survives, state `Nenhuma pendência funcional ou contextual.`
 
-### `!next-prompt ultra`
+### `!next-prompt meta`
 
-Treat `ultra` as a modifier of `!next-prompt`, not as execution authorization or a model-setting
+Treat `meta` as a modifier of `!next-prompt`, not as execution authorization or a model-setting
 command:
 
 - use an explicit objective after the modifier or the single unambiguous evidence-backed next action
   from the current context
 
-- recommend `gpt-5.6-sol` in `Ultra` mode when available, while stating that the shortcut does not
-  change the model, mode, or reasoning effort or activate agents
+- prepare a Codex goal prompt without recommending a model or reasoning effort; do not create or
+  execute the goal, change settings, or activate agents
 
-- return the recommendation and exactly one fenced `text` block with a standalone prompt
+- return exactly one fenced `text` block with a standalone prompt
 
 - include `Objetivo`, `Resultado esperado`, `Escopo autorizado`, `Restrições`, `Método`, `Validação
   obrigatória`, and `Conclusão`
@@ -275,15 +288,15 @@ command:
 
 - express strategy, decision criteria, and required evidence in `Método` rather than prescribing
   tools, sequence, or iteration counts unless a binding contract or explicit operator instruction
-  requires them; preserve Ultra's freedom to adapt execution as new evidence appears
+  requires them; preserve the executor's freedom to adapt execution as new evidence appears
 
 - do not manufacture operations or authorizations to make the prompt appear complete
 
 - direct autonomous local work without requesting intermediate operator decisions when evidence can
   resolve them safely
 
-- let the active Ultra and repository orchestration contracts decide whether delegation adds value;
-  the shortcut does not authorize it
+- let the active execution and repository orchestration contracts decide whether delegation adds
+  value; the shortcut does not authorize it
 
 - preserve confirmation boundaries for production, external-system, destructive, or irreversible
   actions and stop on a real blocker

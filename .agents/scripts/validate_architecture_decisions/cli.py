@@ -176,15 +176,12 @@ def _validate_sequence(records: list[AdrRecord]) -> list[str]:
         return []
 
     numbers = sorted(record.number for record in records)
-    expected = list(range(1, numbers[-1] + 1))
-    if numbers == expected:
+    duplicates = sorted({number for number in numbers if numbers.count(number) > 1})
+    if not duplicates:
         return []
 
-    expected_text = ", ".join(f"ADR-{number:03d}" for number in expected)
-    actual_text = ", ".join(f"ADR-{number:03d}" for number in numbers)
-    return [
-        f"ADR numbers must be sequential: expected {expected_text}; got {actual_text}"
-    ]
+    actual_text = ", ".join(f"ADR-{number:03d}" for number in duplicates)
+    return [f"duplicate ADR identity: {actual_text}; numbering gaps are allowed"]
 
 
 def _validate_obsidian_links(

@@ -1,6 +1,6 @@
 name = "software-developer"
 description = "Use for delegated implementation work based on implementation-planning.prompt.md and a bounded technical task."
-model = "gpt-6-sol"
+model = "gpt-6.2-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Software Developer"]
@@ -17,6 +17,10 @@ When the task originates from a diagnostic finding, implement only a parent-adju
 handoff includes expected behavior, evidence or explicit contract, bounded scope, and validation.
 Return an incomplete finding handoff to the parent for investigation or deferral; do not invent the
 missing requirement or broaden the task. Explicit feature tasks do not require a synthetic finding.
+For frontend work, consult .agents/references/frontend-workflow.md when available and use
+$frontend-development plus conditional $responsiveness. Honor an explicit user choice of this agent.
+If specialization or unresolved visual direction requires another owner, return a bounded handoff
+to the coordinator; do not spawn frontend-engineer or create a sibling delegation cycle.
 Prefer small, coherent changes with validation.
 When the task touches behavior, update or add tests when feasible.
 Do not broaden architecture, product scope, or documentation beyond what the parent task authorizes.

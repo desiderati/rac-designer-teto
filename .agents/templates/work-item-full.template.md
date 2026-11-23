@@ -52,7 +52,8 @@ durable_curation:
 
 - artefatos locais / evidências efêmeras:
 
-- sidecar local de assets: `.agents/work-items/YYYY-MM/AAAAMMDD-{slug}.work-item.assets/` | ausente
+- sidecar local de assets: `.agents/work-items/YYYY-MM/AAAAMMDD-HHMM-{slug}.work-item.assets/` |
+  ausente
 
 - artefatos estruturados opcionais no sidecar: `task-plan.json` (derivado de
   `implementation-planning`, quando útil) | `test-report.json` | `review-links.json` | ausentes
@@ -159,3 +160,5 @@ durable_curation:
 - referência do changelog / artefato durável:
 
 - sidecar promovido para artefato durável:
+
+<!-- Producer contract: derive the sidecar with note.with_suffix(".assets"); store all JSON helpers there, never beside the Markdown. -->

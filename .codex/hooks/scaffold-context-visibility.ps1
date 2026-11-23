@@ -199,6 +199,7 @@ if (-not [string]::IsNullOrWhiteSpace($signalLines)) {
     $additionalContextParts += $signalLines
 }
 $additionalContextParts += @(
+    'Apply the Chat Table Presentation rule in .agents/references/agents-shortcuts.md: Panorama with native Visualize at standard chat width, responsive on narrow screens. Preserve explicit formats and the labeled Markdown fallback.'
     'Preserve the AGENTS.md Continuation Suggestions: use `Próximos passos:`, optional `Melhorias sugeridas:` (0–3 grounded items), then one sanitized suggested-prompt block only when follow-up exists; keep scope and exclusions.'
     'Preserve the AGENTS.md Suggestion System: after material PRD, ADR, or non-trivial plan creation/review, silently evaluate `.agents/references/suggestion-system.md`. `!suggest` returns one; `!suggest explore` maps up to 12 and shortlists 3. Never mutate or auto-load skills, agents, or councils solely to suggest.'
     'Preserve the AGENTS.md Suggested Prompt: after a validated unambiguous plan/dry-run, suggest the exact confirmation phrase instead of another planning turn; if sensitive or state-changing scope is ambiguous, ask for planning or explicit confirmation instead of execution.'
