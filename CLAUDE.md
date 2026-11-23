@@ -1,8 +1,12 @@
 # CLAUDE.md
 
-Installed from `agents-bootstrap` skill version `0.181.2-beta`.
+Installed from `agents-bootstrap` skill version `0.181.5-beta`.
 
 This file exists only for compatibility with tools that look for `CLAUDE.md` at the repository root.
+
+The reading order and precedence below apply to local development sessions configured to use Agents
+Bootstrap. In external agent environments such as Manus, follow the host's project and task
+instructions. Preserve the Bootstrap files when editing the application.
 
 ## Recommended reading order
 

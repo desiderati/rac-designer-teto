@@ -1,6 +1,12 @@
 # AGENTS.md
 
-Installed from `agents-bootstrap` skill version `0.181.2-beta`.
+Installed from `agents-bootstrap` skill version `0.181.5-beta`.
+
+## Scope
+
+This file applies to local development sessions using Agents Bootstrap. In Manus or another external
+agent environment, follow the host's project and task instructions. Keep Bootstrap setup, refresh,
+shortcuts, hooks, and local tools outside application work. Preserve the pack files.
 
 ## Context
 
@@ -9,27 +15,16 @@ Installed from `agents-bootstrap` skill version `0.181.2-beta`.
 
 ## Workspace Kind Resolution
 
-Before repository-scoped operations, resolve the workspace kind from the active workspace directory:
+Before repository-scoped work, run `git rev-parse --show-toplevel` in the active directory. Use the
+returned Git root, including linked worktrees where `.git` is a file.
 
-1. Run `git rev-parse --show-toplevel`.
+Only when Git reports that no work tree exists, check for at least one independent child repository
+and root `AGENTS.md` and `.agents/`. All three are required for aggregator mode. Report other Git
+errors and stop repository-scoped work.
 
-2. If it succeeds, treat the returned path as the Git repository root, including linked worktrees
-   where `.git` is a file.
-
-3. If Git specifically reports that no work tree exists, inspect the active workspace root for at
-   least one independent child repository.
-
-4. Treat the workspace as an aggregator only when it contains at least one independent child
-   repository and already has both `AGENTS.md` and `.agents/`.
-
-5. If Git fails for any other reason, do not infer aggregator mode; report the failure and stop
-   repository-scoped operations.
-
-6. Never initialize aggregator-level agent scaffolding implicitly. Aggregator mode may only refresh
-   an existing installation.
-
-7. Never run repository-level Git operations from an aggregator root. Resolve commits, pushes,
-   stashes, branches, and bootstrap operations within the appropriate child repository.
+Aggregator mode refreshes existing scaffolds only.
+Never run repository-level Git operations from an aggregator root. Use the appropriate child for
+commits, pushes, stashes, branches, and repository bootstrap.
 
 ## Skill Development Contract
 
